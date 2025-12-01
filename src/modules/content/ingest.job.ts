@@ -44,6 +44,7 @@ export class IngestJob extends WorkerHost {
       }
     );
     await  this.vectorStore.addFragments(fragments);
+    await fs.unlink(data.path);
     this.logger.debug(`File "${data.path}" processed`);
   }
   
