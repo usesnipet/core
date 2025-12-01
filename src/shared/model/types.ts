@@ -79,6 +79,10 @@ export type FieldOneOfOptions<T = any> = BaseFieldOptions & {
   classes: Array<() => Constructor<T>>;
 };
 
+export type FieldFileOptions = BaseFieldOptions & {
+  type: "file";
+};
+
 
 export type FieldOptions =
   | FieldStringOptions
@@ -88,4 +92,5 @@ export type FieldOptions =
   | FieldDateOptions
   | FieldClassOptions
   | FieldOneOfOptions
-  | FieldObjectOptions;
+  | FieldObjectOptions
+  | FieldFileOptions;

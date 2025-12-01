@@ -14,7 +14,7 @@ export const buildApiProperty = (opts: FieldOptions): PropertyDecorator => {
     example: opts.example,
     default: opts.default,
     isArray: opts.isArray,
-    nullable: opts.nullable
+    nullable: opts.nullable,
   };
 
   switch (opts.type) {
@@ -39,6 +39,10 @@ export const buildApiProperty = (opts: FieldOptions): PropertyDecorator => {
     case "enum":
       const enumValues = typeof opts.enum === "function" ? opts.enum() : opts.enum;
       baseConfig.enum = enumValues;
+      break;
+    case "file":
+      baseConfig.type = "string";
+      baseConfig.format = "binary";
       break;
   }
 

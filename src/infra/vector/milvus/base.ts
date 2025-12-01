@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { env } from "@/env";
 import { BaseFragment, Fragments } from "@/fragment";
+import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { getPresets } from "@/lib/presets";
 import { Constructor } from "@/types/constructor";
 import { LLMPreset } from "@/types/llm-preset";
@@ -11,12 +12,10 @@ import {
 } from "@zilliz/milvus2-sdk-node";
 
 import { VectorDeleteError } from "../errors/delete-error";
-import { InvalidPresetError } from "../errors/invalid-preset";
 import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
 import { VectorStore, VectorStoreOptions, WithSearchOptions } from "../vector-store.service";
-import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 
 export abstract class MilvusService<T extends BaseFragment>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {

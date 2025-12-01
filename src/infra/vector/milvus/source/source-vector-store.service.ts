@@ -1,12 +1,12 @@
 import moment from "moment";
 
 import { Fragments, SourceFragment } from "@/fragment";
+import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { RowData, SearchResultData } from "@zilliz/milvus2-sdk-node";
 
 import { MilvusService } from "../base";
 import { sourceFields, sourceFunctions, sourceIndexSchema } from "./source-schemas";
-import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 
 @Injectable()
 export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment> {
@@ -23,9 +23,9 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment
       id: c.id,
       seqId: c.seqId,
       content: c.content,
-      sourceId: c.sourceId,
+      connectorId: c.connectorId,
+      externalId: c.externalId,
       knowledgeId: c.knowledgeId,
-      sourceType: c.sourceType,
       createdAt: c.createdAt.getTime() ?? Date.now(),
       updatedAt: c.updatedAt.getTime() ?? Date.now(),
       metadata: c.metadata
@@ -38,10 +38,10 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment
         content: c.content,
         id: c.id,
         seqId: c.seqId,
-        sourceId: c.sourceId,
+        connectorId: c.connectorId,
+        externalId: c.externalId,
         knowledgeId: c.knowledgeId,
         metadata: c.metadata,
-        sourceType: c.sourceType,
         createdAt: moment(Number(c.createdAt)).toDate(),
         updatedAt: moment(Number(c.updatedAt)).toDate()
       }))

@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { TextLoader } from '@langchain/classic/document_loaders/fs/text';
-import { BaseProcessor } from '../base.processor';
-import { Fragments, SourceFragment } from '@/fragment';
+import { Fragments, SourceFragment } from "@/fragment";
+import { TextLoader } from "@langchain/classic/document_loaders/fs/text";
+import { Injectable } from "@nestjs/common";
+
+import { BaseProcessor } from "../base.processor";
 
 @Injectable()
 export class TextProcessor extends BaseProcessor {

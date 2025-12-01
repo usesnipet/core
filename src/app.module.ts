@@ -11,14 +11,15 @@ import { PromptModule } from "@snipet/nest-prompt";
 
 import { PromptTemplates } from "./@generated/prompts/prompts";
 import { env } from "./env";
+import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
+import { VectorStoreModule } from "./infra/vector/vector.module";
 import { ConnectorModule } from "./modules/connector/connector.module";
+import { ContentModule } from "./modules/content/content.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RoleModule } from "./modules/role/role.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
-import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
-import { VectorStoreModule } from "./infra/vector/vector.module";
 
 @Module({
   imports: [
@@ -58,7 +59,7 @@ import { VectorStoreModule } from "./infra/vector/vector.module";
     IntegrationModule,
     KnowledgeModule,
     RoleModule,
-
+    ContentModule,
     LLMManagerModule,
     VectorStoreModule,
   ],

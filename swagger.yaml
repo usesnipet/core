@@ -158,6 +158,29 @@ components:
         - code
         - timestamp
       type: object
+    IngestDto:
+      properties:
+        connectorId:
+          format: uuid
+          type: string
+        externalId:
+          format: uuid
+          nullable: true
+          type: string
+        file:
+          format: binary
+          type: string
+        knowledgeId:
+          format: uuid
+          type: string
+        metadata:
+          nullable: true
+          type: string
+      required:
+        - file
+        - knowledgeId
+        - connectorId
+      type: object
     IntegrationEntity:
       properties:
         authMethods:
@@ -608,6 +631,39 @@ paths:
         - access-token: []
       tags:
         - Connector
+  /api/content/ingest:
+    post:
+      operationId: ContentController_ingest
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/IngestDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Content
+  /api/content/status/{id}:
+    get:
+      operationId: ContentController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Content
   /api/integration:
     get:
       operationId: IntegrationController_findMany
