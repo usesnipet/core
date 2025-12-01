@@ -10,10 +10,10 @@ export class SourceFragment extends BaseFragment {
   knowledgeId: string;
 
   @Field({ type: "string", required: true, uuid: true })
-  sourceId: string;
+  connectorId: string;
 
-  @Field({ type: "string", required: true, description: "The type of the source" })
-  sourceType: string;
+  @Field({ type: "string", required: true })
+  externalId?: string;
 
   @Field({ type: "object", additionalProperties: true })
   metadata: any;
@@ -25,9 +25,9 @@ export class SourceFragment extends BaseFragment {
   ) {
     super(f);
     this.knowledgeId = f.knowledgeId;
-    this.sourceType = f.sourceType;
     this.metadata = f.metadata;
-    this.sourceId = f.sourceId;
+    this.connectorId = f.connectorId;
+    this.externalId = f.externalId;
     this.seqId = f.seqId;
     this.metadata = f.metadata;
   }
