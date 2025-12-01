@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { diskStorage } from "multer";
 import path from "path";
 
+import { env } from "@/env";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { ProcessorModule } from "@/infra/processor/processor.module";
 import { VectorStoreModule } from "@/infra/vector/vector.module";
@@ -26,7 +27,7 @@ import { IngestJob } from "./ingest.job";
     ProcessorModule,
     MulterModule.register({
       storage: diskStorage({
-        destination: "./uploads", // pasta local
+        destination: env.FILE_UPLOAD_PATH,
         filename: (req, file, cb) => {
           const ext = path.extname(file.originalname);
           const id = randomUUID();

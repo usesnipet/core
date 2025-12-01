@@ -32,6 +32,8 @@ const envSchema = z.object({
   CORS_HEADERS: z.string().array().optional().default([ "*" ]),
   CORS_CREDENTIALS: z.boolean().optional().default(true),
 
+  FILE_UPLOAD_PATH: z.string().optional().default("./uploads"),
+
   // DATABASE
   DATABASE_URL: z.string(),
   CREATE_DATABASE: z.coerce.boolean().optional().default(false),
@@ -60,7 +62,6 @@ const envSchema = z.object({
 
   LLM_TEXT_DEFAULT_PRESET_KEY: z.string().optional().default(""),
   LLM_TEXT_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
-
 
   // PROMPT
   PROMPT_TEMPLATES_DIR: z.string().optional().default(path.join(__root, "prompts")),
