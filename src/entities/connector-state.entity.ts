@@ -70,4 +70,9 @@ export class ConnectorStateEntity extends BaseEntity {
   @OneToOne(() => ConnectorEntity, (c) => c.connectorState)
   @JoinColumn({ name: "connector_id" })
   connector?: ConnectorEntity;
+
+  constructor(data: Partial<ConnectorStateEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }

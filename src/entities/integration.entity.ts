@@ -33,6 +33,7 @@ export class MCPIntegrationManifest {
 
 export class Webhook {
   event: string;
+  url: string;
 }
 
 export class ManualIntegrationManifest {
@@ -77,4 +78,9 @@ export class IntegrationEntity extends BaseEntity {
   @Field({ type: "class", class: () => ConnectorEntity, isArray: true, required: true, description: "The connectors of the integration" })
   @OneToMany(() => ConnectorEntity, (c) => c.integration)
   connectors: ConnectorEntity[];
+
+  constructor(data: Partial<IntegrationEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }

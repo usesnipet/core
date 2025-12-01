@@ -18,4 +18,9 @@ export class KnowledgeEntity extends BaseEntity {
   @Field({ type: "class", class: () => RoleAssignmentEntity, isArray: true, description: "The role assignments of the knowledge base" })
   @OneToMany(() => RoleAssignmentEntity, (r) => r.knowledge)
   roleAssignments?: RoleAssignmentEntity[];
+
+  constructor(data: Partial<KnowledgeEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }

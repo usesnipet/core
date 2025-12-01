@@ -39,4 +39,9 @@ export class RoleAssignmentEntity extends BaseEntity {
   @Field({ type: "class", class: () => RoleConnectorPermissionEntity, isArray: true, required: false, description: "The connector permissions of the role assignment" })
   @OneToMany(() => RoleConnectorPermissionEntity, (c) => c.roleAssignment)
   connectorPermissions?: RoleConnectorPermissionEntity[];
+
+  constructor(data: Partial<RoleAssignmentEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }

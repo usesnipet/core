@@ -12,5 +12,10 @@ export class RoleEntity extends BaseEntity {
 
   @Field({ type: "class", class: () => RoleAssignmentEntity, isArray: true, required: false })
   @OneToMany(() => RoleAssignmentEntity, (r) => r.role)
-  roleAssignments?: RoleAssignmentEntity[]
+  roleAssignments?: RoleAssignmentEntity[];
+
+  constructor(data: Partial<RoleEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }

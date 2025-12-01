@@ -14,4 +14,8 @@ export class BaseEntity {
   @Field({ type: "date", description: "The timestamp when the invite was last updated" })
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt: Date;
+
+  constructor(partial: Partial<BaseEntity>) {
+    Object.assign(this, partial);
+  }
 }

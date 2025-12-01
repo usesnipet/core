@@ -14,7 +14,6 @@ components:
               - CONTENT
               - SEARCH
               - ACTION
-              - STREAM
             type: string
           type: array
         config:

@@ -62,4 +62,9 @@ export class RoleConnectorPermissionEntity extends BaseEntity {
   @ManyToOne(() => ConnectorEntity, (connector) => connector.roleConnectorPermissions, { nullable: true, onDelete: "CASCADE" })
   @JoinColumn({ name: "connector_id" })
   connector?: ConnectorEntity;
+
+  constructor(data: Partial<RoleConnectorPermissionEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }
