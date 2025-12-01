@@ -1,11 +1,18 @@
 import { BaseFragment, Fragments } from "@/fragment";
-import { LLMPreset } from "@/types/llm-preset";
+
 import { buildOptions } from "@/utils/build-options";
 
-import { InvalidPresetError } from "./errors/invalid-preset";
 import { InvalidVectorFiltersError } from "./errors/invalid-vector-filters";
+import { env } from "@/env";
+import { LLMPreset } from "@/types/llm-preset";
+import { InvalidPresetError } from "./errors/invalid-preset";
+import { getPresets } from "@/lib/presets";
 
-export type SearchOptions = {
+export type VectorStoreOptions = {
+  llmPresetKey: string;
+}
+
+export type SearchOptions = VectorStoreOptions & {
   filters?: Record<string, string | number | boolean>;
   topK: number;
   dense?: string | { topK?: number, query: string };
@@ -15,16 +22,17 @@ export type SearchOptions = {
 export type WithSearchOptions = (currentOpts: Partial<SearchOptions>) =>  Partial<SearchOptions>;
 
 export abstract class VectorStore<T extends BaseFragment> {
-  
+
   constructor(protected readonly collectionName: string) {}
 
-  abstract addFragments(llmId: string, fragments: T[] | T | Fragments<T>): Promise<void>;
-  abstract deleteFragments(llmId: string, fragments: T[] | T | Fragments<T>): Promise<void>;
-  abstract search(llmId: string, ...options: Array<WithSearchOptions | undefined>): Promise<Fragments<T>>;
+  abstract addFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
+  abstract deleteFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
+  abstract search(...options: Array<WithSearchOptions | undefined>): Promise<Fragments<T>>;
 
-  abstract deleteByFilter(llmId: string, filter: Record<string, string | number | boolean>): Promise<void>;
+  abstract deleteByFilter(filter: Record<string, string | number | boolean>, opts?: VectorStoreOptions): Promise<void>;
 
-  static buildCollectionName(preset: LLMPreset): string {
+
+  protected buildCollectionName(preset: LLMPreset): string {
     if (preset.config.type === "TEXT") {
       throw new InvalidPresetError("Cannot create collection for TEXT preset");
     }
@@ -44,6 +52,15 @@ export abstract class VectorStore<T extends BaseFragment> {
     }
 
     return name;
+  }
+
+  protected async buildCollectionNameFromPresetKey(presetKey?: string): Promise<string> {
+    if (!presetKey) presetKey = env.LLM_EMBEDDING_DEFAULT_PRESET_KEY;
+
+    const presets = await getPresets();
+    const preset = presets.find(p => p.key === presetKey);
+    if (!preset) throw new InvalidPresetError(`Invalid preset key: ${presetKey}`);
+    return this.buildCollectionName(preset);
   }
 
   static withFilters(filters: Record<string, string | number | boolean>): WithSearchOptions {
@@ -78,8 +95,13 @@ export abstract class VectorStore<T extends BaseFragment> {
   }
 
   protected buildSearchOptions(...opts: WithSearchOptions[]): SearchOptions {
-    const options = buildOptions<WithSearchOptions, SearchOptions>({ topK: 5 }, opts);
-    if (!options.dense && !options.sparse) throw new InvalidVectorFiltersError("Dense or sparse query must be provided");
+    const options = buildOptions<WithSearchOptions, SearchOptions>({
+      topK: 5,
+      llmPresetKey: env.LLM_EMBEDDING_DEFAULT_PRESET_KEY
+    }, opts);
+    if (!options.dense && !options.sparse) {
+      throw new InvalidVectorFiltersError("Dense or sparse query must be provided");
+    }
     return options;
   }
 }

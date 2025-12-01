@@ -15,14 +15,17 @@ import { InvalidPresetError } from "../errors/invalid-preset";
 import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
-import { VectorStore, WithSearchOptions } from "../vector-store.service";
+import { VectorStore, VectorStoreOptions, WithSearchOptions } from "../vector-store.service";
+import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 
 export abstract class MilvusService<T extends BaseFragment>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {
+
   protected abstract readonly logger: Logger;
   client: MilvusClient;
 
   constructor(
+    protected readonly llmManager: LLMManagerService,
     protected readonly collectionName: string,
     protected readonly Type: Constructor<T>,
     protected readonly fields: FieldType[] | ((model: string, dim: number) => FieldType[]) = [],
@@ -30,30 +33,8 @@ export abstract class MilvusService<T extends BaseFragment>
     protected readonly indexSchema: CreateIndexesReq | ((collectionName: string) => CreateIndexesReq) = [],
     protected readonly reranker: RerankerObj = RRFRanker(100)
   ) {
-    super();
+    super(collectionName);
     this.client = new MilvusClient({ address: env.MILVUS_URL });
-  }
-
-  static buildCollectionName(preset: LLMPreset): string {
-    if (preset.config.type === "TEXT") {
-      throw new InvalidPresetError("Cannot create collection for TEXT preset");
-    }
-
-    const { dimension, model } = preset.config;
-    let name = `${this.collectionName}_${model}_${dimension}`.toLowerCase().trim();
-
-    // replace special characters to "_"
-    name = name.replace(/[^a-z0-9_]+/g, "_");
-
-    // remove consecutive "_"
-    name = name.replace(/_+/g, "_").replace(/^_+|_+$/g, "");
-
-    // add "c_" if the name starts with a number
-    if (/^[0-9]/.test(name)) {
-      name = "c_" + name;
-    }
-
-    return name;
   }
 
   private async setupCollection(preset: LLMPreset): Promise<void> {
@@ -109,13 +90,16 @@ export abstract class MilvusService<T extends BaseFragment>
     return fragments;
   }
 
-  async addFragments(llmId: string, c: T[] | T | Fragments<T>): Promise<void> {
+  async addFragments(c: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
     // add embeddings
-    const embeddingProvider = await this.llmManager.getEmbedding(llmId);
-    if (!embeddingProvider) throw new VectorMutationError("Embedding service not found");
-    const collectionName = this.buildCollectionName(embeddingProvider.preset);
+    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
     const chunks = this.fragmentToChunk(this.toFragments(c));
+    const embeddingProvider = await this.llmManager.getEmbeddingProvider();
+    if (!embeddingProvider) {
+      this.logger.error("No embedding provider found");
+      throw new VectorMutationError("No embedding provider found");
+    }
     const embeddings = await embeddingProvider.embed(chunks.map(c => (c.content as string)));
 
     for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
@@ -125,10 +109,8 @@ export abstract class MilvusService<T extends BaseFragment>
     await this.client.flushSync({ collection_names: [ collectionName ] });
   }
 
-  async deleteFragments(llmId: string, c: T | T[] | Fragments<T>): Promise<void> {
-    const embeddingProvider = await this.llmManager.getEmbedding(llmId);
-    if (!embeddingProvider) throw new VectorMutationError("Embedding service not found");
-    const collectionName = this.buildCollectionName(embeddingProvider.preset);
+  async deleteFragments(c: T | T[] | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
+    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
     const ids = this.toFragments(c).map((f: any) => f.id);
     if (!ids.length) return;
@@ -141,13 +123,14 @@ export abstract class MilvusService<T extends BaseFragment>
     await this.client.flushSync({ collection_names: [ collectionName ] });
   }
 
-  async search(llmId: string, ...opts: WithSearchOptions[]): Promise<Fragments<T>> {
-    const embeddingProvider = await this.llmManager.getEmbedding(llmId);
-    if (!embeddingProvider) throw new VectorMutationError("Embedding service not found");
-
-    const collectionName = this.buildCollectionName(embeddingProvider.preset);
-
+  async search(...opts: WithSearchOptions[]): Promise<Fragments<T>> {
     const options = this.buildSearchOptions(...opts);
+    const collectionName = await this.buildCollectionNameFromPresetKey(options.llmPresetKey);
+    const embeddingProvider = await this.llmManager.getEmbeddingProvider();
+    if (!embeddingProvider) {
+      this.logger.error("No embedding provider found");
+      throw new VectorMutationError("No embedding provider found");
+    }
 
     const escapeFilterValue = (value: string): string => value.replace(/['"]/g, "\\$&");
 
@@ -207,10 +190,11 @@ export abstract class MilvusService<T extends BaseFragment>
     return this.searchResultToFragment(result.results);
   }
 
-  async deleteByFilter(llmId: string, filter: Record<string, string | number | boolean>): Promise<void> {
-    const embeddingProvider = await this.llmManager.getEmbedding(llmId);
-    if (!embeddingProvider) throw new VectorMutationError("Embedding service not found");
-    const collectionName = this.buildCollectionName(embeddingProvider.preset);
+  async deleteByFilter(
+    filter: Record<string, string | number | boolean>,
+    opts?: VectorStoreOptions
+  ): Promise<void> {
+    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
     const res = await this.client.delete({
       collection_name: collectionName,

@@ -6,13 +6,14 @@ import { RowData, SearchResultData } from "@zilliz/milvus2-sdk-node";
 
 import { MilvusService } from "../base";
 import { sourceFields, sourceFunctions, sourceIndexSchema } from "./source-schemas";
+import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 
 @Injectable()
 export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment> {
   protected override logger = new Logger(MilvusSourceVectorStoreService.name);
 
-  constructor() {
-    super("source", SourceFragment, sourceFields, sourceFunctions, sourceIndexSchema);
+  constructor(llmManager: LLMManagerService) {
+    super(llmManager, "source", SourceFragment, sourceFields, sourceFunctions, sourceIndexSchema);
   }
 
   fragmentToChunk(c: SourceFragment | SourceFragment[] | Fragments<SourceFragment>): RowData[] {

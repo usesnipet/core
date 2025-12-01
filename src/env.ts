@@ -54,6 +54,14 @@ const envSchema = z.object({
   MILVUS_COLLECTION_PREFIX: z.string().optional().default("snipet"),
   MILVUS_RECREATE_COLLECTION: z.string().transform((s) => s === "true").optional(),
 
+  // LLM
+  LLM_EMBEDDING_DEFAULT_PRESET_KEY: z.string().optional().default(""),
+  LLM_EMBEDDING_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
+
+  LLM_TEXT_DEFAULT_PRESET_KEY: z.string().optional().default(""),
+  LLM_TEXT_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
+
+
   // PROMPT
   PROMPT_TEMPLATES_DIR: z.string().optional().default(path.join(__root, "prompts")),
   DEBUG_PROMPTS: z.coerce.boolean().optional().default(false),

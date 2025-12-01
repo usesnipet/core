@@ -1,7 +1,5 @@
 import { Column, Entity, OneToMany } from "typeorm";
 
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-
 import { Field } from "../shared/model";
 import { Capability } from "./capability";
 import { ConnectorEntity } from "./connector.entity";
@@ -13,20 +11,20 @@ export class MCPTool {
   description?: string;
   inputSchema: Record<string, any>;
   outputSchema: Record<string, any>;
-  annotations: ToolAnnotations;
+  annotations: any;
 }
 
 export class MCPResource {
   key: string;
   title: string;
   description?: string;
-  schema: Record<string, any>; 
+  schema: Record<string, any>;
 }
 
 export class MCPIntegrationManifest {
   version: string;
   baseUrl: string;
-  capabilities: Capability[];  
+  capabilities: Capability[];
   tools: MCPTool[];
   resources: MCPResource[];
 }
@@ -63,7 +61,7 @@ export class IntegrationEntity extends BaseEntity {
   @Column({ type: "jsonb", name: "auth_methods" })
   authMethods: IntegrationAuthType[];
 
-  @Field({ 
+  @Field({
     type: "oneOf",
     classes: [
       () => MCPIntegrationManifest,

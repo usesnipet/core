@@ -45,15 +45,21 @@ export abstract class Service<
       .findOne({ ...opts, where: { [this.idField]: id } as FindOptionsWhere<TEntity> } );
   }
 
-  async create(input: TCreateDto, manager?: EntityManager): Promise<TEntity> {
-    return await this.repository(manager).save(input as unknown as TEntity);
+  async create(input: TCreateDto, manager?: EntityManager): Promise<TEntity>
+  async create(input: TCreateDto[], manager?: EntityManager): Promise<TEntity[]>
+  async create(input: TCreateDto | TCreateDto[], manager?: EntityManager): Promise<TEntity | TEntity[]> {
+    return await this.repository(manager).save(input as any);
   }
 
-  async update(id: string, input: TUpdateDto, manager?: EntityManager): Promise<void> {
+  async update(
+    id: string | FindOptionsWhere<TEntity>,
+    input: TUpdateDto,
+    manager?: EntityManager
+  ): Promise<void> {
     await this.repository(manager).update(id, input as unknown as TEntity);
   }
 
-  async delete(id: string, manager?: EntityManager): Promise<void> {
+  async delete(id: string | FindOptionsWhere<TEntity>, manager?: EntityManager): Promise<void> {
     await this.repository(manager).delete(id);
   }
 }

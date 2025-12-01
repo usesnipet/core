@@ -2,9 +2,11 @@ import { Module } from "@nestjs/common";
 
 import { MilvusSourceVectorStoreService } from "./milvus/source/source-vector-store.service";
 import { SourceVectorStoreService } from "./source-vector-store.service";
+import { LLMManagerModule } from "../llm-manager/llm-manager.module";
 
 @Module({
-  exports: [ SourceVectorStoreService],
+  imports: [ LLMManagerModule ],
+  exports: [SourceVectorStoreService],
   providers: [
     {
       provide: SourceVectorStoreService,
@@ -12,4 +14,4 @@ import { SourceVectorStoreService } from "./source-vector-store.service";
     }
   ]
 })
-export class VectorModule {}
+export class VectorStoreModule {}

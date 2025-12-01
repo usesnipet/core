@@ -17,6 +17,8 @@ import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RoleModule } from "./modules/role/role.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
+import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
+import { VectorStoreModule } from "./infra/vector/vector.module";
 
 @Module({
   imports: [
@@ -55,7 +57,10 @@ import { ContextInterceptor } from "./shared/interceptor/context";
     ConnectorModule,
     IntegrationModule,
     KnowledgeModule,
-    RoleModule
+    RoleModule,
+
+    LLMManagerModule,
+    VectorStoreModule,
   ],
   providers: [
     {
