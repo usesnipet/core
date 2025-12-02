@@ -4,6 +4,7 @@ import { Field } from "../shared/model";
 import { Capability } from "./capability";
 import { ConnectorEntity } from "./connector.entity";
 import { BaseEntity } from "./entity";
+import { Feature } from "./feature";
 
 export class MCPTool {
   key: string;
@@ -24,7 +25,14 @@ export class MCPResource {
 export class MCPIntegrationManifest {
   version: string;
   baseUrl: string;
+  /**
+   * how it interacts with core
+   */
   capabilities: Capability[];
+  /**
+   * how it interacts with other integrations
+   */
+  features: Feature[];
   tools: MCPTool[];
   resources: MCPResource[];
 }
@@ -38,6 +46,7 @@ export class ManualIntegrationManifest {
   version: string;
   baseUrl: string;
   capabilities: Capability[];
+  features: Feature[];
   webhooks: Webhook[];
 }
 

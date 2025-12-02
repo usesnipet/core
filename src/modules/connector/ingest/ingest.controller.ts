@@ -5,19 +5,19 @@ import { Param, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiConsumes } from "@nestjs/swagger";
 
-import { ContentService } from "./content.service";
 import { IngestDto } from "./dto/ingest.dto";
+import { IngestService } from "./ingest.service";
 
-@Controller("content")
-export class ContentController {
-  constructor(private readonly service: ContentService) {}
+@Controller("connector/ingest")
+export class IngestController {
+  constructor(private readonly service: IngestService) {}
 
   @HttpGet("status/:id")
   async getStatus(@Param("id") id: string) {
     return this.service.getStatus(id);
   }
 
-  @HttpPost("ingest")
+  @HttpPost()
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
   async ingest(

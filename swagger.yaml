@@ -11,7 +11,7 @@ components:
           description: The capabilities of the connector
           items:
             enum:
-              - CONTENT
+              - INGEST
               - SEARCH
               - ACTION
             type: string
@@ -249,6 +249,10 @@ components:
           type: string
         name:
           description: The name of the knowledge base
+          type: string
+        namespace:
+          description: The namespace of the knowledge base
+          nullable: true
           type: string
         roleAssignments:
           description: The role assignments of the knowledge base
@@ -513,6 +517,39 @@ paths:
         - access-token: []
       tags:
         - Connector
+  /api/connector/ingest:
+    post:
+      operationId: IngestController_ingest
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/IngestDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Ingest
+  /api/connector/ingest/status/{id}:
+    get:
+      operationId: IngestController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Ingest
   /api/connector/{id}:
     delete:
       operationId: ConnectorController_delete
@@ -631,39 +668,6 @@ paths:
         - access-token: []
       tags:
         - Connector
-  /api/content/ingest:
-    post:
-      operationId: ContentController_ingest
-      parameters: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/IngestDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - access-token: []
-      tags:
-        - Content
-  /api/content/status/{id}:
-    get:
-      operationId: ContentController_getStatus
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: ""
-      security:
-        - access-token: []
-      tags:
-        - Content
   /api/integration:
     get:
       operationId: IntegrationController_findMany

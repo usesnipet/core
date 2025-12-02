@@ -14,7 +14,7 @@ import { env } from "./env";
 import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
 import { VectorStoreModule } from "./infra/vector/vector.module";
 import { ConnectorModule } from "./modules/connector/connector.module";
-import { ContentModule } from "./modules/content/content.module";
+import { IngestModule } from "./modules/connector/ingest/ingest.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RoleModule } from "./modules/role/role.module";
@@ -59,7 +59,7 @@ import { ContextInterceptor } from "./shared/interceptor/context";
     IntegrationModule,
     KnowledgeModule,
     RoleModule,
-    ContentModule,
+    IngestModule,
     LLMManagerModule,
     VectorStoreModule,
   ],

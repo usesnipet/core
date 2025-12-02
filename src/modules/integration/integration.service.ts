@@ -1,4 +1,5 @@
 import { Capability, IntegrationAuthType, IntegrationEntity, IntegrationType } from "@/entities";
+import { Feature } from "@/entities/feature";
 import { Service } from "@/shared/service";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 
@@ -12,9 +13,8 @@ export class IntegrationService extends Service<IntegrationEntity> implements On
       authMethods: [IntegrationAuthType.JWT],
       manifest: {
         baseUrl: "",
-        capabilities: [
-          Capability.CONTENT
-        ],
+        capabilities: [Capability.INGEST],
+        features: [Feature.FILE_MANAGEMENT],
         version: "1.0.0",
         webhooks: []
       },

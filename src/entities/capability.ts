@@ -2,7 +2,7 @@ export enum Capability {
   /**
    * Capability for save content in a vector store, this sends the file to snipet core, for save in internal vector store
    */
-  CONTENT = 'CONTENT',
+  INGEST = 'INGEST',
   /**
    * Capability for search data on user query
    */
@@ -10,5 +10,5 @@ export enum Capability {
   /**
    * Capability for execute an action
    */
-  ACTION = 'ACTION'
+  ACTION = 'ACTION',
 }

@@ -13,9 +13,9 @@ import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 
-import { ContentController } from "./content.controller";
-import { ContentService } from "./content.service";
+import { IngestController } from "./ingest.controller";
 import { IngestJob } from "./ingest.job";
+import { IngestService } from "./ingest.service";
 
 @Module({
   imports: [
@@ -37,8 +37,8 @@ import { IngestJob } from "./ingest.job";
     })
 
   ],
-  controllers: [ContentController],
-  providers: [ContentService, IngestJob],
+  controllers: [IngestController],
+  providers: [IngestService, IngestJob],
   exports: []
 })
-export class ContentModule {}
+export class IngestModule {}

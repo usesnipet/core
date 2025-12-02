@@ -10,8 +10,8 @@ import { JobState, JobStateResponseDto } from "./dto/job-state.dto";
 import { IngestJob, IngestJobData } from "./ingest.job";
 
 @Injectable()
-export class ContentService {
-  logger = new Logger(ContentService.name);
+export class IngestService {
+  logger = new Logger(IngestService.name);
   @InjectQueue(IngestJob.INGEST_KEY) private readonly ingestQueue: Queue<IngestJobData>;
 
   async ingest(data: IngestDto) {

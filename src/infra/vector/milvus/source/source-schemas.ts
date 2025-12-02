@@ -50,6 +50,12 @@ export const sourceFields = (_: string, dim: number): FieldType[] => [
     max_length: 36
   },
   {
+    name: "namespace",
+    data_type: DataType.VarChar,
+    max_length: 255,
+    nullable: true,
+  },
+  {
     name: "createdAt",
     data_type: DataType.Int64
   },
