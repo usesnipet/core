@@ -144,6 +144,33 @@ components:
     ConnectorThrottleStatus:
       properties: {}
       type: object
+    CreateKnowledgeDto:
+      properties:
+        name:
+          description: The name of the knowledge base
+          type: string
+        namespace:
+          description: The namespace of the knowledge base
+          nullable: true
+          type: string
+      required:
+        - name
+      type: object
+    CreateSessionDto:
+      properties:
+        metadata:
+          additionalProperties: true
+          type: object
+        name:
+          nullable: true
+          type: string
+        type:
+          enum:
+            - CHAT
+          type: string
+      required:
+        - type
+      type: object
     ErrorResponse:
       properties:
         code:
@@ -270,6 +297,132 @@ components:
         - name
         - connectors
         - roleAssignments
+      type: object
+    MCPIntegrationManifest:
+      properties:
+        baseUrl:
+          description: The base url of the integration
+          type: string
+        capabilities:
+          description: The capabilities of the integration
+          items:
+            enum:
+              - INGEST
+              - SEARCH
+              - ACTION
+            type: string
+          type: array
+        features:
+          description: The features of the integration
+          items:
+            enum:
+              - FILE_MANAGEMENT
+            type: string
+          type: array
+        resources:
+          description: The resources exposed by the integration
+          items:
+            $ref: "#/components/schemas/MCPResource"
+          type: array
+        tools:
+          description: The tools provided by the integration
+          items:
+            $ref: "#/components/schemas/MCPTool"
+          type: array
+        version:
+          description: The version of the integration
+          type: string
+      required:
+        - version
+        - baseUrl
+        - capabilities
+        - features
+        - tools
+        - resources
+      type: object
+    MCPResource:
+      properties:
+        description:
+          description: The description of the resource
+          type: string
+        key:
+          description: The unique key of the resource
+          type: string
+        schema:
+          additionalProperties: true
+          description: The schema of the resource
+          type: object
+        title:
+          description: The title of the resource
+          type: string
+      required:
+        - key
+        - title
+        - schema
+      type: object
+    MCPTool:
+      properties:
+        annotations:
+          additionalProperties: true
+          description: Additional annotations of the tool
+          type: object
+        description:
+          description: The description of the tool
+          type: string
+        inputSchema:
+          additionalProperties: true
+          description: The input schema of the tool
+          type: object
+        key:
+          description: The unique key of the tool
+          type: string
+        outputSchema:
+          additionalProperties: true
+          description: The output schema of the tool
+          type: object
+        title:
+          description: The title of the tool
+          type: string
+      required:
+        - key
+        - title
+        - inputSchema
+        - outputSchema
+      type: object
+    ManualIntegrationManifest:
+      properties:
+        baseUrl:
+          description: The base url of the integration
+          type: string
+        capabilities:
+          description: The capabilities of the integration
+          items:
+            enum:
+              - INGEST
+              - SEARCH
+              - ACTION
+            type: string
+          type: array
+        features:
+          description: The name of the integration
+          items:
+            enum:
+              - FILE_MANAGEMENT
+            type: string
+          type: array
+        version:
+          description: The version of the integration
+          type: string
+        webhooks:
+          description: The webhooks of the integration
+          items:
+            $ref: "#/components/schemas/Webhook"
+          type: array
+      required:
+        - version
+        - baseUrl
+        - capabilities
+        - features
       type: object
     RoleAssignmentEntity:
       properties:
@@ -420,6 +573,135 @@ components:
         - createdAt
         - updatedAt
         - name
+      type: object
+    SendMessageDto:
+      properties:
+        message:
+          description: The message to send
+          type: string
+        sessionId:
+          description: The session id
+          format: uuid
+          type: string
+      required:
+        - sessionId
+        - message
+      type: object
+    SessionContextEntity:
+      properties:
+        lastRun:
+          additionalProperties:
+            properties:
+              runId:
+                type: string
+              status:
+                type: string
+              stepIndex:
+                type: number
+            type: object
+          type: object
+        session:
+          $ref: "#/components/schemas/SessionEntity"
+        sessionId:
+          description: The unique identifier for the session context
+          format: uuid
+          type: string
+        state:
+          nullable: true
+          type: string
+      required:
+        - sessionId
+      type: object
+    SessionEntity:
+      properties:
+        context:
+          $ref: "#/components/schemas/SessionContextEntity"
+        createdAt:
+          description: The timestamp when the invite was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledgeId:
+          format: uuid
+          type: string
+        messages:
+          items:
+            $ref: "#/components/schemas/SessionMessageEntity"
+          type: array
+        metadata:
+          additionalProperties: true
+          type: object
+        name:
+          nullable: true
+          type: string
+        type:
+          enum:
+            - CHAT
+          type: string
+        updatedAt:
+          description: The timestamp when the invite was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - type
+        - knowledgeId
+        - context
+        - messages
+      type: object
+    SessionMessageEntity:
+      properties:
+        content:
+          type: string
+        createdAt:
+          description: The timestamp when the invite was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        role:
+          enum:
+            - USER
+            - ASSISTANT
+            - SYSTEM
+            - FUNCTION
+          type: string
+        session:
+          $ref: "#/components/schemas/SessionEntity"
+        sessionId:
+          format: uuid
+          type: string
+        updatedAt:
+          description: The timestamp when the invite was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - sessionId
+        - content
+        - role
+      type: object
+    Webhook:
+      properties:
+        event:
+          description: On call this event in core, this webhook will be called
+          type: string
+        url:
+          description: The url of the webhook
+          format: uri
+          type: string
+      required:
+        - event
+        - url
       type: object
 info:
   contact: {}
@@ -933,7 +1215,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateKnowledgeDto"
         required: true
       responses:
         "201":
@@ -1082,6 +1364,260 @@ paths:
         - access-token: []
       tags:
         - Knowledge
+  /api/knowledge/{knowledgeId}/session:
+    get:
+      operationId: SessionController_findMany
+      parameters:
+        - description: Maximum number of records to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            example: 10
+            type: number
+        - description: Number of records to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            example: 0
+            type: number
+        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
+          in: query
+          name: sort
+          required: false
+          schema:
+            items:
+              type: string
+            type: array
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/SessionEntity"
+                type: array
+          description: Records found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - Session
+    post:
+      operationId: SessionController_create
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionEntity"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - Session
+  /api/knowledge/{knowledgeId}/session/{id}:
+    delete:
+      operationId: SessionController_delete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionEntity"
+          description: Record deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - Session
+    get:
+      operationId: SessionController_findByID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionEntity"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - Session
+    put:
+      operationId: SessionController_update
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionEntity"
+          description: Record updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - Session
+  /api/knowledge/{knowledgeId}/session/{id}/message:
+    post:
+      operationId: SessionController_sendMessage
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Session
   /api/role:
     get:
       operationId: RoleController_findMany

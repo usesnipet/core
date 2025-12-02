@@ -6,3 +6,8 @@ export * from "./knowledge.entity";
 export * from "./role-assignment.entity";
 export * from "./role-connector-permission.entity";
 export * from "./role.entity";
+export * from "./run-step.entity";
+export * from "./session-context.entity";
+export * from "./session-message.entity";
+export * from "./session-run.entity";
+export * from "./session.entity";

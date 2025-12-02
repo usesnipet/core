@@ -20,6 +20,7 @@ import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RoleModule } from "./modules/role/role.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
+import { SessionModule } from "./modules/session/session.module";
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { ContextInterceptor } from "./shared/interceptor/context";
     KnowledgeModule,
     RoleModule,
     IngestModule,
+    SessionModule,
     LLMManagerModule,
     VectorStoreModule,
   ],
