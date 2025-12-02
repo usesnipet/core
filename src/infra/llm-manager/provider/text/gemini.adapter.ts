@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { output, ZodObject } from "zod";
 
-import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 import { ProviderHealth } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
@@ -11,33 +11,34 @@ type GeminiAdapterOptions = {
   model: string;
 }
 export class GeminiTextAdapter extends TextProvider {
-  private model: GenerativeModel;
-  private client: GoogleGenerativeAI;
-  constructor(opts: GeminiAdapterOptions) {
+  private client: GoogleGenAI;
+  constructor(private opts: GeminiAdapterOptions) {
     super();
-    this.client = new GoogleGenerativeAI(opts.apiKey);
-    this.model = this.client.getGenerativeModel({
-      model: opts.model,
-      tools: [ { googleSearchRetrieval: {} } ]
-    });
+    
+    this.client = new GoogleGenAI({ apiKey: opts.apiKey });
   }
 
   async generate(params: GenerateParams): Promise<GenerateResult> {
     const { prompt, maxTokens, temperature } = params;
     const start = Date.now();
-    const res = await this.model.generateContent({
+    const res = await this.client.models.generateContent({
       contents: [ {
         role: "user",
         parts: [ { text: prompt } ]
       } ],
-      generationConfig: { temperature, maxOutputTokens: maxTokens }
+      model: this.opts.model,
+      config: {
+        temperature,
+        maxOutputTokens: maxTokens,
+        tools: [ { googleSearch: {} } ]
+      }
     });
 
     return {
       id: randomUUID(),
-      output: res.response.text(),
-      tokensIn: res.response.usageMetadata?.promptTokenCount ?? 0,
-      tokensOut: res.response.usageMetadata?.candidatesTokenCount ?? 0,
+      output: res.data ?? "",
+      tokensIn: res.usageMetadata?.promptTokenCount ?? 0,
+      tokensOut: res.usageMetadata?.candidatesTokenCount ?? 0,
       generationTimeMs: Date.now() - start
     };
   }
@@ -45,35 +46,46 @@ export class GeminiTextAdapter extends TextProvider {
   async stream(params: GenerateParams, onChunk: (chunk: StreamChunk) => void): Promise<void> {
     const { prompt, maxTokens, temperature } = params;
     const start = Date.now();
-    const res = await this.model.generateContentStream({
+    const res = await this.client.models.generateContentStream({
       contents: [ {
         role: "user",
         parts: [ { text: prompt } ]
       } ],
-      generationConfig: { temperature, maxOutputTokens: maxTokens }
+      model: this.opts.model,
+      config: {
+        temperature,
+        maxOutputTokens: maxTokens,
+        tools: [ { googleSearch: {} } ]
+      }
     });
-    for await (const chunk of res.stream) {
-      const chunkText = chunk.text();
-      onChunk({ delta: chunkText });
+    for await (const chunk of res) {
+      const chunkText = chunk.text;
+      onChunk({ delta: chunkText ?? "" });
     }
     onChunk({ delta: "", finishReason: "stop" });
   }
 
   iterableStream(params: GenerateParams): AsyncIterable<string> {
+    const self = this;
     return {
       async *[Symbol.asyncIterator]() {
         const { prompt, maxTokens, temperature } = params;
 
-        const res = await this.model.generateContentStream({
+        const res = await self.client.models.generateContentStream({
           contents: [ {
             role: "user",
             parts: [ { text: prompt } ]
           } ],
-          generationConfig: { temperature, maxOutputTokens: maxTokens }
+          model: this.opts.model,
+          config: {
+            temperature,
+            maxOutputTokens: maxTokens,
+            tools: [ { googleSearch: {} } ]
+          }
         });
 
-        for await (const chunk of res.stream) {
-          const chunkText = chunk.text();
+        for await (const chunk of res) {
+          const chunkText = chunk.text;
           if (chunkText) yield chunkText;
         }
       }
@@ -97,17 +109,16 @@ export class GeminiTextAdapter extends TextProvider {
       "${query}"
     `.trim();
 
-    const res = await this.model.generateContent({
+    const res = await this.client.models.generateContent({
       contents: [ {
         role: "user",
         parts: [ { text: prompt } ]
       } ],
-      generationConfig: {
-        temperature: 0
-      }
+      model: this.opts.model,
+      config: { temperature: 0 }
     });
 
-    const text = res.response.text();
+    const text = res.data ?? "";
 
     let parsed: any;
     try {
@@ -123,7 +134,7 @@ export class GeminiTextAdapter extends TextProvider {
   async healthCheck(): Promise<ProviderHealth> {
     const start = Date.now();
     try {
-      const res = await this.model.countTokens("ping");
+      await this.client.models.get({ model: this.opts.model });
       return { ok: true, latencyMs: Date.now() - start };
     } catch (error) {
       return { ok: false, error: (error as Error).message };
