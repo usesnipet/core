@@ -13,7 +13,7 @@ export class IngestDto {
   @Field({ type: "string", required: true, uuid: true })
   connectorId: string;
 
-  @Field({ type: "string", required: false, nullable: true, uuid: true })
+  @Field({ type: "string", required: false, nullable: true })
   externalId?: string | null;
 }
 

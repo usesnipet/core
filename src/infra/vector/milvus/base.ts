@@ -127,6 +127,8 @@ export abstract class MilvusService<T extends BaseFragment>
 
   async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<Fragments<T>> {
     const options = this.buildSearchOptions(...opts);
+    if (!options.filters) options.filters = {};
+    options.filters.knowledgeId = knowledgeId;
     const collectionName = await this.buildCollectionNameFromPresetKey(options.llmPresetKey);
     const embeddingProvider = await this.llmManager.getEmbeddingProvider();
     if (!embeddingProvider) {
@@ -136,7 +138,7 @@ export abstract class MilvusService<T extends BaseFragment>
 
     const escapeFilterValue = (value: string): string => value.replace(/['"]/g, "\\$&");
 
-    let filter = `knowledgeId == "${knowledgeId}" && ${this.buildFilters(options.filters)}`;
+    let filter = this.buildFilters(options.filters);
     if (options.term) {
       if (typeof options.term !== "string" || options.term.length > 500) {
         throw new InvalidVectorFiltersError("Invalid search term");

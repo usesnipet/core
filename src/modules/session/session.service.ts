@@ -2,6 +2,7 @@ import { EntityManager, Repository } from "typeorm";
 
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import {
+  KnowledgeEntity,
   SessionContextEntity, SessionContextState, SessionEntity, SessionMessageEntity, SessionMessageRole
 } from "@/entities";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
@@ -30,7 +31,6 @@ export class SessionService extends Service<SessionEntity> {
   logger = new Logger(SessionService.name);
   entity = SessionEntity;
 
-
   constructor(
     private readonly sessionMemory: SessionMemoryService,
     private readonly promptService: PromptService<typeof PromptTemplates>,
@@ -40,17 +40,23 @@ export class SessionService extends Service<SessionEntity> {
     super();
   }
 
+  //#region repositories
   sessionContextRepository(manager?: EntityManager): Repository<SessionContextEntity> {
     return manager ?
       manager.getRepository(SessionContextEntity) :
       this.dataSource.getRepository(SessionContextEntity);
   }
-
   sessionMessageRepository(manager?: EntityManager): Repository<SessionMessageEntity> {
     return manager ?
       manager.getRepository(SessionMessageEntity) :
       this.dataSource.getRepository(SessionMessageEntity);
   }
+  knowledgeRepository(manager?: EntityManager): Repository<KnowledgeEntity> {
+    return manager ?
+      manager.getRepository(KnowledgeEntity) :
+      this.dataSource.getRepository(KnowledgeEntity);
+  }
+  //#endregion
 
   override async create(input: CreateSessionDto, manager?: EntityManager): Promise<SessionEntity>;
   override async create(input: CreateSessionDto[], manager?: EntityManager): Promise<SessionEntity[]>;
@@ -73,23 +79,30 @@ export class SessionService extends Service<SessionEntity> {
     }, manager);
   }
 
-  private async getSessionAndLLM(sessionId: string, manager?: EntityManager) {
+  //#region check exists
+  private async checkKnowledgeExists(knowledgeId: string, manager?: EntityManager) {
+    const knowledge = await this.knowledgeRepository(manager).findOne({ where: { id: knowledgeId } });
+    if (!knowledge) throw new NotFoundException("Knowledge not found");
+  }
+  private async checkSessionExists(sessionId: string, manager?: EntityManager) {
+    const session = await this.repository(manager).findOne({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException("Session not found");
+  }
+  //#endregion
+
+  private async getLLM() {
     const textProvider = await this.llmManager.getTextProvider();
     if (!textProvider) throw new NotFoundException("LLM not found");
-
-    const session = await this.repository(manager).findOne({
-      where: { id: sessionId },
-      relations: ["context"]
-    });
-    if (!session) throw new NotFoundException("Session not found");
-
-    return {
-      session,
-      llm: textProvider
-    }
+    return textProvider;
   }
 
-  private async saveUserMessage(message: string, sessionId: string, knowledgeId: string, manager?: EntityManager) {
+  //#region save message
+  private async saveUserMessage(
+    message: string,
+    sessionId: string,
+    knowledgeId: string,
+    manager?: EntityManager
+  ) {
     const userMessage = await this.sessionMessageRepository(manager).save(new SessionMessageEntity({
       content: message,
       role: SessionMessageRole.USER,
@@ -100,7 +113,12 @@ export class SessionService extends Service<SessionEntity> {
     return userMessage;
   }
 
-  private async saveAssistantMessage(message: string, sessionId: string, knowledgeId: string, manager?: EntityManager) {
+  private async saveAssistantMessage(
+    message: string,
+    sessionId: string,
+    knowledgeId: string,
+    manager?: EntityManager
+  ) {
     const assistantMessage = await this.sessionMessageRepository(manager).save(new SessionMessageEntity({
       content: message,
       role: SessionMessageRole.ASSISTANT,
@@ -110,8 +128,31 @@ export class SessionService extends Service<SessionEntity> {
     await this.sessionMemory.add(knowledgeId, assistantMessage);
     return assistantMessage;
   }
-  private async updateSessionContextState(sessionId: string, state: SessionContextState, manager?: EntityManager) {
+  //#endregion
+
+  private async updateSessionContextState(
+    sessionId: string,
+    state: SessionContextState,
+    manager?: EntityManager
+  ) {
     return this.sessionContextRepository(manager).update({ sessionId }, { state });
+  }
+
+  private async buildPrompt({ message, sessionId, knowledgeId }: SendMessageDto) {
+    const sessionSearchResult = await this.sessionMemory.search(
+      knowledgeId,
+      sessionId,
+      SessionMemoryService.withSearchQuery(message)
+    );
+
+    const sourceSearchResult = await this.sourceMemory.find(knowledgeId, message);
+
+    return this.promptService.getTemplate("AnswerQuestion").build({
+      question: message,
+      recentMessages: sessionSearchResult.lastNMessages.map(f => ({ role: f.role, content: f.content })),
+      relevantMessages: sessionSearchResult.searchQuery.map(f => ({ content: f.content, role: f.role })),
+      retrievedFragments: sourceSearchResult.map(f => f.content)
+    });
   }
 
   async sendMessage(
@@ -119,27 +160,16 @@ export class SessionService extends Service<SessionEntity> {
     manager?: EntityManager
   ): Promise<SessionMessageEntity> {
     try {
-      const { llm } = await this.getSessionAndLLM(sessionId, manager);
+      await this.checkSessionExists(sessionId, manager);
+      await this.checkKnowledgeExists(knowledgeId, manager);
+
+      const llm = await this.getLLM();
       await this.updateSessionContextState(sessionId, SessionContextState.GENERATING, manager);
       await this.saveUserMessage(message, sessionId, knowledgeId, manager);
 
-      const sessionSearchResult = await this.sessionMemory.search(
-        knowledgeId,
-        sessionId,
-        SessionMemoryService.withSearchQuery(message)
-      );
-
-      const sourceSearchResult = await this.sourceMemory.find(knowledgeId, message);
-
-      const answerPrompt = this.promptService.getTemplate("AnwserQuestion").build({
-        question: message,
-        recentMessages: sessionSearchResult.lastNMessages.map(f => ({ role: f.role, content: f.content })),
-        relevantMessages: sessionSearchResult.searchQuery.map(f => ({ content: f.content, role: f.role })),
-        retrievedFragments: sourceSearchResult
-          .map(f => (`${f.content} {sourceId:${f.id}}`))
+      const llmResponse = await llm.generate({
+        prompt: await this.buildPrompt({ knowledgeId, message, sessionId })
       });
-
-      const llmResponse = await llm.generate({ prompt: answerPrompt });
 
       return await this.saveAssistantMessage(llmResponse.output, sessionId, knowledgeId, manager);
     } finally {
@@ -151,28 +181,18 @@ export class SessionService extends Service<SessionEntity> {
     { message, sessionId, knowledgeId }: SendMessageDto,
     manager?: EntityManager
   ): Promise<Observable<MessageEvent>> {
-    const { llm } = await this.getSessionAndLLM(sessionId, manager);
+    await this.checkSessionExists(sessionId, manager);
+    await this.checkKnowledgeExists(knowledgeId, manager);
+
+    const llm = await this.getLLM();
+
     await this.updateSessionContextState(sessionId, SessionContextState.GENERATING, manager);
 
     await this.saveUserMessage(message, sessionId, knowledgeId, manager);
 
-    const sessionSearchResult = await this.sessionMemory.search(
-      knowledgeId,
-      sessionId,
-      SessionMemoryService.withSearchQuery(message)
-    );
-
-    const sourceSearchResult = await this.sourceMemory.find(knowledgeId, message);
-
-    const answerPrompt = this.promptService.getTemplate("AnwserQuestion").build({
-      question: message,
-      recentMessages: sessionSearchResult.lastNMessages.map(f => ({ role: f.role, content: f.content })),
-      relevantMessages: sessionSearchResult.searchQuery.map(f => ({ content: f.content, role: f.role })),
-      retrievedFragments: sourceSearchResult
-        .map(f => (`${f.content} {sourceId:${f.id}}`))
+    const observableStream = await llm.observableStream({
+      prompt: await this.buildPrompt({ knowledgeId, message, sessionId })
     });
-
-    const observableStream = await llm.observableStream({ prompt: answerPrompt });
 
     const self = this;
     let full = "";

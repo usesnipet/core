@@ -17,18 +17,22 @@ export class ConnectorAuth {
   encryptedRefreshToken?: string;
   tokenExpiresAt?: Date;
   metadata?: any;
+
+  constructor(data: Partial<ConnectorAuth>) {
+    Object.assign(this, data);
+  }
 }
 
 @Entity("connectors")
 export class ConnectorEntity extends BaseEntity {
   @Field({ type: "string", required: true, uuid: true, description: "The knowledge base id" })
-  @Column({ type: "uuid", name: "knowledge_base_id" }) 
+  @Column({ type: "uuid", name: "knowledge_base_id" })
   knowledgeId: string;
 
   @Field({ type: "string", required: true, uuid: true, description: "The integration id" })
   @Column({ type: "uuid", name: "integration_id" })
   integrationId: string;
-  
+
   @Field({ type: "string", required: true, description: "The name of the connector" })
   @Column({ type: "varchar", length: 255 })
   name: string
@@ -41,11 +45,11 @@ export class ConnectorEntity extends BaseEntity {
   @Column({ type: "jsonb" })
   capabilities: Capability[];
 
-  @Field({ type: "class", class: () => ConnectorAuth, required: false })
+  @Field({ type: "class", class: () => ConnectorAuth, required: false, hidden: true })
   @Column({ type: "jsonb" })
   auth?: ConnectorAuth;
-  
-  @Field({ 
+
+  @Field({
     type: 'oneOf',
     classes: [
       () => MCPIntegrationManifest,

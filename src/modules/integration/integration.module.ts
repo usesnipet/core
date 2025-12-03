@@ -9,6 +9,6 @@ import { IntegrationService } from "./integration.service";
   imports: [HTTPContextModule, DatabaseModule],
   controllers: [IntegrationController],
   providers: [IntegrationService],
-  exports: []
+  exports: [IntegrationService]
 })
 export class IntegrationModule {}

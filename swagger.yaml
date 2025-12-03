@@ -144,6 +144,20 @@ components:
     ConnectorThrottleStatus:
       properties: {}
       type: object
+    CreateConnectorDto:
+      properties:
+        integrationId:
+          description: The integration id
+          format: uuid
+          type: string
+        knowledgeId:
+          description: The knowledge base id
+          format: uuid
+          type: string
+      required:
+        - knowledgeId
+        - integrationId
+      type: object
     CreateKnowledgeDto:
       properties:
         name:
@@ -191,7 +205,6 @@ components:
           format: uuid
           type: string
         externalId:
-          format: uuid
           nullable: true
           type: string
         file:
@@ -771,7 +784,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateConnectorDto"
         required: true
       responses:
         "201":

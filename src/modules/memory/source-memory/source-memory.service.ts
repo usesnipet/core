@@ -19,7 +19,6 @@ export type FindOptions = {
 
 export type Finder = (...args: any[]) => Partial<FindOptions>;
 
-
 @Injectable()
 export class SourceMemoryService {
   private readonly logger = new Logger(SourceMemoryService.name);
@@ -39,8 +38,6 @@ export class SourceMemoryService {
     // get knowledge
     const knowledge = await this.knowledgeService.findByID(knowledgeId);
     if (!knowledge) throw new NotFoundException("Knowledge not found");
-
-
 
     const fragments = new Fragments<SourceFragment>();
 
