@@ -36,7 +36,7 @@ export class GeminiTextAdapter extends TextProvider {
 
     return {
       id: randomUUID(),
-      output: res.data ?? "",
+      output: res.text ?? "",
       tokensIn: res.usageMetadata?.promptTokenCount ?? 0,
       tokensOut: res.usageMetadata?.candidatesTokenCount ?? 0,
       generationTimeMs: Date.now() - start
@@ -65,31 +65,27 @@ export class GeminiTextAdapter extends TextProvider {
     onChunk({ delta: "", finishReason: "stop" });
   }
 
-  iterableStream(params: GenerateParams): AsyncIterable<string> {
-    const self = this;
-    return {
-      async *[Symbol.asyncIterator]() {
-        const { prompt, maxTokens, temperature } = params;
+  async *iterableStream(params: GenerateParams): AsyncIterable<string> {
+    const { prompt, maxTokens, temperature } = params;
 
-        const res = await self.client.models.generateContentStream({
-          contents: [ {
-            role: "user",
-            parts: [ { text: prompt } ]
-          } ],
-          model: this.opts.model,
-          config: {
-            temperature,
-            maxOutputTokens: maxTokens,
-            tools: [ { googleSearch: {} } ]
-          }
-        });
-
-        for await (const chunk of res) {
-          const chunkText = chunk.text;
-          if (chunkText) yield chunkText;
-        }
+    const res = await this.client.models.generateContentStream({
+      contents: [ {
+        role: "user",
+        parts: [ { text: prompt } ]
+      } ],
+      model: this.opts.model,
+      config: {
+        temperature,
+        maxOutputTokens: maxTokens,
+        tools: [ { googleSearch: {} } ]
       }
-    };
+    });
+    return (async function*() {
+      for await (const chunk of res) {
+        const chunkText = chunk.text;
+        if (chunkText) yield chunkText;
+      }
+    })()
   }
 
   async withStructuredOutput<S extends ZodObject<any>>(

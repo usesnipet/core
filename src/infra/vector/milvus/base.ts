@@ -84,7 +84,10 @@ export abstract class MilvusService<T extends BaseFragment>
 
     if (c instanceof this.Type) fragments.push(c);
     else if (c instanceof Fragments) fragments.import(c);
-    else fragments.push(...(c as T[]));
+    else {
+      if (Array.isArray(c)) fragments.push(...c);
+      else fragments.push(c);
+    }
 
     return fragments;
   }
@@ -104,7 +107,7 @@ export abstract class MilvusService<T extends BaseFragment>
     for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
 
     const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
-    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments", res);
+    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collectionName, res);
     await this.client.flushSync({ collection_names: [ collectionName ] });
   }
 
@@ -122,7 +125,7 @@ export abstract class MilvusService<T extends BaseFragment>
     await this.client.flushSync({ collection_names: [ collectionName ] });
   }
 
-  async search(...opts: WithSearchOptions[]): Promise<Fragments<T>> {
+  async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<Fragments<T>> {
     const options = this.buildSearchOptions(...opts);
     const collectionName = await this.buildCollectionNameFromPresetKey(options.llmPresetKey);
     const embeddingProvider = await this.llmManager.getEmbeddingProvider();
@@ -133,7 +136,7 @@ export abstract class MilvusService<T extends BaseFragment>
 
     const escapeFilterValue = (value: string): string => value.replace(/['"]/g, "\\$&");
 
-    let filter = this.buildFilters(options.filters);
+    let filter = `knowledgeId == "${knowledgeId}" && ${this.buildFilters(options.filters)}`;
     if (options.term) {
       if (typeof options.term !== "string" || options.term.length > 500) {
         throw new InvalidVectorFiltersError("Invalid search term");

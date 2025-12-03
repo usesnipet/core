@@ -1,5 +1,4 @@
 import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
-import { LLMPreset } from "@/types/llm-preset";
 
 import { EmbeddingProvider } from "./base";
 
@@ -12,8 +11,8 @@ export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
   client: GoogleGenerativeAI;
   model: GenerativeModel;
 
-  constructor(opts: GeminiOptions, preset: LLMPreset) {
-    super(preset);
+  constructor(opts: GeminiOptions) {
+    super();
     this.client = new GoogleGenerativeAI(opts.apiKey);
     this.model = this.client.getGenerativeModel({ model: opts.model });
   }

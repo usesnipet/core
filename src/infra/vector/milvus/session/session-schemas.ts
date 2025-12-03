@@ -1,6 +1,6 @@
 import {
   CreateIndexesReq, DataType, FieldType, FunctionType, IndexType, MetricType
-} from '@zilliz/milvus2-sdk-node';
+} from "@zilliz/milvus2-sdk-node";
 
 export const sessionFields = (_: string, dim: number): FieldType[] => [
   {
@@ -60,7 +60,7 @@ export const sessionFields = (_: string, dim: number): FieldType[] => [
   }
 ];
 
-export const chatIndexSchema = (collection_name: string): CreateIndexesReq => {
+export const sessionIndexSchema = (collection_name: string): CreateIndexesReq => {
   return [
     {
       collection_name,
@@ -80,14 +80,6 @@ export const chatIndexSchema = (collection_name: string): CreateIndexesReq => {
       params: {
         "inverted_index_algo": "DAAT_MAXSCORE",
       }
-    },
-    {
-      collection_name,
-      field_name: "seqId",
-      index_name: 'seqid_index',
-      index_type: 'STL_SORT',
-      metric_type: 'L2',
-      params: {},
     },
   ]
 }

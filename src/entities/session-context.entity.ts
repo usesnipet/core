@@ -1,6 +1,12 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, Unique } from "typeorm";
-import { SessionEntity } from "./session.entity";
+import { Column, Entity, JoinColumn, OneToOne, Unique } from "typeorm";
+
 import { Field } from "../shared/model";
+import { SessionEntity } from "./session.entity";
+
+export enum SessionContextState {
+  GENERATING = "GENERATING",
+  IDLE = "IDLE",
+}
 
 @Entity("session_contexts")
 @Unique("session_id", ["sessionId"])
@@ -14,9 +20,9 @@ export class SessionContextEntity {
   @Column({ name: "session_id", type: "uuid", primary: true })
   sessionId: string;
 
-  @Field({ type: "string", required: false, nullable: true })
+  @Field({ type: "enum", enum: SessionContextState, required: false, nullable: true })
   @Column({ type: "varchar", nullable: true })
-  state: string | null;
+  state: SessionContextState | null;
 
   @Field({ type: "class", class: () => SessionEntity, required: false })
   @OneToOne(() => SessionEntity, (session) => session.context)

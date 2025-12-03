@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-import { LLMPreset } from "@/types/llm-preset";
+
 
 import { ProviderHealth } from "../types";
 import { EmbeddingProvider } from "./base";
@@ -14,8 +14,8 @@ type OpenAIOptions = {
 export class OpenAIEmbeddingAdapter extends EmbeddingProvider {
   client: OpenAI;
 
-  constructor(private opts: OpenAIOptions, preset: LLMPreset) {
-    super(preset);
+  constructor(private opts: OpenAIOptions) {
+    super();
     this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
   }
 

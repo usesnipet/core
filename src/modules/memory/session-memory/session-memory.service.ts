@@ -1,8 +1,10 @@
-import { SessionMessageEntity } from '@/entities';
-import { SessionFragment, Fragments } from '@/fragment';
-import { SessionVectorStoreService } from '@/infra/vector/session-vector-store.service';
-import { buildOptions } from '@/utils/build-options';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { DataSource, EntityManager, Repository } from "typeorm";
+
+import { SessionMessageEntity } from "@/entities";
+import { Fragments, SessionFragment } from "@/fragment";
+import { SessionVectorStoreService } from "@/infra/vector/session-vector-store.service";
+import { buildOptions } from "@/utils/build-options";
+import { Injectable } from "@nestjs/common";
 
 export type SessionSearchOptions = {
   lastNMessages?: number;
@@ -15,11 +17,16 @@ export type WithSessionSearchOptions = (currentOpts: Partial<SessionSearchOption
 
 @Injectable()
 export class SessionMemoryService {
-  private readonly logger = new Logger(SessionMemoryService.name);
+  private readonly dataSource: DataSource;
+
+  sessionMessageRepository(manager?: EntityManager): Repository<SessionMessageEntity> {
+    return manager ?
+      manager.getRepository(SessionMessageEntity) :
+      this.dataSource.getRepository(SessionMessageEntity);
+  }
 
   constructor(
-    private readonly chatVectorStore: SessionVectorStoreService,
-    @Inject(forwardRef(() => MessageService)) private readonly messageService: MessageService
+    private readonly sessionVectorStore: SessionVectorStoreService,
   ) {}
 
   private async messageToFragment(
@@ -39,33 +46,36 @@ export class SessionMemoryService {
   }
 
   async add(knowledgeId: string, message: SessionMessageEntity) {
-    await this.chatVectorStore.addFragments(
-      knowledgeId,
+    await this.sessionVectorStore.addFragments(
       await this.messageToFragment(knowledgeId, message)
     );
   }
 
   async remove(knowledgeId: string, message: SessionMessageEntity) {
-    await this.chatVectorStore.deleteFragments(
-      knowledgeId,
+    await this.sessionVectorStore.deleteFragments(
       await this.messageToFragment(knowledgeId, message)
     );
   }
 
-  async search(knowledgeId: string, chatId: string, ...opts: WithSessionSearchOptions[]) {
+  async search(knowledgeId: string, sessionId: string, ...opts: WithSessionSearchOptions[]) {
     const options = this.buildSessionSearchOptions(...opts);
-    const response: { lastNMessages: MessageEntity[], searchQuery: Fragments<SessionFragment> } = {
+    const response: { lastNMessages: SessionMessageEntity[], searchQuery: Fragments<SessionFragment> } = {
       lastNMessages: [],
       searchQuery: Fragments.fromFragmentArray([]),
     }
     if (options.lastNMessages) {
-      response.lastNMessages = await this.messageService.findLastNMessages(chatId, options.lastNMessages);
+      response.lastNMessages = await this.sessionMessageRepository().find({ 
+        where: { sessionId },
+        order: { createdAt: "DESC" },
+        take: options.lastNMessages,
+        relations: ["session"]
+      })
     }
 
     if (options.searchQuery) {
-      const searchQuery = await this.chatVectorStore.search(
+      const searchQuery = await this.sessionVectorStore.search(
         knowledgeId,
-        SessionVectorStoreService.withSessionId(chatId),
+        SessionVectorStoreService.withSessionId(sessionId),
         SessionVectorStoreService.withQuery(options.searchQuery),
         options.filters && SessionVectorStoreService.withFilters(options.filters)
       )

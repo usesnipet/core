@@ -1,8 +1,8 @@
 import { VoyageAIClient } from "voyageai";
-import { LLMPreset } from "@/types/llm-preset";
+
+import { EmbedError } from "../../errors/embed.error";
 import { ProviderHealth } from "../types";
 import { EmbeddingProvider } from "./base";
-import { EmbedError } from "../../errors/embed.error";
 
 type VoyageOptions = {
   apiKey: string;
@@ -12,8 +12,8 @@ type VoyageOptions = {
 export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
   client: VoyageAIClient;
 
-  constructor(private opts: VoyageOptions, preset: LLMPreset) {
-    super(preset);
+  constructor(private opts: VoyageOptions) {
+    super();
     this.client = new VoyageAIClient({ apiKey: opts.apiKey });
   }
 

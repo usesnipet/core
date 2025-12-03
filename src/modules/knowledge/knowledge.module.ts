@@ -9,6 +9,6 @@ import { KnowledgeService } from "./knowledge.service";
   imports: [HTTPContextModule, DatabaseModule],
   controllers: [KnowledgeController],
   providers: [KnowledgeService],
-  exports: []
+  exports: [KnowledgeService]
 })
 export class KnowledgeModule {}

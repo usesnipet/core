@@ -1,12 +1,11 @@
+import { env } from "@/env";
 import { BaseFragment, Fragments } from "@/fragment";
-
+import { getPresets } from "@/lib/presets";
+import { LLMPreset } from "@/types/llm-preset";
 import { buildOptions } from "@/utils/build-options";
 
-import { InvalidVectorFiltersError } from "./errors/invalid-vector-filters";
-import { env } from "@/env";
-import { LLMPreset } from "@/types/llm-preset";
 import { InvalidPresetError } from "./errors/invalid-preset";
-import { getPresets } from "@/lib/presets";
+import { InvalidVectorFiltersError } from "./errors/invalid-vector-filters";
 
 export type VectorStoreOptions = {
   llmPresetKey: string;
@@ -27,7 +26,7 @@ export abstract class VectorStore<T extends BaseFragment> {
 
   abstract addFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
   abstract deleteFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
-  abstract search(...options: Array<WithSearchOptions | undefined>): Promise<Fragments<T>>;
+  abstract search(knowledgeId: string, ...options: Array<WithSearchOptions | undefined>): Promise<Fragments<T>>;
 
   abstract deleteByFilter(filter: Record<string, string | number | boolean>, opts?: VectorStoreOptions): Promise<void>;
 
