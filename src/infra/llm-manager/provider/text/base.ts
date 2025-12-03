@@ -1,6 +1,8 @@
 import z from "zod";
 
 import { ProviderHealth } from "../types";
+import { Observable } from "rxjs";
+import { MessageEvent } from "@nestjs/common";
 
 export interface GenerateParams {
   prompt: string;
@@ -25,7 +27,7 @@ export interface StreamChunk {
 export abstract class TextProvider {
   abstract generate(params: GenerateParams): Promise<GenerateResult>;
   abstract stream?(params: GenerateParams, onChunk: (chunk: StreamChunk) => void): Promise<void>;
-  abstract iterableStream(params: GenerateParams): AsyncIterable<string>;
+  abstract observableStream(params: GenerateParams): Observable<MessageEvent> | Promise<Observable<MessageEvent>>;
   abstract healthCheck?(): Promise<ProviderHealth>;
   abstract withStructuredOutput<S extends z.ZodObject<any>>(query: string, schema: S): Promise<z.infer<S>>;
 

@@ -5,6 +5,8 @@ import { GoogleGenAI } from "@google/genai";
 
 import { ProviderHealth } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
+import { Observable } from "rxjs";
+import { MessageEvent } from "@nestjs/common";
 
 type GeminiAdapterOptions = {
   apiKey: string;
@@ -14,7 +16,7 @@ export class GeminiTextAdapter extends TextProvider {
   private client: GoogleGenAI;
   constructor(private opts: GeminiAdapterOptions) {
     super();
-    
+
     this.client = new GoogleGenAI({ apiKey: opts.apiKey });
   }
 
@@ -65,7 +67,7 @@ export class GeminiTextAdapter extends TextProvider {
     onChunk({ delta: "", finishReason: "stop" });
   }
 
-  async *iterableStream(params: GenerateParams): AsyncIterable<string> {
+  async observableStream(params: GenerateParams): Promise<Observable<MessageEvent>> {
     const { prompt, maxTokens, temperature } = params;
 
     const res = await this.client.models.generateContentStream({
@@ -80,12 +82,20 @@ export class GeminiTextAdapter extends TextProvider {
         tools: [ { googleSearch: {} } ]
       }
     });
-    return (async function*() {
-      for await (const chunk of res) {
-        const chunkText = chunk.text;
-        if (chunkText) yield chunkText;
-      }
-    })()
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          for await (const chunk of res) {
+            const chunkText = chunk.candidates?.[0].content?.parts?.[0]?.text;
+            if (chunkText) subscriber.next({ data: chunkText });
+          }
+
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      })()
+    })
   }
 
   async withStructuredOutput<S extends ZodObject<any>>(

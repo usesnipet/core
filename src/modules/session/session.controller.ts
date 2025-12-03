@@ -11,20 +11,6 @@ import { CreateSessionDto } from "./dto/create-session.dto";
 import { SendMessageDto } from "./dto/send-message.dto";
 import { SessionService } from "./session.service";
 
-function asyncIterableToObservable(iterable: AsyncIterable<string>): Observable<MessageEvent> {
-  return new Observable<MessageEvent>(subscriber => {
-    (async () => {
-      try {
-        for await (const chunk of iterable) {
-          subscriber.next({ data: chunk });
-        }
-        subscriber.complete();
-      } catch (error) {
-        subscriber.error(error);
-      }
-    })();
-  });
-}
 @Controller("knowledge/:knowledgeId/session")
 export class SessionController extends BaseController({
   entity: SessionEntity,
@@ -63,7 +49,6 @@ export class SessionController extends BaseController({
     body.knowledgeId = knowledgeId;
     body.message = q;
     body.sessionId = id;
-    const stream = this.service.sendMessageStream(body);
-    return asyncIterableToObservable(stream);
+    return this.service.sendMessageStream(body);
   }
 }

@@ -3,6 +3,8 @@ import { output, ZodObject } from "zod";
 
 import { ProviderHealth } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
+import { Observable } from "rxjs";
+import { MessageEvent } from "@nestjs/common";
 
 type OpenAIOptions = {
   baseURL: string;
@@ -64,25 +66,30 @@ export class OpenAITextAdapter extends TextProvider {
     }
   }
 
-  iterableStream(params: GenerateParams): AsyncIterable<string> {
-    return {
-      async *[Symbol.asyncIterator]() {
-        const { prompt, maxTokens, temperature } = params;
+  async observableStream(params: GenerateParams): Promise<Observable<MessageEvent>> {
+    const { prompt, maxTokens, temperature } = params;
 
-        const stream = await this.client.chat.completions.create({
-          model: this.opts.model,
-          messages: [ { role: "user", content: prompt } ],
-          max_tokens: maxTokens,
-          temperature,
-          stream: true
-        });
+    const stream = await this.client.chat.completions.create({
+      model: this.opts.model,
+      messages: [ { role: "user", content: prompt } ],
+      max_tokens: maxTokens,
+      temperature,
+      stream: true
+    });
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          for await (const chunk of stream) {
+            const chunkText = chunk.choices[0]?.delta?.content;
+            if (chunkText) subscriber.next({ data: chunkText });
+          }
 
-        for await (const part of stream) {
-          const delta = part.choices[0]?.delta?.content;
-          if (delta) yield delta;
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
         }
-      }
-    };
+      })()
+    });
   }
 
   async withStructuredOutput<S extends ZodObject<any>>(

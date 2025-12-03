@@ -6,13 +6,14 @@ import {
 } from "@/entities";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { Service } from "@/shared/service";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, MessageEvent, NotFoundException } from "@nestjs/common";
 import { PromptService } from "@snipet/nest-prompt";
 
 import { SessionMemoryService } from "../memory/session-memory/session-memory.service";
 import { SourceMemoryService } from "../memory/source-memory/source-memory.service";
 import { CreateSessionDto } from "./dto/create-session.dto";
 import { SendMessageDto } from "./dto/send-message.dto";
+import { finalize, Observable, tap } from "rxjs";
 
 export type FindOptions = {
   knowledgeId: string;
@@ -110,7 +111,7 @@ export class SessionService extends Service<SessionEntity> {
     return assistantMessage;
   }
   private async updateSessionContextState(sessionId: string, state: SessionContextState, manager?: EntityManager) {
-    return this.sessionContextRepository(manager).update({ sessionId }, { state });  
+    return this.sessionContextRepository(manager).update({ sessionId }, { state });
   }
 
   async sendMessage(
@@ -121,15 +122,15 @@ export class SessionService extends Service<SessionEntity> {
       const { llm } = await this.getSessionAndLLM(sessionId, manager);
       await this.updateSessionContextState(sessionId, SessionContextState.GENERATING, manager);
       await this.saveUserMessage(message, sessionId, knowledgeId, manager);
-      
+
       const sessionSearchResult = await this.sessionMemory.search(
         knowledgeId,
         sessionId,
         SessionMemoryService.withSearchQuery(message)
       );
-  
+
       const sourceSearchResult = await this.sourceMemory.find(knowledgeId, message);
-      
+
       const answerPrompt = this.promptService.getTemplate("AnwserQuestion").build({
         question: message,
         recentMessages: sessionSearchResult.lastNMessages.map(f => ({ role: f.role, content: f.content })),
@@ -137,19 +138,19 @@ export class SessionService extends Service<SessionEntity> {
         retrievedFragments: sourceSearchResult
           .map(f => (`${f.content} {sourceId:${f.id}}`))
       });
-      
+
       const llmResponse = await llm.generate({ prompt: answerPrompt });
-  
+
       return await this.saveAssistantMessage(llmResponse.output, sessionId, knowledgeId, manager);
     } finally {
       await this.updateSessionContextState(sessionId, SessionContextState.IDLE, manager);
     }
   }
 
-  async *sendMessageStream(
+  async sendMessageStream(
     { message, sessionId, knowledgeId }: SendMessageDto,
     manager?: EntityManager
-  ): AsyncIterable<string> {
+  ): Promise<Observable<MessageEvent>> {
     const { llm } = await this.getSessionAndLLM(sessionId, manager);
     await this.updateSessionContextState(sessionId, SessionContextState.GENERATING, manager);
 
@@ -162,7 +163,7 @@ export class SessionService extends Service<SessionEntity> {
     );
 
     const sourceSearchResult = await this.sourceMemory.find(knowledgeId, message);
-    
+
     const answerPrompt = this.promptService.getTemplate("AnwserQuestion").build({
       question: message,
       recentMessages: sessionSearchResult.lastNMessages.map(f => ({ role: f.role, content: f.content })),
@@ -170,17 +171,17 @@ export class SessionService extends Service<SessionEntity> {
       retrievedFragments: sourceSearchResult
         .map(f => (`${f.content} {sourceId:${f.id}}`))
     });
-    
-    const stream = llm.iterableStream({ prompt: answerPrompt });
+
+    const observableStream = await llm.observableStream({ prompt: answerPrompt });
+
     const self = this;
-    return (async function* () {
-      let full = "";
-      for await (const chunk of stream) {
-        full += chunk;
-        yield chunk;
-      }
-      
-      await self.saveAssistantMessage(full, sessionId, knowledgeId, manager);
-    })()
+    let full = "";
+    return observableStream.pipe(
+      tap(e => full += e.data),
+      finalize(async () => {
+        await self.updateSessionContextState(sessionId, SessionContextState.IDLE, manager);
+        await self.saveAssistantMessage(full, sessionId, knowledgeId, manager);
+      })
+    )
   }
 }
