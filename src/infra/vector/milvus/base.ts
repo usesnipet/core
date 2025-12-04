@@ -107,8 +107,8 @@ export abstract class MilvusService<T extends BaseFragment>
     for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
 
     const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
+
     if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collectionName, res);
-    await this.client.flushSync({ collection_names: [ collectionName ] });
   }
 
   async deleteFragments(c: T | T[] | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
@@ -122,7 +122,6 @@ export abstract class MilvusService<T extends BaseFragment>
       filter: `id in [${ids.map(id => `"${id}"`).join(", ")}]`
     });
     if (res.err_index.length > 0) throw new VectorMutationError("Error deleting fragments", res);
-    await this.client.flushSync({ collection_names: [ collectionName ] });
   }
 
   async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<Fragments<T>> {
@@ -137,7 +136,6 @@ export abstract class MilvusService<T extends BaseFragment>
     }
 
     const escapeFilterValue = (value: string): string => value.replace(/['"]/g, "\\$&");
-
     let filter = this.buildFilters(options.filters);
     if (options.term) {
       if (typeof options.term !== "string" || options.term.length > 500) {
@@ -149,17 +147,14 @@ export abstract class MilvusService<T extends BaseFragment>
 
       filter = filter ? `${filter} && ${textMatch}` : textMatch;
     }
-
     //#region search
     const data: HybridSearchSingleReq[] = [];
     if (options.dense) {
       let topK = options.topK;
       if (typeof options.dense !== "string" && options.dense.topK) topK = options.dense.topK;
-
       const embeddings = await embeddingProvider.embed(
         typeof options.dense === "string" ? options.dense : options.dense.query
       );
-
       data.push({
         anns_field: "dense",
         data: embeddings,
@@ -179,8 +174,7 @@ export abstract class MilvusService<T extends BaseFragment>
     }
     //#endregion
 
-    if (data.length === 0) throw new InvalidVectorFiltersError("No search data");
-
+    if (data.length === 0) throw new InvalidVectorFiltersError("No search data");    
     const result = await this.client.search({
       collection_name: collectionName,
       filter,

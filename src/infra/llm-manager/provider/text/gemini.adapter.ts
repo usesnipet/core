@@ -1,12 +1,12 @@
 import { randomUUID } from "crypto";
+import { Observable } from "rxjs";
 import { output, ZodObject } from "zod";
 
 import { GoogleGenAI } from "@google/genai";
+import { MessageEvent } from "@nestjs/common";
 
 import { ProviderHealth } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
-import { Observable } from "rxjs";
-import { MessageEvent } from "@nestjs/common";
 
 type GeminiAdapterOptions = {
   apiKey: string;

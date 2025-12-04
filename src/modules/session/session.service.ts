@@ -1,9 +1,10 @@
+import { finalize, Observable, tap } from "rxjs";
 import { EntityManager, Repository } from "typeorm";
 
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import {
-  KnowledgeEntity,
-  SessionContextEntity, SessionContextState, SessionEntity, SessionMessageEntity, SessionMessageRole
+  KnowledgeEntity, SessionContextEntity, SessionContextState, SessionEntity, SessionMessageEntity,
+  SessionMessageRole
 } from "@/entities";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { Service } from "@/shared/service";
@@ -14,7 +15,6 @@ import { SessionMemoryService } from "../memory/session-memory/session-memory.se
 import { SourceMemoryService } from "../memory/source-memory/source-memory.service";
 import { CreateSessionDto } from "./dto/create-session.dto";
 import { SendMessageDto } from "./dto/send-message.dto";
-import { finalize, Observable, tap } from "rxjs";
 
 export type FindOptions = {
   knowledgeId: string;
@@ -139,13 +139,14 @@ export class SessionService extends Service<SessionEntity> {
   }
 
   private async buildPrompt({ message, sessionId, knowledgeId }: SendMessageDto) {
-    const sessionSearchResult = await this.sessionMemory.search(
-      knowledgeId,
-      sessionId,
-      SessionMemoryService.withSearchQuery(message)
-    );
-
-    const sourceSearchResult = await this.sourceMemory.find(knowledgeId, message);
+    const [ sessionSearchResult, sourceSearchResult ] = await Promise.all([
+      this.sessionMemory.search(
+        knowledgeId,
+        sessionId,
+        SessionMemoryService.withSearchQuery(message)
+      ),
+      this.sourceMemory.find(knowledgeId, message)
+    ])
 
     return this.promptService.getTemplate("AnswerQuestion").build({
       question: message,
@@ -183,17 +184,13 @@ export class SessionService extends Service<SessionEntity> {
   ): Promise<Observable<MessageEvent>> {
     await this.checkSessionExists(sessionId, manager);
     await this.checkKnowledgeExists(knowledgeId, manager);
-
     const llm = await this.getLLM();
-
     await this.updateSessionContextState(sessionId, SessionContextState.GENERATING, manager);
-
     await this.saveUserMessage(message, sessionId, knowledgeId, manager);
+    const prompt = await this.buildPrompt({ knowledgeId, message, sessionId });
 
-    const observableStream = await llm.observableStream({
-      prompt: await this.buildPrompt({ knowledgeId, message, sessionId })
-    });
-
+    const observableStream = await llm.observableStream({ prompt });
+    
     const self = this;
     let full = "";
     return observableStream.pipe(
