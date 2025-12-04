@@ -17,19 +17,9 @@ import { SessionService } from "./session.service";
   imports: [
     HTTPContextModule,
     DatabaseModule,
-    VectorStoreModule,
-    KnowledgeModule,
-    CacheModule.register("session"),
-    LLMManagerModule,
-    MemoryModule,
-    PromptModule.forRoot({
-      debug: env.DEBUG_PROMPTS,
-      templatesDir: env.PROMPT_TEMPLATES_DIR,
-      templates: PromptTemplates
-    }),
   ],
   controllers: [SessionController],
   providers: [SessionService],
-  exports: []
+  exports: [ SessionService ],
 })
 export class SessionModule {}

@@ -21,6 +21,7 @@ import { RoleModule } from "./modules/role/role.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
 import { SessionModule } from "./modules/session/session.module";
+import { SessionMessageModule } from "./modules/session/message/message.module";
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { SessionModule } from "./modules/session/session.module";
     RoleModule,
     IngestModule,
     SessionModule,
+    SessionMessageModule,
     LLMManagerModule,
     VectorStoreModule,
   ],
