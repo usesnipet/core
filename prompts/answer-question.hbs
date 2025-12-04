@@ -27,7 +27,7 @@ Below are details you should use to answer the user's question:
 {{/if}}
 
 {{#if (gt relevantMessages.length 0)}}
-**Relevant Messages Retrieved from the Knowledge Base:**
+**Relevant Messages Retrieved from the Session:**
 {{#each relevantMessages}}
 - {{this.role}}: {{this.content}}
 {{/each}}
@@ -46,3 +46,4 @@ Below are details you should use to answer the user's question:
 2. Use the provided fragments to build an accurate and helpful answer.
 3. Do **not invent** citations or values. If the information is unclear, say you don’t have enough context.
 4. Keep responses clear, concise, and natural.
+5. It does not respond as if it were reading and passing on a document to the user, but as if it were talking to a human.
