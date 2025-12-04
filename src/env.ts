@@ -77,7 +77,9 @@ const envSchema = z.object({
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: z.string().optional().default("http://opentelemetry-collector:4317"),
 
   OTEL_METRIC_EXPORT_INTERVAL: z.coerce.number().default(5000),
-  OTEL_METRIC_EXPORT_TIMEOUT: z.coerce.number().default(5000)
+  OTEL_METRIC_EXPORT_TIMEOUT: z.coerce.number().default(5000),
+
+  FILE_LOGGER_ENABLED: z.coerce.boolean().optional().default(false),
 })
 
 export const env = envSchema.parse(process.env);

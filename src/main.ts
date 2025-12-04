@@ -11,9 +11,12 @@ import { AppModule } from "./app.module";
 import { env } from "./env";
 import { generateApi } from "./generate-api";
 import { ErrorsInterceptor } from "./interceptors/error.interceptor";
+import { FileLogger } from "./lib/file-logger";
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: env.FILE_LOGGER_ENABLED ? new FileLogger() : undefined
+  });
   app.useGlobalInterceptors(new ErrorsInterceptor());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.setGlobalPrefix("api");
