@@ -33,7 +33,7 @@ export class SourceMemoryService {
     return buildOptions({ knowledgeId, userInput }, opts);
   }
 
-  async find(knowledgeId: string, userInput: string, ...options: Finder[]): Promise<Fragments<SourceFragment>> {
+  async search(knowledgeId: string, userInput: string, ...options: Finder[]): Promise<Fragments<SourceFragment>> {
     const opts = this.buildFindOptions(knowledgeId, userInput, ...options);
     // get knowledge
     const knowledge = await this.knowledgeService.findByID(knowledgeId);

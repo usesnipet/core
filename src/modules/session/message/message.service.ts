@@ -4,15 +4,15 @@ import { EntityManager } from "typeorm";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { SessionContextState, SessionMessageEntity, SessionMessageRole } from "@/entities";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
+import { KnowledgeService } from "@/modules/knowledge/knowledge.service";
 import { Service } from "@/shared/service";
 import { Injectable, Logger, MessageEvent, NotFoundException } from "@nestjs/common";
 import { PromptService } from "@snipet/nest-prompt";
 
 import { SessionMemoryService } from "../../memory/session-memory/session-memory.service";
 import { SourceMemoryService } from "../../memory/source-memory/source-memory.service";
-import { SendMessageDto } from "./dto/send-message.dto";
 import { SessionService } from "../session.service";
-import { KnowledgeService } from "@/modules/knowledge/knowledge.service";
+import { SendMessageDto } from "./dto/send-message.dto";
 
 export type FindOptions = {
   knowledgeId: string;
@@ -100,7 +100,7 @@ export class SessionMessageService extends Service<SessionMessageEntity> {
         sessionId,
         SessionMemoryService.withSearchQuery(message)
       ),
-      this.sourceMemory.find(knowledgeId, message)
+      this.sourceMemory.search(knowledgeId, message)
     ])
 
     return this.promptService.getTemplate("AnswerQuestion").build({

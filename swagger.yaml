@@ -589,16 +589,11 @@ components:
       type: object
     SendMessageDto:
       properties:
-        message:
-          description: The message to send
-          type: string
-        sessionId:
-          description: The session id
-          format: uuid
+        content:
+          description: The content of message to send
           type: string
       required:
-        - sessionId
-        - message
+        - content
       type: object
     SessionContextEntity:
       properties:
@@ -682,6 +677,11 @@ components:
           description: The unique identifier for the entity
           format: uuid
           type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        knowledgeId:
+          format: uuid
+          type: string
         role:
           enum:
             - USER
@@ -703,6 +703,7 @@ components:
         - createdAt
         - updatedAt
         - sessionId
+        - knowledgeId
         - content
         - role
       type: object
@@ -1479,28 +1480,6 @@ paths:
         - access-token: []
       tags:
         - Session
-  /api/knowledge/{knowledgeId}/session/message:
-    post:
-      operationId: SessionController_sendMessage
-      parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendMessageDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - access-token: []
-      tags:
-        - Session
   /api/knowledge/{knowledgeId}/session/{id}:
     delete:
       operationId: SessionController_delete
@@ -1634,9 +1613,69 @@ paths:
         - access-token: []
       tags:
         - Session
-  /api/knowledge/{knowledgeId}/session/{id}/message/stream:
+  /api/knowledge/{knowledgeId}/session/{sessionId}/message:
     get:
-      operationId: SessionController_sendMessageStream
+      operationId: SessionMessageController_findMany
+      parameters:
+        - description: Maximum number of records to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            example: 10
+            type: number
+        - description: Number of records to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            example: 0
+            type: number
+        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
+          in: query
+          name: sort
+          required: false
+          schema:
+            items:
+              type: string
+            type: array
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/SessionMessageEntity"
+                type: array
+          description: Records found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - SessionMessage
+    post:
+      operationId: SessionMessageController_create
       parameters:
         - in: path
           name: knowledgeId
@@ -1644,7 +1683,35 @@ paths:
           schema:
             type: string
         - in: path
-          name: id
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+        - access-token: []
+      tags:
+        - SessionMessage
+  /api/knowledge/{knowledgeId}/session/{sessionId}/message/stream:
+    get:
+      operationId: SessionMessageController_sendMessageStream
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: sessionId
           required: true
           schema:
             type: string
@@ -1668,7 +1735,155 @@ paths:
       security:
         - access-token: []
       tags:
-        - Session
+        - SessionMessage
+  /api/knowledge/{knowledgeId}/session/{sessionId}/message/{id}:
+    delete:
+      operationId: SessionMessageController_delete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionMessageEntity"
+          description: Record deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - SessionMessage
+    get:
+      operationId: SessionMessageController_findByID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionMessageEntity"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - SessionMessage
+    put:
+      operationId: SessionMessageController_update
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionMessageEntity"
+          description: Record updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - access-token: []
+      tags:
+        - SessionMessage
   /api/role:
     get:
       operationId: RoleController_findMany
