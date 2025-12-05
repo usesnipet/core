@@ -27,7 +27,7 @@ const envSchema = z.object({
 
   // CORS
   CORS_ORIGINS: z.string().transform((s) => s.split(",")).optional()
-    .default([ "*", "http://localhost:3000", "http://localhost:5173" ]),
+    .default([ "*", "http://localhost:3000", "http://localhost:5173", "http://localhost:4200" ]),
   CORS_METHODS: z.string().array().optional().default([ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]),
   CORS_HEADERS: z.string().array().optional().default([ "*" ]),
   CORS_CREDENTIALS: z.boolean().optional().default(true),
