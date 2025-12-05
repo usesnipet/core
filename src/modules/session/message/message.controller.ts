@@ -46,6 +46,18 @@ export class SessionMessageController extends BaseController({
     body.content = q;
     body.sessionId = sessionId;
     body.knowledgeId = knowledgeId;
-    return this.service.sendMessageStream(body);
+    const source$ = await this.service.sendMessageStream(body);
+    return new Observable(subscriber => {
+      const sub = source$.subscribe({
+        next: (e) => subscriber.next(e),
+        error: (e) => subscriber.error(e),
+        complete: () => {
+          subscriber.next({ data: "[DONE]" });
+          subscriber.complete();
+        }
+      });
+
+      return () => sub.unsubscribe();
+    })
   }
 }
