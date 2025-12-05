@@ -10,7 +10,9 @@ import { InvalidVectorFiltersError } from "./errors/invalid-vector-filters";
 export type VectorStoreOptions = {
   llmPresetKey: string;
 }
-
+export type VectorStoreAddFragmentOptions = VectorStoreOptions & {
+  forceGenerateEmbedding?: boolean;
+}
 export type SearchOptions = VectorStoreOptions & {
   filters?: Record<string, string | number | boolean>;
   topK: number;
@@ -24,12 +26,21 @@ export abstract class VectorStore<T extends BaseFragment> {
 
   constructor(protected readonly collectionName: string) {}
 
-  abstract addFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
+  abstract addFragments(
+    fragments: T[] | T | Fragments<T>,
+    opts?: VectorStoreAddFragmentOptions
+  ): Promise<Fragments<T>>;
   abstract deleteFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
-  abstract search(knowledgeId: string, ...options: Array<WithSearchOptions | undefined>): Promise<Fragments<T>>;
 
-  abstract deleteByFilter(filter: Record<string, string | number | boolean>, opts?: VectorStoreOptions): Promise<void>;
+  abstract search(
+    knowledgeId: string,
+    ...options: Array<WithSearchOptions | undefined>
+  ): Promise<Fragments<T>>;
 
+  abstract deleteByFilter(
+    filter: Record<string, string | number | boolean>,
+    opts?: VectorStoreOptions
+  ): Promise<void>;
 
   protected buildCollectionName(preset: LLMPreset): string {
     if (preset.config.type === "TEXT") {

@@ -16,6 +16,9 @@ export abstract class BaseFragment {
   @Field({ type: "string", required: true })
   content: string;
 
+  @Field({ type: "number", isArray: true, required: false, hidden: true })
+  embeddings?: number[];
+
   abstract metadata: any;
 
   constructor(

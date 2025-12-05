@@ -17,9 +17,7 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment
   }
 
   fragmentToChunk(c: SourceFragment | SourceFragment[] | Fragments<SourceFragment>): RowData[] {
-    const fragments = this.toFragments(c);
-
-    return fragments.map<RowData>(c => ({
+    return this.toFragments(c).map<RowData>(c => ({
       id: c.id,
       seqId: c.seqId,
       content: c.content,
@@ -32,16 +30,17 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment
     }));
   }
 
-  searchResultToFragment(data: SearchResultData[]): Fragments<SourceFragment> {
+  chunkToFragments(data: RowData[]): Fragments<SourceFragment> {
     return Fragments.fromFragmentArray(
       data.map(c => new SourceFragment({
-        content: c.content,
-        id: c.id,
-        seqId: c.seqId,
-        connectorId: c.connectorId,
-        externalId: c.externalId,
-        knowledgeId: c.knowledgeId,
-        metadata: c.metadata,
+        content: c.content as string,
+        id: c.id as string,
+        seqId: c.seqId as number,
+        connectorId: c.connectorId as string,
+        externalId: c.externalId as string,
+        knowledgeId: c.knowledgeId as string,
+        metadata: c.metadata as any,
+        embeddings: c.dense as number[],
         createdAt: moment(Number(c.createdAt)).toDate(),
         updatedAt: moment(Number(c.updatedAt)).toDate()
       }))

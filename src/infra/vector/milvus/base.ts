@@ -15,7 +15,7 @@ import { VectorDeleteError } from "../errors/delete-error";
 import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
-import { VectorStore, VectorStoreOptions, WithSearchOptions } from "../vector-store.service";
+import { VectorStoreAddFragmentOptions, VectorStore, VectorStoreOptions, WithSearchOptions } from "../vector-store.service";
 
 export abstract class MilvusService<T extends BaseFragment>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {
@@ -77,7 +77,7 @@ export abstract class MilvusService<T extends BaseFragment>
   }
 
   abstract fragmentToChunk(fragment: T | T[] | Fragments<T>): RowData[];
-  abstract searchResultToFragment(data: SearchResultData[]): Fragments<T>;
+  abstract chunkToFragments(data: RowData[]): Fragments<T>;
 
   toFragments(c: T | T[] | Fragments<T>): Fragments<T> {
     const fragments = new Fragments<T>();
@@ -92,7 +92,7 @@ export abstract class MilvusService<T extends BaseFragment>
     return fragments;
   }
 
-  async addFragments(c: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
+  async addFragments(c: T[] | T | Fragments<T>, opts?: VectorStoreAddFragmentOptions): Promise<Fragments<T>> {
     // add embeddings
     const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
@@ -102,13 +102,15 @@ export abstract class MilvusService<T extends BaseFragment>
       this.logger.error("No embedding provider found");
       throw new VectorMutationError("No embedding provider found");
     }
-    const embeddings = await embeddingProvider.embed(chunks.map(c => (c.content as string)));
-
-    for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
+    if (chunks.some(c => !c.dense || !(c.dense as number[]).length) || opts?.forceGenerateEmbedding) {
+      const embeddings = await embeddingProvider.embed(chunks.map(c => (c.content as string)));
+      for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
+    }
 
     const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
 
     if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collectionName, res);
+    return this.chunkToFragments(chunks);
   }
 
   async deleteFragments(c: T | T[] | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
@@ -174,7 +176,7 @@ export abstract class MilvusService<T extends BaseFragment>
     }
     //#endregion
 
-    if (data.length === 0) throw new InvalidVectorFiltersError("No search data");    
+    if (data.length === 0) throw new InvalidVectorFiltersError("No search data");
     const result = await this.client.search({
       collection_name: collectionName,
       filter,
@@ -185,7 +187,7 @@ export abstract class MilvusService<T extends BaseFragment>
     if (!result.results?.length) return new Fragments<T>();
     if (result.status.error_code !== "Success") throw new VectorSearchError("Error searching fragments");
 
-    return this.searchResultToFragment(result.results);
+    return this.chunkToFragments(result.results);
   }
 
   async deleteByFilter(

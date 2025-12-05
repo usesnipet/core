@@ -30,15 +30,15 @@ export class MilvusSessionVectorStoreService extends MilvusService<SessionFragme
     }));
   }
 
-  searchResultToFragment(data: SearchResultData[]): Fragments<SessionFragment> {
+  chunkToFragments(data: RowData[]): Fragments<SessionFragment> {
     return Fragments.fromFragmentArray(
       data.map(c => new SessionFragment({
-        id: c.id,
-        content: c.content,
-        role: c.role,
-        knowledgeId: c.knowledgeId,
-        metadata: c.metadata,
-        sessionId: c.sessionId,
+        id: c.id as string,
+        content: c.content as string,
+        role: c.role as string,
+        knowledgeId: c.knowledgeId as string,
+        metadata: c.metadata as any,
+        sessionId: c.sessionId as string,
         createdAt: moment(Number(c.createdAt)).toDate(),
         updatedAt: moment(Number(c.updatedAt)).toDate(),
       }))
@@ -55,6 +55,6 @@ export class MilvusSessionVectorStoreService extends MilvusService<SessionFragme
       topk: n,
     });
 
-    return this.searchResultToFragment(result.results);
+    return this.chunkToFragments(result.results);
   }
 }
