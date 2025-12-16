@@ -26,7 +26,8 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceFragment
       knowledgeId: c.knowledgeId,
       createdAt: c.createdAt.getTime() ?? Date.now(),
       updatedAt: c.updatedAt.getTime() ?? Date.now(),
-      metadata: c.metadata
+      metadata: c.metadata,
+      dense: c.embeddings
     }));
   }
 

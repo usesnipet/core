@@ -26,7 +26,8 @@ export class MilvusSessionVectorStoreService extends MilvusService<SessionFragme
       sessionId: c.sessionId,
       createdAt: c.createdAt.getTime() ?? Date.now(),
       updatedAt: c.updatedAt.getTime() ?? Date.now(),
-      metadata: c.metadata
+      metadata: c.metadata,
+      dense: c.embeddings
     }));
   }
 
@@ -41,6 +42,7 @@ export class MilvusSessionVectorStoreService extends MilvusService<SessionFragme
         sessionId: c.sessionId as string,
         createdAt: moment(Number(c.createdAt)).toDate(),
         updatedAt: moment(Number(c.updatedAt)).toDate(),
+        embeddings: c.dense as number[]
       }))
     );
   }
