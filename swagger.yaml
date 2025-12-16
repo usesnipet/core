@@ -154,9 +154,13 @@ components:
           description: The knowledge base id
           format: uuid
           type: string
+        name:
+          description: The name of the connector
+          type: string
       required:
         - knowledgeId
         - integrationId
+        - name
       type: object
     CreateKnowledgeDto:
       properties:
@@ -166,6 +170,18 @@ components:
         namespace:
           description: The namespace of the knowledge base
           nullable: true
+          type: string
+      required:
+        - name
+      type: object
+    CreateOrUpdateRoleDto:
+      properties:
+        knowledgeBases:
+          items:
+            $ref: "#/components/schemas/KnowledgeBaseRoleConfig"
+          type: array
+        name:
+          description: The name of the role
           type: string
       required:
         - name
@@ -250,6 +266,9 @@ components:
           oneOf:
             - $ref: "#/components/schemas/MCPIntegrationManifest"
             - $ref: "#/components/schemas/ManualIntegrationManifest"
+        name:
+          description: The name of the integration
+          type: string
         type:
           description: The type of the integration
           enum:
@@ -264,13 +283,59 @@ components:
         - id
         - createdAt
         - updatedAt
+        - name
         - type
         - authMethods
         - manifest
         - connectors
       type: object
-    KbPermission:
-      properties: {}
+    KnowledgeBaseRoleConfig:
+      properties:
+        connectorPermissions:
+          items:
+            $ref: "#/components/schemas/KnowledgeBaseRoleConnectorConfig"
+          type: array
+        knowledgeId:
+          format: uuid
+          type: string
+        permissions:
+          enum:
+            - 1
+            - 2
+            - 4
+          type: number
+      required:
+        - knowledgeId
+        - permissions
+      type: object
+    KnowledgeBaseRoleConnectorConfig:
+      properties:
+        connectorId:
+          format: uuid
+          type: string
+        policyMode:
+          enum:
+            - ALLOWLIST
+            - DENYLIST
+          type: string
+        resources:
+          items:
+            type: string
+          nullable: true
+          type: array
+        tools:
+          items:
+            type: string
+          nullable: true
+          type: array
+        webhookEvents:
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+        - connectorId
+        - policyMode
       type: object
     KnowledgeEntity:
       properties:
@@ -453,9 +518,12 @@ components:
           format: uuid
           type: string
         kbPermissions:
-          allOf:
-            - $ref: "#/components/schemas/KbPermission"
           description: The permissions of the role
+          enum:
+            - 1
+            - 2
+            - 4
+          type: number
         knowledge:
           allOf:
             - $ref: "#/components/schemas/KnowledgeEntity"
@@ -566,6 +634,11 @@ components:
           description: The timestamp when the invite was created
           format: date-time
           type: string
+        expiresAt:
+          description: The expires at of the role
+          format: date-time
+          nullable: true
+          type: string
         id:
           description: The unique identifier for the entity
           format: uuid
@@ -573,6 +646,9 @@ components:
         name:
           description: The name of the role
           type: string
+        rateLimit:
+          description: The rate limit of the role
+          type: number
         roleAssignments:
           items:
             $ref: "#/components/schemas/RoleAssignmentEntity"
@@ -586,6 +662,8 @@ components:
         - createdAt
         - updatedAt
         - name
+        - rateLimit
+        - expiresAt
       type: object
     SendMessageDto:
       properties:
@@ -1942,7 +2020,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateOrUpdateRoleDto"
         required: true
       responses:
         "201":
@@ -2060,7 +2138,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateOrUpdateRoleDto"
         required: true
       responses:
         "200":

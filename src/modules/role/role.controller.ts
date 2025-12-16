@@ -3,12 +3,13 @@ import { BaseController } from "@/shared/controller";
 import { Controller } from "@/shared/controller/decorators";
 
 import { RoleService } from "./role.service";
-import { CreateRoleDto } from "./dto/create-role.dto";
+import { CreateOrUpdateRoleDto } from "./dto/create-or-update-role.dto";
 
 @Controller("role")
 export class RoleController extends BaseController({
   entity: RoleEntity,
-  createDto: CreateRoleDto
+  createDto: CreateOrUpdateRoleDto,
+  updateDto: CreateOrUpdateRoleDto
 }) {
   constructor(service: RoleService) {
     super(service);

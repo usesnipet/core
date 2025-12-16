@@ -7,10 +7,13 @@ import crypto from "crypto";
 
 @Entity("roles")
 export class RoleEntity extends BaseEntity {
-  @Field({ type: "string", description: "The key of the role" })
+  @Field({ type: "string", description: "The key of the role", hidden: true })
   @Index({ unique: true })
   @Column({ length: 64 })
   keyHash: string;
+
+  @Field({ type: "string", description: "The key of the role", hidden: true })
+  key: string;
 
   @Field({ type: "string", description: "The name of the role" })
   @Column({ type: "varchar", length: 255 })
@@ -20,7 +23,7 @@ export class RoleEntity extends BaseEntity {
   @Column({ nullable: true })
   rateLimit: number;
 
-  @Field({ type: "boolean", description: "The revoked status of the role" })
+  @Field({ type: "boolean", description: "The revoked status of the role", hidden: true })
   @Column({ default: false })
   revoked: boolean;
 
