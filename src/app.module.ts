@@ -5,7 +5,7 @@ import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { BullModule } from "@nestjs/bullmq";
 import { ClassSerializerInterceptor, Module } from "@nestjs/common";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { PromptModule } from "@snipet/nest-prompt";
 
@@ -22,6 +22,7 @@ import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
 import { SessionModule } from "./modules/session/session.module";
 import { SessionMessageModule } from "./modules/session/message/message.module";
+import { ApiKeyGuard } from "./guards/api-key.guard";
 
 @Module({
   imports: [
@@ -68,6 +69,10 @@ import { SessionMessageModule } from "./modules/session/message/message.module";
     VectorStoreModule,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ContextInterceptor
