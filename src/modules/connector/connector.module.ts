@@ -10,6 +10,6 @@ import { IntegrationModule } from "../integration/integration.module";
   imports: [HTTPContextModule, DatabaseModule, IntegrationModule],
   controllers: [ConnectorController],
   providers: [ConnectorService],
-  exports: []
+  exports: [ConnectorService]
 })
 export class ConnectorModule {}

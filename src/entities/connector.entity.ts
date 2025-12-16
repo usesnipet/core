@@ -35,7 +35,7 @@ export class ConnectorEntity extends BaseEntity {
 
   @Field({ type: "string", required: true, description: "The name of the connector" })
   @Column({ type: "varchar", length: 255 })
-  name: string
+  name: string;
 
   @Field({ type: "enum", enum: IntegrationType, required: true, description: "The type of the connector" })
   @Column({ type: "enum", enum: IntegrationType })

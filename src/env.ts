@@ -22,6 +22,10 @@ const envSchema = z.object({
   APP_PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum([ "development", "production", "test" ]).default("development"),
 
+
+  // ROLE
+  DEFAULT_RATE_LIMIT: z.coerce.number().optional().default(1000),
+
   // SECURITY
   ENCRYPT_MASTER_PASSWORD: z.string().optional().default("change-me"),
 

@@ -6,10 +6,10 @@ import { KnowledgeEntity } from "./knowledge.entity";
 import { RoleConnectorPermissionEntity } from "./role-connector-permission.entity";
 import { RoleEntity } from "./role.entity";
 
-export class KbPermission {
-  read?: boolean;
-  write?: boolean;
-  manage?: boolean;
+export enum KbPermission {
+  READ = 1 << 0,
+  WRITE = 1 << 1,
+  MANAGE = 1 << 2
 }
 
 @Entity("role_assignments")
@@ -18,8 +18,8 @@ export class RoleAssignmentEntity extends BaseEntity {
   @Column({ type: "uuid", name: "role_id" })
   roleId: string;
 
-  @Field({ type: "class", class: () => KbPermission, required: true, description: "The permissions of the role" })
-  @Column({ type: "jsonb", name: "kb_permissions" })
+  @Field({ type: "enum", enum: KbPermission, required: true, description: "The permissions of the role" })
+  @Column({ type: "enum", enum: KbPermission, name: "kb_permissions" })
   kbPermissions: KbPermission;
 
   @Field({ type: "string", required: true, uuid: true, description: "The id of the knowledge base" })
@@ -37,7 +37,7 @@ export class RoleAssignmentEntity extends BaseEntity {
   knowledge?: KnowledgeEntity;
 
   @Field({ type: "class", class: () => RoleConnectorPermissionEntity, isArray: true, required: false, description: "The connector permissions of the role assignment" })
-  @OneToMany(() => RoleConnectorPermissionEntity, (c) => c.roleAssignment)
+  @OneToMany(() => RoleConnectorPermissionEntity, (c) => c.roleAssignment, { cascade: [ "insert", "update" ], eager: true })
   connectorPermissions?: RoleConnectorPermissionEntity[];
 
   constructor(data: Partial<RoleAssignmentEntity>) {

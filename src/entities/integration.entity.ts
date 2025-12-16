@@ -154,7 +154,6 @@ export class Webhook {
   url: string;
 }
 
-
 export class ManualIntegrationManifest {
   @Field({ type: "string", required: true, description: "The version of the integration" })
   version: string;
@@ -203,6 +202,10 @@ export enum IntegrationAuthType {
 @ApiExtraModels(MCPIntegrationManifest, ManualIntegrationManifest)
 @Entity("integrations")
 export class IntegrationEntity extends BaseEntity {
+  @Field({ type: "string", required: true, description: "The name of the integration" })
+  @Column({ type: "varchar", length: 255 })
+  name: string;
+
   @Field({ type: "enum", enum: IntegrationType, required: true, description: "The type of the integration" })
   @Column({ type: "enum", enum: IntegrationType })
   type: IntegrationType;

@@ -7,10 +7,11 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 export class IntegrationService extends Service<IntegrationEntity> implements OnModuleInit {
   logger = new Logger(IntegrationService.name);
   entity = IntegrationEntity;
-  
+
   async onModuleInit() {
     const defaultIntegration = new IntegrationEntity({
-      authMethods: [IntegrationAuthType.JWT],
+      authMethods: [IntegrationAuthType.API_KEY],
+      name: "File Manager",
       manifest: {
         baseUrl: "",
         capabilities: [Capability.INGEST],

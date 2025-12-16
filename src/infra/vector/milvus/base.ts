@@ -102,9 +102,10 @@ export abstract class MilvusService<T extends BaseFragment>
       this.logger.error("No embedding provider found");
       throw new VectorMutationError("No embedding provider found");
     }
-    if (chunks.some(c => !c.dense || !(c.dense as number[]).length) || opts?.forceGenerateEmbedding) {
-      const embeddings = await embeddingProvider.embed(chunks.map(c => (c.content as string)));
-      for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
+    for (const chunk of chunks) {
+      if (Array.isArray(chunk.dense) && chunk.dense.length > 0) continue;
+      const embeddings = await embeddingProvider.embed(chunk.content as string);
+      chunk.dense = embeddings;
     }
 
     const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
