@@ -23,7 +23,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum([ "development", "production", "test" ]).default("development"),
 
 
-  // ROLE
+  // API KEY
+  ROOT_API_KEY: z.string().optional(),
   DEFAULT_RATE_LIMIT: z.coerce.number().optional().default(1000),
 
   // SECURITY

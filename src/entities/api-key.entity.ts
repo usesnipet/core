@@ -15,9 +15,17 @@ export class ApiKeyEntity extends BaseEntity {
   @Field({ type: "string", description: "The key of the api key", hidden: true })
   key: string;
 
+  @Field({ type: "boolean", description: "Indicates if the api key is the root key", hidden: true })
+  @Column({ default: false })
+  root?: boolean;
+
   @Field({ type: "string", description: "The name of the api key" })
   @Column({ type: "varchar", length: 255 })
   name: string;
+
+  @Field({ type: "number", description: "The permissions of the api key", hidden: true })
+  @Column({ default: 0 })
+  permissions: number;
 
   @Field({ type: "number", description: "The rate limit of the api key" })
   @Column({ nullable: true })

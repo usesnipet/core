@@ -1,3 +1,5 @@
+import { loadRoles } from "@snipet/permission";
+
 export enum Permission {
   CREATE_KNOWLEDGE = 1 << 0,
   READ_KNOWLEDGE = 1 << 1,
@@ -19,5 +21,34 @@ export enum Permission {
   UPDATE_CONNECTOR = 1 << 14,
   DELETE_CONNECTOR = 1 << 15,
 
-  RUN_CONNECTOR = 1 << 16,
+  CREATE_SESSION = 1 << 16,
+  READ_SESSION = 1 << 17,
+  UPDATE_SESSION = 1 << 18,
+  DELETE_SESSION = 1 << 19,
+
+  RUN_CONNECTOR = 1 << 20,
 }
+const { can, mergePermissions, numberToPermissions, permissionsToNumber, roles } = loadRoles([
+  {
+    key: "admin",
+    name: "Admin",
+    permissions: Object.values(Permission) as number[],
+    scope: "global"
+  },
+  {
+    key: "user",
+    name: "User",
+    permissions: [],
+    scope: "global"
+  }
+]);
+
+const rootRole = roles.find(r => r.key === "admin")!;
+export {
+  can,
+  mergePermissions,
+  numberToPermissions,
+  permissionsToNumber,
+  roles,
+  rootRole
+};

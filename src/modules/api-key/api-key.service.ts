@@ -1,18 +1,40 @@
 import { ApiKeyAssignmentEntity, ApiKeyConnectorPermissionEntity, ApiKeyEntity } from "@/entities";
 import { Service } from "@/shared/service";
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { EntityManager, FindOptionsWhere, In } from "typeorm";
 import { CreateOrUpdateApiKeyDto, CreateApiKeyResponseDto } from "./dto/create-or-update-api-key.dto";
 import { env } from "@/env";
 import { ConnectorService } from "../connector/connector.service";
 import { KnowledgeBaseApiKeyConfig } from "./dto/knowledge-base-api-key-config.dto";
+import { permissionsToNumber, rootRole } from "@/lib/permissions";
 
 @Injectable()
-export class ApiKeyService extends Service<ApiKeyEntity> {
+export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit {
   logger = new Logger(ApiKeyService.name);
   entity = ApiKeyEntity;
 
   @Inject() private readonly connectorService: ConnectorService;
+
+  async onModuleInit() {
+    const rootKey = await this.findFirst({ where: { root: true } });
+
+    if (!rootKey) {
+      const key = env.ROOT_API_KEY || ApiKeyEntity.generateKey(env.NODE_ENV);
+      const keyHash = ApiKeyEntity.toHash(key);
+
+      const newRootKey = new ApiKeyEntity({
+        name: "root",
+        key,
+        keyHash,
+        root: true,
+        permissions: permissionsToNumber(rootRole.permissions),
+        rateLimit: env.DEFAULT_RATE_LIMIT,
+      });
+
+      await this.repository().save(newRootKey);
+      this.logger.log(`Root API key created: ${key}`);
+    }
+  }
 
   override async create(input: CreateOrUpdateApiKeyDto, manager?: EntityManager): Promise<CreateApiKeyResponseDto>;
   override async create(input: CreateOrUpdateApiKeyDto[], manager?: EntityManager): Promise<CreateApiKeyResponseDto[]>;

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 
 import { IS_PUBLIC_KEY } from "@/shared/controller/decorators/public";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";

@@ -4,11 +4,19 @@ import { Controller } from "@/shared/controller/decorators";
 
 import { ConnectorService } from "./connector.service";
 import { CreateConnectorDto } from "./dto/create-connector.dto";
+import { Permission } from "@/lib/permissions";
 
 @Controller("connector")
 export class ConnectorController extends BaseController({
   entity: ConnectorEntity,
-  createDto: CreateConnectorDto
+  createDto: CreateConnectorDto,
+  requiredPermissions: {
+    create:   [Permission.CREATE_CONNECTOR],
+    update:   [Permission.UPDATE_CONNECTOR],
+    delete:   [Permission.DELETE_CONNECTOR],
+    find:     [Permission.READ_CONNECTOR],
+    findByID: [Permission.READ_CONNECTOR]
+  }
 }) {
   constructor(service: ConnectorService) {
     super(service);
