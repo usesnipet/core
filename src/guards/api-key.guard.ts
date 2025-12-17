@@ -3,14 +3,14 @@ import { Request, Response } from "express";
 import { IS_PUBLIC_KEY } from "@/shared/controller/decorators/public";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { RoleService } from "@/modules/role/role.service";
-import { RoleEntity } from "@/entities";
+import { ApiKeyService } from "@/modules/api-key/api-key.service";
+import { ApiKeyEntity } from "@/entities";
 import { AuthRequest } from "@/types/request";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
   constructor(
-    private readonly roleService: RoleService,
+    private readonly apiKeyService: ApiKeyService,
     private readonly reflector: Reflector
   ) {}
 
@@ -21,16 +21,16 @@ export class ApiKeyGuard implements CanActivate {
       context.getHandler(),
       context.getClass()
     ]);
-    const apiKey = request.headers["x-api-key"] as string || request.headers["authorization"] as string;
+    const apiKeyHeader = request.headers["x-api-key"] as string || request.headers["authorization"] as string;
 
-    const role = await this.roleService.findUnique({
-      where: { keyHash: RoleEntity.toHash(apiKey), revoked: false },
-      relations: ["roleAssignments.connectorPermissions"]
+    const apiKey = await this.apiKeyService.findUnique({
+      where: { keyHash: ApiKeyEntity.toHash(apiKeyHeader), revoked: false },
+      relations: ["apiKeyAssignments.connectorPermissions"]
     });
     if (isPublic) return true;
-    if (!role) throw new UnauthorizedException();
+    if (!apiKey) throw new UnauthorizedException();
 
-    request.role = role;
+    request.apiKey = apiKey;
 
     return true;
   }

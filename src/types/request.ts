@@ -1,6 +1,6 @@
-import { RoleEntity } from "@zilliz/milvus2-sdk-node";
+import { ApiKeyEntity } from "@/entities";
 import { Request } from "express";
 
 export type AuthRequest = Request & {
- role: RoleEntity;
+ apiKey: ApiKeyEntity;
 }

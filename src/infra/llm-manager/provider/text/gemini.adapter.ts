@@ -21,6 +21,8 @@ export class GeminiTextAdapter extends TextProvider {
   }
 
   async generate(params: GenerateParams): Promise<GenerateResult> {
+    console.log(params);
+
     const { prompt, maxTokens, temperature } = params;
     const start = Date.now();
     const res = await this.client.models.generateContent({

@@ -9,7 +9,7 @@ import {
   MCPIntegrationManifest
 } from "./integration.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
-import { RoleConnectorPermissionEntity } from "./role-connector-permission.entity";
+import { ApiKeyConnectorPermissionEntity } from "./api-key-connector-permission.entity";
 
 export class ConnectorAuth {
   type: IntegrationAuthType;
@@ -74,9 +74,9 @@ export class ConnectorEntity extends BaseEntity {
   @ManyToOne(() => ConnectorStateEntity, (connectorState) => connectorState.connector)
   connectorState?: ConnectorStateEntity;
 
-  @Field({ type: "class", class: () => RoleConnectorPermissionEntity, isArray: true, required: false })
-  @OneToMany(() => RoleConnectorPermissionEntity, (roleConnectorPermission) => roleConnectorPermission.connector)
-  roleConnectorPermissions?: RoleConnectorPermissionEntity[];
+  @Field({ type: "class", class: () => ApiKeyConnectorPermissionEntity, isArray: true, required: false })
+  @OneToMany(() => ApiKeyConnectorPermissionEntity, (apiKeyConnectorPermission) => apiKeyConnectorPermission.connector)
+  apiKeyConnectorPermissions?: ApiKeyConnectorPermissionEntity[];
 
   constructor(data: Partial<ConnectorEntity>) {
     super(data);

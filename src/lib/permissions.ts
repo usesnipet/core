@@ -1,5 +1,3 @@
-import { loadRoles } from "@snipet/permission";
-
 export enum Permission {
   CREATE_KNOWLEDGE = 1 << 0,
   READ_KNOWLEDGE = 1 << 1,
@@ -11,10 +9,10 @@ export enum Permission {
   UPDATE_INTEGRATION = 1 << 6,
   DELETE_INTEGRATION = 1 << 7,
 
-  CREATE_ROLE = 1 << 8,
-  READ_ROLE = 1 << 9,
-  UPDATE_ROLE = 1 << 10,
-  DELETE_ROLE = 1 << 11,
+  CREATE_API_KEY = 1 << 8,
+  READ_API_KEY = 1 << 9,
+  UPDATE_API_KEY = 1 << 10,
+  DELETE_API_KEY = 1 << 11,
 
   CREATE_CONNECTOR = 1 << 12,
   READ_CONNECTOR = 1 << 13,
@@ -23,12 +21,3 @@ export enum Permission {
 
   RUN_CONNECTOR = 1 << 16,
 }
-
-export default loadRoles([
-  {
-    key: "admin",
-    name: "Admin",
-    permissions: Object.values(Permission) as number[],
-    scope: "global",
-  }
-]);

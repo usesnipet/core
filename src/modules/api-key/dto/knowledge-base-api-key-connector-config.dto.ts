@@ -1,7 +1,7 @@
-import { PolicyMode } from "@/entities/role-connector-permission.entity";
+import { PolicyMode } from "@/entities/api-key-connector-permission.entity";
 import { Field } from "@/shared/model";
 
-export class KnowledgeBaseRoleConnectorConfig {
+export class KnowledgeBaseApiKeyConnectorConfig {
   @Field({ type: "string", required: true, uuid: true })
   connectorId: string;
 

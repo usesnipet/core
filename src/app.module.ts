@@ -17,7 +17,7 @@ import { ConnectorModule } from "./modules/connector/connector.module";
 import { IngestModule } from "./modules/connector/ingest/ingest.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
-import { RoleModule } from "./modules/role/role.module";
+import { ApiKeyModule } from "./modules/api-key/api-key.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
 import { SessionModule } from "./modules/session/session.module";
@@ -61,7 +61,7 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
     ConnectorModule,
     IntegrationModule,
     KnowledgeModule,
-    RoleModule,
+    ApiKeyModule,
     IngestModule,
     SessionModule,
     SessionMessageModule,
@@ -69,10 +69,10 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
     VectorStoreModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ApiKeyGuard
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ApiKeyGuard
+    // },
     {
       provide: APP_INTERCEPTOR,
       useClass: ContextInterceptor
