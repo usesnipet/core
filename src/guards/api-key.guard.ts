@@ -1,11 +1,9 @@
-import { Response } from "express";
-
+import { ApiKeyService } from "@/modules/api-key/api-key.service";
 import { IS_PUBLIC_KEY } from "@/shared/controller/decorators/public";
+import { AuthRequest } from "@/types/request";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { ApiKeyService } from "@/modules/api-key/api-key.service";
-import { ApiKeyEntity } from "@/entities";
-import { AuthRequest } from "@/types/request";
+import { Response } from "express";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -23,10 +21,7 @@ export class ApiKeyGuard implements CanActivate {
     ]);
     const apiKeyHeader = request.headers["x-api-key"] as string || request.headers["authorization"] as string;
 
-    const apiKey = await this.apiKeyService.findUnique({
-      where: { keyHash: ApiKeyEntity.toHash(apiKeyHeader), revoked: false },
-      relations: ["apiKeyAssignments.connectorPermissions"]
-    });
+    const apiKey = await this.apiKeyService.getByKey(apiKeyHeader);
     if (isPublic) return true;
     if (!apiKey) throw new UnauthorizedException();
 
@@ -34,4 +29,5 @@ export class ApiKeyGuard implements CanActivate {
 
     return true;
   }
+
 }

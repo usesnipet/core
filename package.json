@@ -25,7 +25,7 @@
     "db:migrate": "pnpm typeorm migration:run",
     "db:migrate:prod": "npm run typeorm migration:run",
     "compodoc": "npx @compodoc/compodoc -p tsconfig.json -s",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -122,5 +122,35 @@
     "tsx": "^4.20.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": ["js", "json", "ts"],
+    "modulePaths": ["<rootDir>"],
+    "moduleNameMapper": {
+      "@/(.*)$": "<rootDir>/src/$1"
+    },
+    "rootDir": "./",
+    "testRegex": ".*\\.spec\\.ts$",
+
+    "preset": "ts-jest/presets/default-esm",
+
+    "transform": {
+      "^.+\\.(t|j)s$": ["ts-jest", { "useESM": true }]
+    },
+
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@snipet/permission)"
+    ],
+
+    "extensionsToTreatAsEsm": [".ts"],
+
+    "collectCoverageFrom": ["<rootDir>/src/**/*.ts"],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/main.ts",
+      "<rootDir>/src/app.module.ts",
+      "index.ts"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node"
   }
 }

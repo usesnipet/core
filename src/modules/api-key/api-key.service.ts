@@ -1,12 +1,14 @@
 import { ApiKeyAssignmentEntity, ApiKeyConnectorPermissionEntity, ApiKeyEntity } from "@/entities";
+import { env } from "@/env";
+import { permissionsToNumber, rootRole } from "@/lib/permissions";
 import { Service } from "@/shared/service";
 import { Inject, Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { EntityManager, FindOptionsWhere, In } from "typeorm";
-import { CreateOrUpdateApiKeyDto, CreateApiKeyResponseDto } from "./dto/create-or-update-api-key.dto";
-import { env } from "@/env";
+
 import { ConnectorService } from "../connector/connector.service";
+
+import { CreateApiKeyResponseDto, CreateOrUpdateApiKeyDto } from "./dto/create-or-update-api-key.dto";
 import { KnowledgeBaseApiKeyConfig } from "./dto/knowledge-base-api-key-config.dto";
-import { permissionsToNumber, rootRole } from "@/lib/permissions";
 
 @Injectable()
 export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit {
@@ -123,5 +125,12 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
       }
     }
     return { apiKeyAssignments };
+  }
+
+  async getByKey(apiKeyHeader: string) {
+    return this.findUnique({
+      where: { keyHash: ApiKeyEntity.toHash(apiKeyHeader), revoked: false },
+      relations: ["apiKeyAssignments.connectorPermissions"]
+    });
   }
 }

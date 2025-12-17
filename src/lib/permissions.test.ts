@@ -1,6 +1,6 @@
 import {
   can, mergePermissions, numberToPermissions, Permission, permissionsToNumber, roles, rootRole
-} from "../../lib/permissions";
+} from "@/lib/permissions";
 
 describe('Permissions', () => {
   // Test to verify if permissions are correctly defined
