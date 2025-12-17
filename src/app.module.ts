@@ -1,6 +1,3 @@
-import basicAuth from "express-basic-auth";
-import { ClsModule } from "nestjs-cls";
-
 import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { BullModule } from "@nestjs/bullmq";
@@ -8,21 +5,23 @@ import { ClassSerializerInterceptor, Module } from "@nestjs/common";
 import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { PromptModule } from "@snipet/nest-prompt";
+import basicAuth from "express-basic-auth";
+import { ClsModule } from "nestjs-cls";
 
 import { PromptTemplates } from "./@generated/prompts/prompts";
 import { env } from "./env";
+import { ApiKeyGuard } from "./guards/api-key.guard";
 import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
 import { VectorStoreModule } from "./infra/vector/vector.module";
+import { ApiKeyModule } from "./modules/api-key/api-key.module";
 import { ConnectorModule } from "./modules/connector/connector.module";
 import { IngestModule } from "./modules/connector/ingest/ingest.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
-import { ApiKeyModule } from "./modules/api-key/api-key.module";
+import { SessionMessageModule } from "./modules/session/message/message.module";
+import { SessionModule } from "./modules/session/session.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
-import { SessionModule } from "./modules/session/session.module";
-import { SessionMessageModule } from "./modules/session/message/message.module";
-import { ApiKeyGuard } from "./guards/api-key.guard";
 
 @Module({
   imports: [
@@ -69,10 +68,10 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
     VectorStoreModule,
   ],
   providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ApiKeyGuard
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ContextInterceptor
