@@ -14,6 +14,9 @@ export abstract class BaseFragment {
   updatedAt: Date;
 
   @Field({ type: "string", required: true })
+  fullContent?: string;
+
+  @Field({ type: "string", required: true })
   content: string;
 
   @Field({ type: "number", isArray: true, required: false, hidden: true })

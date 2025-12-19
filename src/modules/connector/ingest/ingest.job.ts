@@ -1,12 +1,11 @@
-import { Job } from "bullmq";
-import * as fs from "fs/promises";
-import { Readable } from "stream";
-import streamToBlob from "stream-to-blob";
-
 import { ProcessorService } from "@/infra/processor/processor.service";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject, Logger } from "@nestjs/common";
+import { Job } from "bullmq";
+import * as fs from "fs/promises";
+import { Readable } from "stream";
+import streamToBlob from "stream-to-blob";
 
 export type IngestJobData = {
   metadata: Record<string, any>;
@@ -36,18 +35,20 @@ export class IngestJob extends WorkerHost {
       data.connectorId,
       data.knowledgeId,
       await streamToBlob(Readable.from(buffer)),
-      { 
+      {
         extension: data.extension,
         mimetype: data.mimetype,
         originalname: data.originalname,
         ...data.metadata,
       }
     );
-    await  this.vectorStore.addFragments(fragments);
+    if (fragments.length > 0) {
+      await this.vectorStore.addFragments(fragments);
+    }
     await fs.unlink(data.path);
     this.logger.debug(`File "${data.path}" processed`);
   }
-  
+
   @OnWorkerEvent("active")
   async onStart(job: Job<IngestJobData>) {
     this.logger.log("ingest started");

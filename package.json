@@ -87,6 +87,7 @@
     "rxjs": "^7.8.1",
     "stream-to-blob": "^2.0.1",
     "typeorm": "^0.3.27",
+    "unstructured-client": "^0.30.2",
     "voyageai": "^0.0.8",
     "word-extractor": "^1.0.4",
     "yaml": "^2.8.2",
@@ -124,27 +125,37 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "json", "ts"],
-    "modulePaths": ["<rootDir>"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "modulePaths": [
+      "<rootDir>"
+    ],
     "moduleNameMapper": {
       "@/(.*)$": "<rootDir>/src/$1"
     },
     "rootDir": "./",
     "testRegex": ".*\\.spec\\.ts$",
-
     "preset": "ts-jest/presets/default-esm",
-
     "transform": {
-      "^.+\\.(t|j)s$": ["ts-jest", { "useESM": true }]
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
     },
-
     "transformIgnorePatterns": [
       "/node_modules/(?!@snipet/permission)"
     ],
-
-    "extensionsToTreatAsEsm": [".ts"],
-
-    "collectCoverageFrom": ["<rootDir>/src/**/*.ts"],
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*.ts"
+    ],
     "coveragePathIgnorePatterns": [
       "<rootDir>/src/main.ts",
       "<rootDir>/src/app.module.ts",

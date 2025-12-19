@@ -72,6 +72,12 @@ const envSchema = z.object({
   PROMPT_TEMPLATES_DIR: z.string().optional().default(path.join(__root, "prompts")),
   DEBUG_PROMPTS: z.coerce.boolean().optional().default(false),
 
+  // PROCESSOR
+  DEFAULT_EXTRACTOR: z.enum([ "unstructured", "langchain" ]).optional().default("langchain"),
+  EXTRACTOR_SETTINGS: z.string().transform((s) => JSON.parse(s)).optional().default({}),
+  // EXTERNAL PROCESSOR - UNSTRUCTURED
+  UNSTRUCTURED_API_URL: z.string().optional().default("http://localhost:8000"),
+
   // OPEN TELEMETRY
   OTEL_ENABLED: z.coerce.boolean().optional().default(false),
   OTEL_LOGS_EXPORTER: z.string().optional().default("none"),

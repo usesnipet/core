@@ -1,46 +1,35 @@
-import { Fragments, SourceFragment } from "@/fragment";
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { env } from "@/env";
+import { Inject, Injectable } from "@nestjs/common";
 
-import { BaseProcessor } from "./base.processor";
-import {
-  CSVProcessor, DocxProcessor, JSONLProcessor, JSONProcessor, PDFProcessor, PPTProcessor,
-  TextProcessor
-} from "./internal";
+import { ExtractionService } from "./stage-1-extraction/extraction.service";
+import { NormalizationService } from "./stage-2-normalization/normalization.service";
+import { ClassificationService } from "./stage-3-classification/classification.service";
+import { GroupingService } from "./stage-4-grouping/grouping.service";
+import { NoiseDetectionService } from "./stage-5-noise-detection/noise-detection.service";
+import { StructureService } from "./stage-6-structure/structure.service";
 
 @Injectable()
 export class ProcessorService {
-  private readonly logger = new Logger(ProcessorService.name);
+  @Inject() private readonly extractorService: ExtractionService;
+  @Inject() private readonly normalizerService: NormalizationService;
+  @Inject() private readonly classifierService: ClassificationService;
+  @Inject() private readonly grouperService: GroupingService;
+  @Inject() private readonly noiseDetectorService: NoiseDetectionService;
+  @Inject() private readonly structureService: StructureService;
 
-  @Inject() private readonly pdfProcessor!: PDFProcessor;
-  @Inject() private readonly docxProcessor!: DocxProcessor;
-  @Inject() private readonly pptProcessor!: PPTProcessor;
-  @Inject() private readonly textProcessor!: TextProcessor;
-  @Inject() private readonly csvProcessor!: CSVProcessor;
-  @Inject() private readonly jsonProcessor!: JSONProcessor;
-  @Inject() private readonly jsonlProcessor!: JSONLProcessor;
+  async process(blob: Blob, metadata: Record<string, any>): Promise<StructuredDocument> {
+    const genericDocument = await this.extractorService.extract(
+      env.DEFAULT_EXTRACTOR,
+      blob,
+      metadata,
+      env.EXTRACTOR_SETTINGS,
+    );
 
-  private getProcessor(extension: string): BaseProcessor {
-    const ext = extension.toLowerCase();
-
-    if (['pdf'].includes(ext)) return this.pdfProcessor;
-    if (['doc', 'docx'].includes(ext)) return this.docxProcessor;
-    if (['ppt', 'pptx'].includes(ext)) return this.pptProcessor;
-    if (['txt', 'md', 'log'].includes(ext)) return this.textProcessor;
-    if (['csv'].includes(ext)) return this.csvProcessor;
-    if (['json'].includes(ext)) return this.jsonProcessor;
-    if (['jsonl', 'ndjson'].includes(ext)) return this.jsonlProcessor;
-
-    throw new Error(`Unsupported file extension: ${extension}`);
-  }
-
-  async process(
-    connectorId: string,
-    knowledgeId: string,
-    input: Blob,
-    metadata: Record<string, any>,
-  ): Promise<Fragments<SourceFragment>> {
-    const processor = this.getProcessor(metadata.extension);
-    this.logger.debug(`Processing file "${metadata.name}" with ${processor.constructor.name}`);
-    return processor.process(connectorId, knowledgeId, input, metadata);
+    const normalizedBlocks = await this.normalizerService.normalize(genericDocument);
+    const classifiedBlocks = await this.classifierService.classify(normalizedBlocks);
+    const groupedBlocks = await this.grouperService.group(classifiedBlocks);
+    const noiseDetectedBlocks = await this.noiseDetectorService.detect(groupedBlocks);
+    const structuredDocument = await this.structureService.build(noiseDetectedBlocks);
+    return structuredDocument;
   }
 }

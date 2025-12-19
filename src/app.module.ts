@@ -2,7 +2,7 @@ import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { BullModule } from "@nestjs/bullmq";
 import { ClassSerializerInterceptor, Module } from "@nestjs/common";
-import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { PromptModule } from "@snipet/nest-prompt";
 import basicAuth from "express-basic-auth";
@@ -10,7 +10,6 @@ import { ClsModule } from "nestjs-cls";
 
 import { PromptTemplates } from "./@generated/prompts/prompts";
 import { env } from "./env";
-import { ApiKeyGuard } from "./guards/api-key.guard";
 import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
 import { VectorStoreModule } from "./infra/vector/vector.module";
 import { ApiKeyModule } from "./modules/api-key/api-key.module";
@@ -68,10 +67,10 @@ import { ContextInterceptor } from "./shared/interceptor/context";
     VectorStoreModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ApiKeyGuard
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ApiKeyGuard
+    // },
     {
       provide: APP_INTERCEPTOR,
       useClass: ContextInterceptor
