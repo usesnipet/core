@@ -21,6 +21,11 @@ export const sessionFields = (_: string, dim: number): FieldType[] => [
   {
     name: "content",
     data_type: DataType.VarChar,
+    max_length: 65535
+  },
+  {
+    name: "fullContent",
+    data_type: DataType.VarChar,
     max_length: 65535,
     enable_analyzer: true,
     enable_match: true,
@@ -84,7 +89,7 @@ export const sessionIndexSchema = (collection_name: string): CreateIndexesReq =>
   ]
 }
 
-export const chatFunctions = [
+export const sessionFunctions = [
   {
     name: 'bm25_emb',
     description: 'bm25 function',

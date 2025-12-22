@@ -1,8 +1,5 @@
-import {
-  EntityManager, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository
-} from "typeorm";
-
 import { Logger } from "@nestjs/common";
+import { EntityManager, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
 
 import { FilterOptions } from "./filter-options";
 import { GenericService } from "./generic-service";
@@ -34,7 +31,7 @@ export abstract class Service<
 
     const data = await this.repository(manager).find(filterOptions);
 
-    return data.length === 0 ? null : data[0];
+    return data?.length === 0 ? null : data?.[0];
   }
 
   async findByID(

@@ -6,22 +6,27 @@ import { getPresets } from "@/lib/presets";
 import { Constructor } from "@/types/constructor";
 import { LLMPreset } from "@/types/llm-preset";
 import { Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import {
-  CreateIndexesReq, FieldType, FunctionObject, HybridSearchSingleReq, MilvusClient, RerankerObj,
-  RowData, RRFRanker, SearchResultData
+  CreateIndexesReq, FieldType, FunctionObject, HybridSearchSingleReq, MilvusClient, RerankerObj, RowData,
+  RRFRanker
 } from "@zilliz/milvus2-sdk-node";
 
 import { VectorDeleteError } from "../errors/delete-error";
 import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
-import { VectorStoreAddFragmentOptions, VectorStore, VectorStoreOptions, WithSearchOptions } from "../vector-store.service";
+import {
+  VectorStore, VectorStoreAddFragmentOptions, VectorStoreOptions, WithSearchOptions
+} from "../vector-store.service";
 
 export abstract class MilvusService<T extends BaseFragment>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {
 
   protected abstract readonly logger: Logger;
   client: MilvusClient;
+
+  embeddingsCache: Map<string, { embeddings: number[], createdAt: Date }> = new Map();
 
   constructor(
     protected readonly llmManager: LLMManagerService,
@@ -93,7 +98,6 @@ export abstract class MilvusService<T extends BaseFragment>
   }
 
   async addFragments(c: T[] | T | Fragments<T>, opts?: VectorStoreAddFragmentOptions): Promise<Fragments<T>> {
-    // add embeddings
     const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
     const chunks = this.fragmentToChunk(this.toFragments(c));
@@ -102,10 +106,17 @@ export abstract class MilvusService<T extends BaseFragment>
       this.logger.error("No embedding provider found");
       throw new VectorMutationError("No embedding provider found");
     }
+
     for (const chunk of chunks) {
-      if (Array.isArray(chunk.dense) && chunk.dense.length > 0) continue;
+      const hasEmbeddings = this.embeddingsCache.has(chunk.id as string);
+      if (hasEmbeddings) {
+        chunk.dense = this.embeddingsCache.get(chunk.id as string)?.embeddings;
+        continue;
+      }
+
       const embeddings = await embeddingProvider.embed(chunk.content as string);
       chunk.dense = embeddings;
+      this.embeddingsCache.set(chunk.id as string, { embeddings, createdAt: new Date() });
     }
 
     const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
@@ -146,7 +157,7 @@ export abstract class MilvusService<T extends BaseFragment>
       }
 
       const term = escapeFilterValue(options.term.trim());
-      const textMatch = `TEXT_MATCH(content, '${term}')`;
+      const textMatch = `TEXT_MATCH(fullContent, '${term}')`;
 
       filter = filter ? `${filter} && ${textMatch}` : textMatch;
     }
@@ -224,5 +235,13 @@ export abstract class MilvusService<T extends BaseFragment>
     });
 
     return exprParts.join(" && ");
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async clearEmbeddingsCache(): Promise<void> {
+    this.embeddingsCache.forEach((value, key) => {
+      // check if the cache is older than 1 hour
+      if (value.createdAt < new Date(Date.now() - 60 * 60 * 1000)) this.embeddingsCache.delete(key);
+    });
   }
 }

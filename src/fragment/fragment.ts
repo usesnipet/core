@@ -1,7 +1,6 @@
+import { Field } from "@/shared/model";
 import { randomUUID } from "crypto";
 import moment from "moment";
-
-import { Field } from "@/shared/model";
 
 export abstract class BaseFragment {
   @Field({ type: "string", uuid: true })
@@ -14,13 +13,7 @@ export abstract class BaseFragment {
   updatedAt: Date;
 
   @Field({ type: "string", required: true })
-  fullContent?: string;
-
-  @Field({ type: "string", required: true })
   content: string;
-
-  @Field({ type: "number", isArray: true, required: false, hidden: true })
-  embeddings?: number[];
 
   abstract metadata: any;
 

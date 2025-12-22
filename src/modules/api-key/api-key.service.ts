@@ -2,7 +2,9 @@ import { ApiKeyAssignmentEntity, ApiKeyConnectorPermissionEntity, ApiKeyEntity }
 import { env } from "@/env";
 import { permissionsToNumber, rootRole } from "@/lib/permissions";
 import { Service } from "@/shared/service";
-import { Inject, Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
+import {
+  Inject, Injectable, Logger, NotFoundException, OnModuleInit, UnauthorizedException
+} from "@nestjs/common";
 import { EntityManager, FindOptionsWhere, In } from "typeorm";
 
 import { ConnectorService } from "../connector/connector.service";
@@ -19,7 +21,6 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
 
   async onModuleInit() {
     const rootKey = await this.findFirst({ where: { root: true } });
-
     if (!rootKey) {
       const key = env.ROOT_API_KEY || ApiKeyEntity.generateKey(env.NODE_ENV);
       const keyHash = ApiKeyEntity.toHash(key);
@@ -59,10 +60,13 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
       });
     }));
 
-    const result = await this.repository(manager).save(apiKeysToCreate);
-    return isArray ?
-      result.map(r => CreateApiKeyResponseDto.fromEntity(r, r.key)) :
-      CreateApiKeyResponseDto.fromEntity(result[0], result[0].key);
+    if (isArray) {
+      const result = await this.repository(manager).save(apiKeysToCreate);
+      return result.map(r => CreateApiKeyResponseDto.fromEntity(r, r.key));
+    } else {
+      const result = await this.repository(manager).save(apiKeysToCreate[0]);
+      return CreateApiKeyResponseDto.fromEntity(result, result.key);
+    }
   }
 
   override async update(
@@ -87,9 +91,29 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
     await this.repository(manager).save(apiKeys);
   }
 
+  validateApiKeyAssignments(apiKey: ApiKeyEntity, knowledgeBases?: KnowledgeBaseApiKeyConfig[]) {
+    const permissionException = new UnauthorizedException("You do not have permission to create/update a api key with a higher permission than the one you have");
+    for (const kn of knowledgeBases ?? []) {
+      const apiKeyAssignment = apiKey.apiKeyAssignments?.find(a => a.knowledgeId === kn.knowledgeId);
+      if (!apiKeyAssignment) throw permissionException;
+      if (apiKeyAssignment.kbPermissions < kn.permissions) throw permissionException;
+      for (const cp of kn.connectorPermissions ?? []) {
+        const connectorPermission = apiKeyAssignment.connectorPermissions?.find(c => c.connectorId === cp.connectorId);
+        if (!connectorPermission) throw permissionException;
+        if (cp.resources?.some(r => !connectorPermission.resources?.includes(r))) throw permissionException;
+        if (cp.tools?.some(t => !connectorPermission.tools?.includes(t))) throw permissionException;
+        if (cp.webhookEvents?.some(e => !connectorPermission.webhookEvents?.includes(e))) throw permissionException;
+      }
+    }
+  }
+
   private async createOrUpdateApiKeyAssignments(
     knowledgeBases?: KnowledgeBaseApiKeyConfig[]
   ): Promise<{ apiKeyAssignments: ApiKeyAssignmentEntity[] }> {
+    const apiKey = this.context.apiKey;
+    if (!apiKey) throw new UnauthorizedException("You do not have permission to create/update a api key");
+    this.validateApiKeyAssignments(apiKey, knowledgeBases);
+
     const apiKeyAssignments: ApiKeyAssignmentEntity[] = [];
 
     if (knowledgeBases && knowledgeBases.length > 0) {

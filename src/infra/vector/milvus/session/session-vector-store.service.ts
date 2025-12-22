@@ -1,18 +1,18 @@
-import moment from "moment";
-
 import { Fragments, SessionFragment } from "@/fragment";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { Injectable, Logger } from "@nestjs/common";
-import { RowData, SearchResultData } from "@zilliz/milvus2-sdk-node";
+import { RowData } from "@zilliz/milvus2-sdk-node";
+import moment from "moment";
 
 import { MilvusService } from "../base";
-import { chatFunctions, sessionFields, sessionIndexSchema } from "./session-schemas";
+
+import { sessionFields, sessionFunctions, sessionIndexSchema } from "./session-schemas";
 
 @Injectable()
 export class MilvusSessionVectorStoreService extends MilvusService<SessionFragment> {
   protected override logger = new Logger(MilvusSessionVectorStoreService.name);
   constructor(llmManager: LLMManagerService) {
-    super(llmManager, "session", SessionFragment, sessionFields, chatFunctions, sessionIndexSchema)
+    super(llmManager, "session", SessionFragment, sessionFields, sessionFunctions, sessionIndexSchema)
   }
 
   fragmentToChunk(c: SessionFragment | SessionFragment[] | Fragments<SessionFragment>): RowData[] {
@@ -27,7 +27,6 @@ export class MilvusSessionVectorStoreService extends MilvusService<SessionFragme
       createdAt: c.createdAt.getTime() ?? Date.now(),
       updatedAt: c.updatedAt.getTime() ?? Date.now(),
       metadata: c.metadata,
-      dense: c.embeddings
     }));
   }
 
@@ -42,7 +41,6 @@ export class MilvusSessionVectorStoreService extends MilvusService<SessionFragme
         sessionId: c.sessionId as string,
         createdAt: moment(Number(c.createdAt)).toDate(),
         updatedAt: moment(Number(c.updatedAt)).toDate(),
-        embeddings: c.dense as number[]
       }))
     );
   }

@@ -1,10 +1,9 @@
-import { DataSource, EntityManager, Repository } from "typeorm";
-
 import { SessionMessageEntity } from "@/entities";
 import { Fragments, SessionFragment } from "@/fragment";
 import { SessionVectorStoreService } from "@/infra/vector/session-vector-store.service";
 import { buildOptions } from "@/utils/build-options";
 import { Injectable } from "@nestjs/common";
+import { DataSource, EntityManager, Repository } from "typeorm";
 
 export type SessionSearchOptions = {
   lastNMessages?: number;
@@ -25,36 +24,30 @@ export class SessionMemoryService {
       this.dataSource.getRepository(SessionMessageEntity);
   }
 
-  constructor(
-    private readonly sessionVectorStore: SessionVectorStoreService,
-  ) {}
+  constructor(private readonly sessionVectorStore: SessionVectorStoreService) {}
 
-  private async messageToFragment(
+  private messageToFragment(
     knowledgeId: string,
     message: SessionMessageEntity
-  ): Promise<SessionFragment> {
+  ): SessionFragment {
     return SessionFragment.fromObject({
       id: message.id,
-      content: message.content,
       createdAt: message.createdAt,
       role: message.role,
       knowledgeId: knowledgeId,
       sessionId: message.sessionId,
       metadata: {},
-      updatedAt: message.updatedAt
+      updatedAt: message.updatedAt,
+      content: message.content,
     });
   }
 
   async add(knowledgeId: string, message: SessionMessageEntity) {
-    await this.sessionVectorStore.addFragments(
-      await this.messageToFragment(knowledgeId, message)
-    );
+    await this.sessionVectorStore.addFragments(this.messageToFragment(knowledgeId, message));
   }
 
   async remove(knowledgeId: string, message: SessionMessageEntity) {
-    await this.sessionVectorStore.deleteFragments(
-      await this.messageToFragment(knowledgeId, message)
-    );
+    await this.sessionVectorStore.deleteFragments(this.messageToFragment(knowledgeId, message));
   }
 
   async search(knowledgeId: string, sessionId: string, ...opts: WithSessionSearchOptions[]) {
@@ -64,7 +57,7 @@ export class SessionMemoryService {
       searchQuery: Fragments.fromFragmentArray([]),
     }
     if (options.lastNMessages) {
-      response.lastNMessages = await this.sessionMessageRepository().find({ 
+      response.lastNMessages = await this.sessionMessageRepository().find({
         where: { sessionId },
         order: { createdAt: "DESC" },
         take: options.lastNMessages,

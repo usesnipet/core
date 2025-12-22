@@ -1,6 +1,3 @@
-import { finalize, Observable, tap } from "rxjs";
-import { EntityManager } from "typeorm";
-
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { SessionContextState, SessionMessageEntity, SessionMessageRole } from "@/entities";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
@@ -8,10 +5,13 @@ import { KnowledgeService } from "@/modules/knowledge/knowledge.service";
 import { Service } from "@/shared/service";
 import { Injectable, Logger, MessageEvent, NotFoundException } from "@nestjs/common";
 import { PromptService } from "@snipet/nest-prompt";
+import { finalize, Observable, tap } from "rxjs";
+import { EntityManager } from "typeorm";
 
 import { SessionMemoryService } from "../../memory/session-memory/session-memory.service";
 import { SourceMemoryService } from "../../memory/source-memory/source-memory.service";
 import { SessionService } from "../session.service";
+
 import { SendMessageDto } from "./dto/send-message.dto";
 
 export type FindOptions = {
