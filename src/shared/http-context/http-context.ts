@@ -1,9 +1,10 @@
-import { CookieOptions, Request, Response } from "express";
-import { CLS_REQ, CLS_RES, ClsService } from "nestjs-cls";
-
+import { ApiKeyEntity } from "@/entities";
+import { AuthRequest } from "@/types/request";
 // import { AuthRequest } from "@/types/auth-request";
 // import { Session } from "@/modules/auth/types";
 import { BadRequestException, Injectable } from "@nestjs/common";
+import { CookieOptions, Response } from "express";
+import { CLS_REQ, CLS_RES, ClsService } from "nestjs-cls";
 
 abstract class Getter {
   constructor(private params: Record<string, string | number | boolean | undefined>, private name: string) { }
@@ -61,11 +62,15 @@ export class Query extends Getter {
 export class HTTPContext {
   constructor(private readonly cls: ClsService) {}
 
-  get req(): Request { return this.cls.get(CLS_REQ); }
+  get req(): AuthRequest { return this.cls.get(CLS_REQ); }
   get res(): Response { return this.cls.get(CLS_RES); }
 
   get params(): Params { return new Params(this.req.params); }
   get query(): Query { return new Query(this.req.query); }
+
+  get apiKey(): ApiKeyEntity | undefined {
+    return this.req.apiKey;
+  }
 
   getCookie(name: string): string | undefined {
     return this.req.cookies[name];
