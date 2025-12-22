@@ -1,23 +1,14 @@
 import { env } from "@/env";
+import { Fragments, SourceFragment } from "@/fragment";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { ExtractionService } from "./stage-1-extraction/extraction.service";
-import { NormalizationService } from "./stage-2-normalization/normalization.service";
-import { ClassificationService } from "./stage-3-classification/classification.service";
-import { GroupingService } from "./stage-4-grouping/grouping.service";
-import { NoiseDetectionService } from "./stage-5-noise-detection/noise-detection.service";
-import { StructureService } from "./stage-6-structure/structure.service";
+import { ExtractionService } from "./extraction/extraction.service";
 
 @Injectable()
 export class ProcessorService {
   @Inject() private readonly extractorService: ExtractionService;
-  @Inject() private readonly normalizerService: NormalizationService;
-  @Inject() private readonly classifierService: ClassificationService;
-  @Inject() private readonly grouperService: GroupingService;
-  @Inject() private readonly noiseDetectorService: NoiseDetectionService;
-  @Inject() private readonly structureService: StructureService;
 
-  async process(blob: Blob, metadata: Record<string, any>): Promise<StructuredDocument> {
+  async process(blob: Blob, metadata: Record<string, any>): Promise<Fragments<SourceFragment>> {
     const genericDocument = await this.extractorService.extract(
       env.DEFAULT_EXTRACTOR,
       blob,
@@ -25,11 +16,13 @@ export class ProcessorService {
       env.EXTRACTOR_SETTINGS,
     );
 
-    const normalizedBlocks = await this.normalizerService.normalize(genericDocument);
-    const classifiedBlocks = await this.classifierService.classify(normalizedBlocks);
-    const groupedBlocks = await this.grouperService.group(classifiedBlocks);
-    const noiseDetectedBlocks = await this.noiseDetectorService.detect(groupedBlocks);
-    const structuredDocument = await this.structureService.build(noiseDetectedBlocks);
-    return structuredDocument;
+    return Fragments.fromFragmentArray(
+      genericDocument.nodes.filter(node => !!node.content).map((node, seqId) => (new SourceFragment({
+      connectorId: metadata.connectorId,
+      knowledgeId: metadata.knowledgeId,
+      seqId,
+      metadata,
+      content: node.content!,
+    }))));
   }
 }

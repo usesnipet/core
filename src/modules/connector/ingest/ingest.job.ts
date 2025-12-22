@@ -32,21 +32,22 @@ export class IngestJob extends WorkerHost {
     const buffer = await fs.readFile(data.path);
 
     const fragments = await this.processorService.process(
-      data.connectorId,
-      data.knowledgeId,
       await streamToBlob(Readable.from(buffer)),
       {
+        externalId: data.externalId,
+        connectorId: data.connectorId,
+        knowledgeId: data.knowledgeId,
         extension: data.extension,
         mimetype: data.mimetype,
         originalname: data.originalname,
         ...data.metadata,
       }
     );
-    if (fragments.length > 0) {
-      await this.vectorStore.addFragments(fragments);
-    }
+
+    if (fragments.length > 0) await this.vectorStore.addFragments(fragments);
+
     await fs.unlink(data.path);
-    this.logger.debug(`File "${data.path}" processed`);
+    this.logger.log(`File "${data.path}" processed`);
   }
 
   @OnWorkerEvent("active")
