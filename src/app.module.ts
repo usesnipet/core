@@ -22,6 +22,7 @@ import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
 import { SessionModule } from "./modules/session/session.module";
 import { SessionMessageModule } from "./modules/session/message/message.module";
+import { UtilitiesModule } from "./modules/utilities/utilities.module";
 
 @Module({
   imports: [
@@ -52,20 +53,21 @@ import { SessionMessageModule } from "./modules/session/message/message.module";
         saveRes: true
       }
     }),
-    PromptModule.forRoot({
-      debug: env.DEBUG_PROMPTS,
-      templatesDir: env.PROMPT_TEMPLATES_DIR,
-      templates: PromptTemplates
-    }),
     ConnectorModule,
     IntegrationModule,
     KnowledgeModule,
     RoleModule,
     IngestModule,
     SessionModule,
+    UtilitiesModule,
     SessionMessageModule,
     LLMManagerModule,
     VectorStoreModule,
+    PromptModule.forRoot({
+      debug: env.DEBUG_PROMPTS,
+      templatesDir: env.PROMPT_TEMPLATES_DIR,
+      templates: PromptTemplates
+    }),
   ],
   providers: [
     {

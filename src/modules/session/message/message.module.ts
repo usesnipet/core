@@ -1,9 +1,7 @@
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { env } from "@/env";
-import { CacheModule } from "@/infra/cache/cache.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { LLMManagerModule } from "@/infra/llm-manager/llm-manager.module";
-import { VectorStoreModule } from "@/infra/vector/vector.module";
 import { HTTPContextModule } from "@/shared/http-context/http-context.module";
 import { Module } from "@nestjs/common";
 import { PromptModule } from "@snipet/nest-prompt";

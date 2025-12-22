@@ -1,5 +1,50 @@
 components:
   schemas:
+    ArrayFieldSchema:
+      properties:
+        description:
+          description: the description of the field
+          type: string
+        schema:
+          allOf:
+            - $ref: "#/components/schemas/FieldSchema"
+          description: the schema of the array
+          oneOf:
+            - $ref: "#/components/schemas/StringFieldSchema"
+            - $ref: "#/components/schemas/NumberFieldSchema"
+            - $ref: "#/components/schemas/BooleanFieldSchema"
+            - $ref: "#/components/schemas/ArrayFieldSchema"
+            - $ref: "#/components/schemas/ObjectFieldSchema"
+        type:
+          description: the type of the field
+          enum:
+            - object
+            - array
+            - string
+            - number
+            - boolean
+          type: string
+      required:
+        - type
+        - schema
+      type: object
+    BooleanFieldSchema:
+      properties:
+        description:
+          description: the description of the field
+          type: string
+        type:
+          description: the type of the field
+          enum:
+            - object
+            - array
+            - string
+            - number
+            - boolean
+          type: string
+      required:
+        - type
+      type: object
     ConnectorAuth:
       properties: {}
       type: object
@@ -198,6 +243,26 @@ components:
         - error
         - code
         - timestamp
+      type: object
+    ExpandDto:
+      properties: {}
+      type: object
+    FieldSchema:
+      properties:
+        description:
+          description: the description of the field
+          type: string
+        type:
+          description: the type of the field
+          enum:
+            - object
+            - array
+            - string
+            - number
+            - boolean
+          type: string
+      required:
+        - type
       type: object
     IngestDto:
       properties:
@@ -436,6 +501,50 @@ components:
         - baseUrl
         - capabilities
         - features
+      type: object
+    NumberFieldSchema:
+      properties:
+        description:
+          description: the description of the field
+          type: string
+        type:
+          description: the type of the field
+          enum:
+            - object
+            - array
+            - string
+            - number
+            - boolean
+          type: string
+      required:
+        - type
+      type: object
+    ObjectFieldSchema:
+      properties:
+        description:
+          description: the description of the field
+          type: string
+        schema:
+          allOf:
+            - $ref: "#/components/schemas/FieldSchema"
+          description: the schema of the object
+          oneOf:
+            - $ref: "#/components/schemas/StringFieldSchema"
+            - $ref: "#/components/schemas/NumberFieldSchema"
+            - $ref: "#/components/schemas/BooleanFieldSchema"
+            - $ref: "#/components/schemas/ObjectFieldSchema"
+        type:
+          description: the type of the field
+          enum:
+            - object
+            - array
+            - string
+            - number
+            - boolean
+          type: string
+      required:
+        - type
+        - schema
       type: object
     RoleAssignmentEntity:
       properties:
@@ -706,6 +815,45 @@ components:
         - knowledgeId
         - content
         - role
+      type: object
+    StringFieldSchema:
+      properties:
+        description:
+          description: the description of the field
+          type: string
+        type:
+          description: the type of the field
+          enum:
+            - object
+            - array
+            - string
+            - number
+            - boolean
+          type: string
+      required:
+        - type
+      type: object
+    StructuredOutputDto:
+      properties:
+        schema:
+          allOf:
+            - $ref: "#/components/schemas/FieldSchema"
+          description: the schema of the object
+          oneOf:
+            - $ref: "#/components/schemas/StringFieldSchema"
+            - $ref: "#/components/schemas/NumberFieldSchema"
+            - $ref: "#/components/schemas/BooleanFieldSchema"
+            - $ref: "#/components/schemas/ArrayFieldSchema"
+            - $ref: "#/components/schemas/ObjectFieldSchema"
+        text:
+          description: The text to be processed
+          type: string
+      required:
+        - text
+        - schema
+      type: object
+    SummaryDto:
+      properties: {}
       type: object
     Webhook:
       properties:
@@ -2091,5 +2239,56 @@ paths:
         - access-token: []
       tags:
         - Role
+  /api/utilities/expand:
+    post:
+      operationId: UtilitiesController_expand
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpandDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Utilities
+  /api/utilities/structured-output:
+    post:
+      operationId: UtilitiesController_structuredOutput
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StructuredOutputDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Utilities
+  /api/utilities/summary:
+    post:
+      operationId: UtilitiesController_summary
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SummaryDto"
+        required: true
+      responses:
+        "201":
+          description: ""
+      security:
+        - access-token: []
+      tags:
+        - Utilities
 servers: []
 tags: []
