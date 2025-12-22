@@ -2,7 +2,7 @@ import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { BullModule } from "@nestjs/bullmq";
 import { ClassSerializerInterceptor, Module } from "@nestjs/common";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { PromptModule } from "@snipet/nest-prompt";
 import basicAuth from "express-basic-auth";
@@ -17,10 +17,12 @@ import { ConnectorModule } from "./modules/connector/connector.module";
 import { IngestModule } from "./modules/connector/ingest/ingest.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
-import { SessionMessageModule } from "./modules/session/message/message.module";
-import { SessionModule } from "./modules/session/session.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
+import { SessionModule } from "./modules/session/session.module";
+import { SessionMessageModule } from "./modules/session/message/message.module";
+import { UtilitiesModule } from "./modules/utilities/utilities.module";
+import { ApiKeyGuard } from "./guards/api-key.guard";
 
 @Module({
   imports: [
@@ -51,26 +53,27 @@ import { ContextInterceptor } from "./shared/interceptor/context";
         saveRes: true
       }
     }),
-    PromptModule.forRoot({
-      debug: env.DEBUG_PROMPTS,
-      templatesDir: env.PROMPT_TEMPLATES_DIR,
-      templates: PromptTemplates
-    }),
     ConnectorModule,
     IntegrationModule,
     KnowledgeModule,
     ApiKeyModule,
     IngestModule,
     SessionModule,
+    UtilitiesModule,
     SessionMessageModule,
     LLMManagerModule,
     VectorStoreModule,
+    PromptModule.forRoot({
+      debug: env.DEBUG_PROMPTS,
+      templatesDir: env.PROMPT_TEMPLATES_DIR,
+      templates: PromptTemplates
+    }),
   ],
   providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ApiKeyGuard
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ContextInterceptor
