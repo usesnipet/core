@@ -1,5 +1,168 @@
 components:
   schemas:
+    ApiKeyAssignmentEntity:
+      properties:
+        apiKey:
+          allOf:
+            - $ref: "#/components/schemas/ApiKeyEntity"
+          description: The api key of the api key assignment
+        apiKeyId:
+          description: The id of the api key
+          format: uuid
+          type: string
+        connectorPermissions:
+          description: The connector permissions of the api key assignment
+          items:
+            $ref: "#/components/schemas/ApiKeyConnectorPermissionEntity"
+          type: array
+        createdAt:
+          description: The timestamp when the invite was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        kbPermissions:
+          description: The permissions of the api key
+          enum:
+            - 1
+            - 2
+            - 4
+          type: number
+        knowledge:
+          allOf:
+            - $ref: "#/components/schemas/KnowledgeEntity"
+          description: The knowledge base of the api key assignment
+        knowledgeId:
+          description: The id of the knowledge base
+          format: uuid
+          type: string
+        updatedAt:
+          description: The timestamp when the invite was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - apiKeyId
+        - kbPermissions
+        - knowledgeId
+      type: object
+    ApiKeyConnectorPermissionEntity:
+      properties:
+        apiKeyAssignment:
+          allOf:
+            - $ref: "#/components/schemas/ApiKeyAssignmentEntity"
+          description: The api key assignment of api key connector permission
+        apiKeyAssignmentId:
+          description: The id of api key connector permission
+          format: uuid
+          type: string
+        connector:
+          allOf:
+            - $ref: "#/components/schemas/ConnectorEntity"
+          description: The connector of api key connector permission
+        connectorId:
+          description: The id of api key connector permission
+          format: uuid
+          type: string
+        createdAt:
+          description: The timestamp when the invite was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        manifestSnapshot:
+          description: The manifest of api key connector permission
+          oneOf:
+            - $ref: "#/components/schemas/MCPIntegrationManifest"
+            - $ref: "#/components/schemas/ManualIntegrationManifest"
+        manifestVersion:
+          description: The manifest version of api key connector permission
+          nullable: true
+          type: string
+        policyMode:
+          description: The policy mode of api key connector permission
+          enum:
+            - ALLOWLIST
+            - DENYLIST
+          type: string
+        resources:
+          description: The resources of api key connector permission
+          items:
+            type: string
+          nullable: true
+          type: array
+        tools:
+          description: The tools of api key connector permission
+          items:
+            type: string
+          nullable: true
+          type: array
+        updatedAt:
+          description: The timestamp when the invite was last updated
+          format: date-time
+          type: string
+        webhookEvents:
+          description: The webhook events of api key connector permission
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - connectorId
+        - apiKeyAssignmentId
+        - policyMode
+        - tools
+        - resources
+        - webhookEvents
+        - manifestSnapshot
+        - manifestVersion
+      type: object
+    ApiKeyEntity:
+      properties:
+        apiKeyAssignments:
+          items:
+            $ref: "#/components/schemas/ApiKeyAssignmentEntity"
+          type: array
+        createdAt:
+          description: The timestamp when the invite was created
+          format: date-time
+          type: string
+        expiresAt:
+          description: The expires at of the api key
+          format: date-time
+          nullable: true
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        name:
+          description: The name of the api key
+          type: string
+        rateLimit:
+          description: The rate limit of the api key
+          type: number
+        updatedAt:
+          description: The timestamp when the invite was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - name
+        - rateLimit
+        - expiresAt
+      type: object
     ArrayFieldSchema:
       properties:
         description:
@@ -611,156 +774,6 @@ components:
         - type
         - schema
       type: object
-    RoleAssignmentEntity:
-      properties:
-        connectorPermissions:
-          description: The connector permissions of the role assignment
-          items:
-            $ref: "#/components/schemas/RoleConnectorPermissionEntity"
-          type: array
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
-        kbPermissions:
-          allOf:
-            - $ref: "#/components/schemas/KbPermission"
-          description: The permissions of the role
-        knowledge:
-          allOf:
-            - $ref: "#/components/schemas/KnowledgeEntity"
-          description: The knowledge base of the role assignment
-        knowledgeId:
-          description: The id of the knowledge base
-          format: uuid
-          type: string
-        role:
-          allOf:
-            - $ref: "#/components/schemas/RoleEntity"
-          description: The role of the role assignment
-        roleId:
-          description: The id of the role
-          format: uuid
-          type: string
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
-          type: string
-      required:
-        - id
-        - createdAt
-        - updatedAt
-        - roleId
-        - kbPermissions
-        - knowledgeId
-      type: object
-    RoleConnectorPermissionEntity:
-      properties:
-        connector:
-          allOf:
-            - $ref: "#/components/schemas/ConnectorEntity"
-          description: The connector of role connector permission
-        connectorId:
-          description: The id of role connector permission
-          format: uuid
-          type: string
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
-        manifestSnapshot:
-          description: The manifest of role connector permission
-          oneOf:
-            - $ref: "#/components/schemas/MCPIntegrationManifest"
-            - $ref: "#/components/schemas/ManualIntegrationManifest"
-        manifestVersion:
-          description: The manifest version of role connector permission
-          nullable: true
-          type: string
-        policyMode:
-          description: The policy mode of role connector permission
-          enum:
-            - ALLOWLIST
-            - DENYLIST
-          type: string
-        resources:
-          description: The resources of role connector permission
-          items:
-            type: string
-          nullable: true
-          type: array
-        roleAssignment:
-          allOf:
-            - $ref: "#/components/schemas/RoleAssignmentEntity"
-          description: The role assignment of role connector permission
-        roleAssignmentId:
-          description: The id of role connector permission
-          format: uuid
-          type: string
-        tools:
-          description: The tools of role connector permission
-          items:
-            type: string
-          nullable: true
-          type: array
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
-          type: string
-        webhookEvents:
-          description: The webhook events of role connector permission
-          items:
-            type: string
-          nullable: true
-          type: array
-      required:
-        - id
-        - createdAt
-        - updatedAt
-        - connectorId
-        - roleAssignmentId
-        - policyMode
-        - tools
-        - resources
-        - webhookEvents
-        - manifestSnapshot
-        - manifestVersion
-      type: object
-    RoleEntity:
-      properties:
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
-        name:
-          description: The name of the role
-          type: string
-        roleAssignments:
-          items:
-            $ref: "#/components/schemas/RoleAssignmentEntity"
-          type: array
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
-          type: string
-      required:
-        - id
-        - createdAt
-        - updatedAt
-        - name
-      type: object
     SendMessageDto:
       properties:
         content:
@@ -933,6 +946,12 @@ components:
         - event
         - url
       type: object
+  securitySchemes:
+    api_key:
+      description: API Key
+      in: header
+      name: x-api-key
+      type: apiKey
 info:
   contact: {}
   description: The Snipet API description
@@ -2304,213 +2323,6 @@ paths:
         - access-token: []
       tags:
         - SessionMessage
-  /api/role:
-    get:
-      operationId: RoleController_findMany
-      parameters:
-        - description: Maximum number of records to return
-          in: query
-          name: limit
-          required: false
-          schema:
-            example: 10
-            type: number
-        - description: Number of records to skip
-          in: query
-          name: offset
-          required: false
-          schema:
-            example: 0
-            type: number
-        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
-          in: query
-          name: sort
-          required: false
-          schema:
-            items:
-              type: string
-            type: array
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: "#/components/schemas/RoleEntity"
-                type: array
-          description: Records found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-    post:
-      operationId: RoleController_create
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record created successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Conflict - duplicate record
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-  /api/role/{id}:
-    delete:
-      operationId: RoleController_delete
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-    get:
-      operationId: RoleController_findByID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-    put:
-      operationId: RoleController_update
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
   /api/utilities/expand:
     post:
       operationId: UtilitiesController_expand

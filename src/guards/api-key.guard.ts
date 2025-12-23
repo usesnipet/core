@@ -3,7 +3,6 @@ import { IS_PUBLIC_KEY } from "@/shared/controller/decorators/public";
 import { AuthRequest } from "@/types/request";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Response } from "express";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -14,13 +13,12 @@ export class ApiKeyGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: AuthRequest = context.switchToHttp().getRequest();
-    const response: Response = context.switchToHttp().getResponse();
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass()
     ]);
-    const apiKeyHeader = request.headers["x-api-key"] as string || request.headers["authorization"] as string;
-
+    const apiKeyHeader = request.headers["x-api-key"] || request.headers["authorization"];
+    if (!apiKeyHeader || Array.isArray(apiKeyHeader)) throw new UnauthorizedException();
     const apiKey = await this.apiKeyService.getByKey(apiKeyHeader);
     if (isPublic) return true;
     if (!apiKey) throw new UnauthorizedException();

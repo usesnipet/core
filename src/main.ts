@@ -1,17 +1,17 @@
-import "./utils/aux";
-
-import cookieParser from "cookie-parser";
-
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
+import cookieParser from "cookie-parser";
 
 import { AppModule } from "./app.module";
 import { env } from "./env";
 import { generateApi } from "./generate-api";
 import { ErrorsInterceptor } from "./interceptors/error.interceptor";
 import { FileLogger } from "./lib/file-logger";
+import "./utils/$log";
+
+// Logger utility is now imported where needed
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
@@ -28,6 +28,7 @@ async function bootstrap(): Promise<void> {
   });
 
   const config = new DocumentBuilder()
+    .addApiKey({ type: "apiKey", name: "x-api-key", in: "header", description: "API Key" })
     .setTitle("Snipet core API")
     .setDescription("The Snipet API description")
     .setVersion("1.0")
