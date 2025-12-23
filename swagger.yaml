@@ -947,7 +947,7 @@ components:
         - url
       type: object
   securitySchemes:
-    api_key:
+    x-api-key:
       description: API Key
       in: header
       name: x-api-key
@@ -1007,6 +1007,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - ApiKey
@@ -1045,6 +1046,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - ApiKey
@@ -1083,6 +1085,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - ApiKey
@@ -1120,6 +1123,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - ApiKey
@@ -1163,6 +1167,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - ApiKey
@@ -1214,6 +1219,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Connector
@@ -1252,6 +1258,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Connector
@@ -1323,6 +1330,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Connector
@@ -1360,6 +1368,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Connector
@@ -1403,6 +1412,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Connector
@@ -1454,6 +1464,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1492,6 +1503,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1530,6 +1542,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1567,6 +1580,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1610,6 +1624,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1661,6 +1676,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1699,6 +1715,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1737,6 +1754,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1774,6 +1792,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1817,6 +1836,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1873,6 +1893,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Session
@@ -1916,6 +1937,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Session
@@ -1959,6 +1981,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Session
@@ -2001,6 +2024,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Session
@@ -2049,6 +2073,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Session
@@ -2110,6 +2135,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - SessionMessage
@@ -2136,6 +2162,7 @@ paths:
         "201":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
         - access-token: []
       tags:
@@ -2172,6 +2199,7 @@ paths:
                 type: string
           description: SSE stream
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - SessionMessage
@@ -2220,6 +2248,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - SessionMessage
@@ -2267,6 +2296,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - SessionMessage
@@ -2320,6 +2350,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - SessionMessage

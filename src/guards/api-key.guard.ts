@@ -1,6 +1,7 @@
 import { ApiKeyService } from "@/modules/api-key/api-key.service";
 import { IS_PUBLIC_KEY } from "@/shared/controller/decorators/public";
 import { AuthRequest } from "@/types/request";
+import { $log } from "@/utils/$log";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
@@ -17,7 +18,7 @@ export class ApiKeyGuard implements CanActivate {
       context.getHandler(),
       context.getClass()
     ]);
-    const apiKeyHeader = request.headers["x-api-key"] || request.headers["authorization"];
+    const apiKeyHeader = $log(request.headers)["x-api-key"] || request.headers["authorization"];
     if (!apiKeyHeader || Array.isArray(apiKeyHeader)) throw new UnauthorizedException();
     const apiKey = await this.apiKeyService.getByKey(apiKeyHeader);
     if (isPublic) return true;

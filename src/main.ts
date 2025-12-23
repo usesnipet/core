@@ -28,7 +28,7 @@ async function bootstrap(): Promise<void> {
   });
 
   const config = new DocumentBuilder()
-    .addApiKey({ type: "apiKey", name: "x-api-key", in: "header", description: "API Key" })
+    .addApiKey({ type: "apiKey", name: "x-api-key", in: "header", description: "API Key" }, "x-api-key")
     .setTitle("Snipet core API")
     .setDescription("The Snipet API description")
     .setVersion("1.0")

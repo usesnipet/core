@@ -1,18 +1,18 @@
-import { ObjectLiteral } from "typeorm";
-
 import { Constructor } from "@/types/constructor";
 import { Param, ParseUUIDPipe } from "@nestjs/common";
-import { ApiBody } from "@nestjs/swagger";
+import { ApiBody, ApiSecurity } from "@nestjs/swagger";
+import { ObjectLiteral } from "typeorm";
 
 import { FilterOptions } from "../filter-options";
 import { Service } from "../service";
+
 import { HttpDelete, HttpGet, HttpPost, HttpPut, Permissions } from "./decorators";
 import { ApiFilterQuery } from "./decorators/api-filter-options";
 import { HttpBody } from "./decorators/body";
 import { ControllerFilter, Filter } from "./decorators/filter";
 import {
-  getDefaultCreateResponses, getDefaultDeleteResponses, getDefaultFindByIDResponses,
-  getDefaultFindResponses, getDefaultUpdateResponses
+  getDefaultCreateResponses, getDefaultDeleteResponses, getDefaultFindByIDResponses, getDefaultFindResponses,
+  getDefaultUpdateResponses
 } from "./default-response";
 import { GenericResponse } from "./generic-response";
 import { ControllerResponses, RequiredPermissions } from "./types";
@@ -46,6 +46,7 @@ export function BaseController<
   responses?: ControllerResponses;
   requiredPermissions?: RequiredPermissions;
 }) {
+  @ApiSecurity("x-api-key")
   @ControllerFilter({ allowedFilters, allowedRelations })
   abstract class Base {
     constructor(public readonly service: Service<TEntity>) {}
