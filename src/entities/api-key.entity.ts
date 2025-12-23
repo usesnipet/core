@@ -64,4 +64,9 @@ export class ApiKeyEntity extends BaseEntity {
   static toHash(key: string) {
     return crypto.createHash("sha256").update(key).digest("hex");
   }
+
+  canAccessKnowledgeBase(id: string) {
+    if (this.root) return true;
+    return this.apiKeyAssignments?.some(r => r.knowledgeId === id);
+  }
 }

@@ -5,6 +5,7 @@ import { Service } from "@/shared/service";
 import { Injectable, Logger } from "@nestjs/common";
 
 import { CreateSessionDto } from "./dto/create-session.dto";
+import { SubKnowledgeService } from "@/shared/sub-knowledge.service";
 
 export type FindOptions = {
   knowledgeId: string;
@@ -17,7 +18,7 @@ export type FindOptions = {
 export type Finder = (...args: any[]) => Partial<FindOptions>;
 
 @Injectable()
-export class SessionService extends Service<SessionEntity> {
+export class SessionService extends SubKnowledgeService<SessionEntity> {
   logger = new Logger(SessionService.name);
   entity = SessionEntity;
 

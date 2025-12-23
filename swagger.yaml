@@ -358,15 +358,10 @@ components:
           description: The integration id
           format: uuid
           type: string
-        knowledgeId:
-          description: The knowledge base id
-          format: uuid
-          type: string
         name:
           description: The name of the connector
           type: string
       required:
-        - knowledgeId
         - integrationId
         - name
       type: object
@@ -1050,6 +1045,18 @@ paths:
         - access-token: []
       tags:
         - ApiKey
+  /api/api-key/self:
+    get:
+      operationId: ApiKeyController_self
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - ApiKey
   /api/api-key/{id}:
     delete:
       operationId: ApiKeyController_delete
@@ -1171,97 +1178,6 @@ paths:
         - access-token: []
       tags:
         - ApiKey
-  /api/connector:
-    get:
-      operationId: ConnectorController_findMany
-      parameters:
-        - description: Maximum number of records to return
-          in: query
-          name: limit
-          required: false
-          schema:
-            example: 10
-            type: number
-        - description: Number of records to skip
-          in: query
-          name: offset
-          required: false
-          schema:
-            example: 0
-            type: number
-        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
-          in: query
-          name: sort
-          required: false
-          schema:
-            items:
-              type: string
-            type: array
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: "#/components/schemas/ConnectorEntity"
-                type: array
-          description: Records found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Connector
-    post:
-      operationId: ConnectorController_create
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateConnectorDto"
-        required: true
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ConnectorEntity"
-          description: Record created successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Conflict - duplicate record
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Connector
   /api/connector/ingest:
     post:
       operationId: IngestController_ingest
@@ -1295,127 +1211,6 @@ paths:
         - access-token: []
       tags:
         - Ingest
-  /api/connector/{id}:
-    delete:
-      operationId: ConnectorController_delete
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ConnectorEntity"
-          description: Record deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Connector
-    get:
-      operationId: ConnectorController_findByID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ConnectorEntity"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Connector
-    put:
-      operationId: ConnectorController_update
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ConnectorEntity"
-          description: Record updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Connector
   /api/integration:
     get:
       operationId: IntegrationController_findMany
@@ -1840,6 +1635,243 @@ paths:
         - access-token: []
       tags:
         - Knowledge
+  /api/knowledge/{knowledgeId}/connector:
+    get:
+      operationId: ConnectorController_findMany
+      parameters:
+        - description: Maximum number of records to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            example: 10
+            type: number
+        - description: Number of records to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            example: 0
+            type: number
+        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
+          in: query
+          name: sort
+          required: false
+          schema:
+            items:
+              type: string
+            type: array
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ConnectorEntity"
+                type: array
+          description: Records found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Connector
+    post:
+      operationId: ConnectorController_create
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConnectorDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectorEntity"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Connector
+  /api/knowledge/{knowledgeId}/connector/{id}:
+    delete:
+      operationId: ConnectorController_delete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectorEntity"
+          description: Record deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Connector
+    get:
+      operationId: ConnectorController_findByID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectorEntity"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Connector
+    put:
+      operationId: ConnectorController_update
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectorEntity"
+          description: Record updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Connector
   /api/knowledge/{knowledgeId}/session:
     get:
       operationId: SessionController_findMany

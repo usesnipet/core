@@ -92,6 +92,7 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
   }
 
   validateApiKeyAssignments(apiKey: ApiKeyEntity, knowledgeBases?: KnowledgeBaseApiKeyConfig[]) {
+    if (apiKey.root) return;
     const permissionException = new UnauthorizedException("You do not have permission to create/update a api key with a higher permission than the one you have");
     for (const kn of knowledgeBases ?? []) {
       const apiKeyAssignment = apiKey.apiKeyAssignments?.find(a => a.knowledgeId === kn.knowledgeId);
@@ -156,5 +157,9 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
       where: { keyHash: ApiKeyEntity.toHash(apiKeyHeader), revoked: false },
       relations: ["apiKeyAssignments.connectorPermissions"]
     });
+  }
+
+  async self() {
+    return this.context.apiKey;
   }
 }

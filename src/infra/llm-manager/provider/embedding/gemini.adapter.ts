@@ -24,8 +24,6 @@ export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
 
     const embeddings = await Promise.all(
       inputs.map(async (text) => {
-        console.log("loading embedding for: " + text);
-
         const result = await this.model.embedContent(text);
         return result.embedding?.values ?? [];
       })

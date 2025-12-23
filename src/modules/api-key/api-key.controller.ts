@@ -1,10 +1,10 @@
 import { ApiKeyEntity } from "@/entities";
+import { Permission } from "@/lib/permissions";
 import { BaseController } from "@/shared/controller";
-import { Controller } from "@/shared/controller/decorators";
+import { Controller, HttpGet } from "@/shared/controller/decorators";
 
 import { ApiKeyService } from "./api-key.service";
 import { CreateOrUpdateApiKeyDto } from "./dto/create-or-update-api-key.dto";
-import { Permission } from "@/lib/permissions";
 
 @Controller("api-key")
 export class ApiKeyController extends BaseController({
@@ -19,7 +19,12 @@ export class ApiKeyController extends BaseController({
     findByID: [Permission.READ_API_KEY]
   }
 }) {
-  constructor(service: ApiKeyService) {
+  constructor(public service: ApiKeyService) {
     super(service);
+  }
+
+  @HttpGet("self")
+  async self() {
+    return this.service.self();
   }
 }
