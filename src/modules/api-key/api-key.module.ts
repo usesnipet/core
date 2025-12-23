@@ -4,7 +4,7 @@ import { Module } from "@nestjs/common";
 
 import { ApiKeyController } from "./api-key.controller";
 import { ApiKeyService } from "./api-key.service";
-import { ConnectorModule } from "../connector/connector.module";
+import { ConnectorModule } from "../knowledge/connector/connector.module";
 
 @Module({
   imports: [HTTPContextModule, DatabaseModule, ConnectorModule],

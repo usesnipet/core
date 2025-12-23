@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { EntityManager, FindOptionsWhere, In } from "typeorm";
 
-import { ConnectorService } from "../connector/connector.service";
+import { ConnectorService } from "../knowledge/connector/connector.service";
 
 import { CreateApiKeyResponseDto, CreateOrUpdateApiKeyDto } from "./dto/create-or-update-api-key.dto";
 import { KnowledgeBaseApiKeyConfig } from "./dto/knowledge-base-api-key-config.dto";

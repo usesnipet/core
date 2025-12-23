@@ -8,8 +8,8 @@ import { HTTPContextModule } from "@/shared/http-context/http-context.module";
 import { Module } from "@nestjs/common";
 import { PromptModule } from "@snipet/nest-prompt";
 
-import { KnowledgeModule } from "../knowledge/knowledge.module";
-import { MemoryModule } from "../memory/memory.module";
+import { KnowledgeModule } from "../knowledge.module";
+import { MemoryModule } from "../../memory/memory.module";
 import { SessionController } from "./session.controller";
 import { SessionService } from "./session.service";
 

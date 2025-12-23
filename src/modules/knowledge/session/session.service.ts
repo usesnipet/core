@@ -5,7 +5,7 @@ import { Service } from "@/shared/service";
 import { Injectable, Logger } from "@nestjs/common";
 
 import { CreateSessionDto } from "./dto/create-session.dto";
-import { SubKnowledgeService } from "@/shared/sub-knowledge.service";
+import { SubKnowledgeService } from "@/shared/services/sub-knowledge.service";
 
 export type FindOptions = {
   knowledgeId: string;

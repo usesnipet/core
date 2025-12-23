@@ -4,7 +4,7 @@ import { Module } from "@nestjs/common";
 
 import { ConnectorController } from "./connector.controller";
 import { ConnectorService } from "./connector.service";
-import { IntegrationModule } from "../integration/integration.module";
+import { IntegrationModule } from "../../integration/integration.module";
 
 @Module({
   imports: [HTTPContextModule, DatabaseModule, IntegrationModule],

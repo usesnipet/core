@@ -13,14 +13,14 @@ import { env } from "./env";
 import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
 import { VectorStoreModule } from "./infra/vector/vector.module";
 import { ApiKeyModule } from "./modules/api-key/api-key.module";
-import { ConnectorModule } from "./modules/connector/connector.module";
-import { IngestModule } from "./modules/connector/ingest/ingest.module";
+import { ConnectorModule } from "./modules/knowledge/connector/connector.module";
+import { IngestModule } from "./modules/knowledge/connector/ingest/ingest.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
-import { SessionModule } from "./modules/session/session.module";
-import { SessionMessageModule } from "./modules/session/message/message.module";
+import { SessionModule } from "./modules/knowledge/session/session.module";
+import { SessionMessageModule } from "./modules/knowledge/session/message/message.module";
 import { UtilitiesModule } from "./modules/utilities/utilities.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 

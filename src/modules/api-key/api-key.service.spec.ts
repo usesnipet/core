@@ -4,7 +4,7 @@ import { UnauthorizedException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, EntityManager, Repository } from "typeorm";
 
-import { ConnectorService } from "../connector/connector.service";
+import { ConnectorService } from "../knowledge/connector/connector.service";
 
 import { ApiKeyService } from "./api-key.service";
 import { CreateOrUpdateApiKeyDto } from "./dto/create-or-update-api-key.dto";

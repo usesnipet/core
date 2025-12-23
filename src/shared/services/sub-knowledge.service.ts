@@ -1,8 +1,6 @@
-import { $log } from "@/utils/$log";
 import { EntityManager, FindOneOptions, ObjectLiteral } from "typeorm";
-
-import { FilterOptions } from "./filter-options";
-import { Service } from "./service";
+import { Service } from "../service";
+import { FilterOptions } from "../filter-options";
 
 export abstract class SubKnowledgeService<
   TEntity extends ObjectLiteral,

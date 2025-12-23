@@ -1,11 +1,11 @@
 import { ConnectorAuth, ConnectorEntity, IntegrationEntity } from "@/entities";
-import { SubKnowledgeService } from "@/shared/sub-knowledge.service";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { EntityManager, In } from "typeorm";
 
-import { IntegrationService } from "../integration/integration.service";
+import { IntegrationService } from "../../integration/integration.service";
 
 import { CreateConnectorDto } from "./dto/create-connector.dto";
+import { SubKnowledgeService } from "@/shared/services/sub-knowledge.service";
 
 @Injectable()
 export class ConnectorService extends SubKnowledgeService<ConnectorEntity> {

@@ -8,8 +8,8 @@ import { PromptService } from "@snipet/nest-prompt";
 import { finalize, Observable, tap } from "rxjs";
 import { EntityManager } from "typeorm";
 
-import { SessionMemoryService } from "../../memory/session-memory/session-memory.service";
-import { SourceMemoryService } from "../../memory/source-memory/source-memory.service";
+import { SessionMemoryService } from "../../../memory/session-memory/session-memory.service";
+import { SourceMemoryService } from "../../../memory/source-memory/source-memory.service";
 import { SessionService } from "../session.service";
 
 import { SendMessageDto } from "./dto/send-message.dto";
