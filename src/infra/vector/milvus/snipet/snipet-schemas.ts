@@ -2,7 +2,7 @@ import {
   CreateIndexesReq, DataType, FieldType, FunctionType, IndexType, MetricType
 } from "@zilliz/milvus2-sdk-node";
 
-export const sessionFields = (_: string, dim: number): FieldType[] => [
+export const snipetFields = (_: string, dim: number): FieldType[] => [
   {
     name: "id",
     data_type: DataType.VarChar,
@@ -21,7 +21,8 @@ export const sessionFields = (_: string, dim: number): FieldType[] => [
   {
     name: "content",
     data_type: DataType.VarChar,
-    max_length: 65535
+    max_length: 65535,
+    enable_analyzer: true,
   },
   {
     name: "fullContent",
@@ -40,7 +41,7 @@ export const sessionFields = (_: string, dim: number): FieldType[] => [
     max_length: 10
   },
   {
-    name: "sessionId",
+    name: "snipetId",
     data_type: DataType.VarChar,
     max_length: 36
   },
@@ -65,7 +66,7 @@ export const sessionFields = (_: string, dim: number): FieldType[] => [
   }
 ];
 
-export const sessionIndexSchema = (collection_name: string): CreateIndexesReq => {
+export const snipetIndexSchema = (collection_name: string): CreateIndexesReq => {
   return [
     {
       collection_name,
@@ -89,7 +90,7 @@ export const sessionIndexSchema = (collection_name: string): CreateIndexesReq =>
   ]
 }
 
-export const sessionFunctions = [
+export const snipetFunctions = [
   {
     name: 'bm25_emb',
     description: 'bm25 function',

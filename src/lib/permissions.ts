@@ -21,10 +21,10 @@ export enum Permission {
   UPDATE_CONNECTOR = 1 << 14,
   DELETE_CONNECTOR = 1 << 15,
 
-  CREATE_SESSION = 1 << 16,
-  READ_SESSION = 1 << 17,
-  UPDATE_SESSION = 1 << 18,
-  DELETE_SESSION = 1 << 19,
+  CREATE_SNIPET = 1 << 16,
+  READ_SNIPET = 1 << 17,
+  UPDATE_SNIPET = 1 << 18,
+  DELETE_SNIPET = 1 << 19,
 
   RUN_CONNECTOR = 1 << 20,
 }

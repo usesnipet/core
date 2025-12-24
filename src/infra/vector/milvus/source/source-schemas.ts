@@ -26,6 +26,7 @@ export const sourceFields = (_: string, dim: number): FieldType[] => [
     name: "content",
     data_type: DataType.VarChar,
     max_length: 2048,
+    enable_analyzer: true,
   },
   {
     name: "fullContent",

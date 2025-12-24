@@ -14,7 +14,7 @@ export class IngestService {
   logger = new Logger(IngestService.name);
   @InjectQueue(IngestJob.INGEST_KEY) private readonly ingestQueue: Queue<IngestJobData>;
 
-  async ingest(data: IngestDto) {
+  async ingest(data: IngestDto): Promise<IngestResponseDto> {
     const ext = data.file.originalname.split('.').pop();
     if (!ext) throw new BadRequestException("Failed to ingest content");
     const job = await this.ingestQueue.add("", {

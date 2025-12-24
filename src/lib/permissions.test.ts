@@ -21,10 +21,10 @@ describe('Permissions', () => {
     expect(Permission.READ_CONNECTOR).toBe(1 << 13);
     expect(Permission.UPDATE_CONNECTOR).toBe(1 << 14);
     expect(Permission.DELETE_CONNECTOR).toBe(1 << 15);
-    expect(Permission.CREATE_SESSION).toBe(1 << 16);
-    expect(Permission.READ_SESSION).toBe(1 << 17);
-    expect(Permission.UPDATE_SESSION).toBe(1 << 18);
-    expect(Permission.DELETE_SESSION).toBe(1 << 19);
+    expect(Permission.CREATE_SNIPET).toBe(1 << 16);
+    expect(Permission.READ_SNIPET).toBe(1 << 17);
+    expect(Permission.UPDATE_SNIPET).toBe(1 << 18);
+    expect(Permission.DELETE_SNIPET).toBe(1 << 19);
     expect(Permission.RUN_CONNECTOR).toBe(1 << 20);
   });
 

@@ -19,10 +19,10 @@ import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
-import { SessionModule } from "./modules/knowledge/session/session.module";
-import { SessionMessageModule } from "./modules/knowledge/session/message/message.module";
+import { SnipetMessageModule } from "./modules/knowledge/snipet/message/message.module";
 import { UtilitiesModule } from "./modules/utilities/utilities.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
+import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
 
 @Module({
   imports: [
@@ -53,16 +53,16 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
         saveRes: true
       }
     }),
+    LLMManagerModule,
+    VectorStoreModule,
     ConnectorModule,
     IntegrationModule,
     KnowledgeModule,
     ApiKeyModule,
     IngestModule,
-    SessionModule,
+    SnipetModule,
+    SnipetMessageModule,
     UtilitiesModule,
-    SessionMessageModule,
-    LLMManagerModule,
-    VectorStoreModule,
     PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,
       templatesDir: env.PROMPT_TEMPLATES_DIR,

@@ -42,32 +42,37 @@ export abstract class MilvusService<T extends BaseFragment>
   }
 
   private async setupCollection(preset: LLMPreset): Promise<void> {
-    if (preset.config.type === "TEXT") return;
-    const { dimension, model } = preset.config;
-    if (typeof model !== "string" || typeof dimension !== "number") {
-      this.logger.warn("Invalid model name or dimension:", model, dimension);
-      return;
+    try {
+      if (preset.config.type === "TEXT") return;
+      const { dimension, model } = preset.config;
+      if (typeof model !== "string" || typeof dimension !== "number") {
+        this.logger.warn("Invalid model name or dimension:", model, dimension);
+        return;
+      }
+  
+      const collectionName = this.buildCollectionName(preset);
+  
+      const existsCollection = (await this.client.hasCollection({ collection_name: collectionName })).value;
+      
+      if (!env.MILVUS_RECREATE_COLLECTION && existsCollection) return;
+      if (env.MILVUS_RECREATE_COLLECTION && existsCollection) {
+        this.logger.warn("Env var MILVUS_RECREATE_COLLECTION is true, dropping collection");
+        await this.client.dropCollection({ collection_name: collectionName });
+      }
+  
+      await this.client.createCollection({
+        collection_name: collectionName,
+        fields: this.fields instanceof Function ? this.fields(model, dimension) : this.fields,
+        functions: this.functions instanceof Function ? this.functions() : this.functions
+      });
+      
+      await this.client.createIndex(
+        this.indexSchema instanceof Function ? this.indexSchema(collectionName) : this.indexSchema
+      );
+      await this.client.loadCollectionAsync({ collection_name: collectionName });
+    } catch (error) {
+      this.logger.error("Failed to setup collection:", error);
     }
-
-    const collectionName = this.buildCollectionName(preset);
-
-    const existsCollection = (await this.client.hasCollection({ collection_name: collectionName })).value;
-
-    if (!env.MILVUS_RECREATE_COLLECTION && existsCollection) return;
-    if (env.MILVUS_RECREATE_COLLECTION && existsCollection) {
-      this.logger.warn("Env var MILVUS_RECREATE_COLLECTION is true, dropping collection");
-      await this.client.dropCollection({ collection_name: collectionName });
-    }
-
-    await this.client.createCollection({
-      collection_name: collectionName,
-      fields: this.fields instanceof Function ? this.fields(model, dimension) : this.fields,
-      functions: this.functions instanceof Function ? this.functions() : this.functions
-    });
-    await this.client.createIndex(
-      this.indexSchema instanceof Function ? this.indexSchema(collectionName) : this.indexSchema
-    );
-    await this.client.loadCollectionAsync({ collection_name: collectionName });
   }
 
   async onModuleInit(): Promise<void> {
@@ -245,3 +250,4 @@ export abstract class MilvusService<T extends BaseFragment>
     });
   }
 }
+

@@ -2,18 +2,18 @@ import { CacheModule } from '@/infra/cache/cache.module';
 import { Module } from '@nestjs/common';
 
 import { KnowledgeModule } from '../knowledge/knowledge.module';
-import { SessionMemoryModule } from './session-memory/session-memory.module';
+import { SnipetMemoryModule } from './snipet-memory/snipet-memory.module';
 import { SourceMemoryModule } from './source-memory/source-memory.module';
 
 @Module({
   imports: [
     KnowledgeModule,
     CacheModule,
-    SessionMemoryModule,
+    SnipetMemoryModule,
     SourceMemoryModule
   ],
   exports: [
-    SessionMemoryModule,
+    SnipetMemoryModule,
     SourceMemoryModule
   ]
 })

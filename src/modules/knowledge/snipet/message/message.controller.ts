@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
 
-import { SessionMessageEntity } from "@/entities";
+import { SnipetMessageEntity } from "@/entities";
 import { BaseController } from "@/shared/controller";
 import { Controller, HttpPost } from "@/shared/controller/decorators";
 import { HttpBody } from "@/shared/controller/decorators/body";
@@ -8,19 +8,19 @@ import { MessageEvent, Param, Query, Sse } from "@nestjs/common";
 import { ApiOkResponse, ApiProduces } from "@nestjs/swagger";
 
 import { SendMessageDto } from "./dto/send-message.dto";
-import { SessionMessageService } from "./message.service";
+import { SnipetMessageService } from "./message.service";
 
-@Controller("knowledge/:knowledgeId/session/:sessionId/message")
-export class SessionMessageController extends BaseController({
-  entity: SessionMessageEntity,
+@Controller("knowledge/:knowledgeId/snippet/:snipetId/message")
+export class SnipetMessageController extends BaseController({
+  entity: SnipetMessageEntity,
   createDto: SendMessageDto
 }) {
-  constructor(public service: SessionMessageService) {
+  constructor(public service: SnipetMessageService) {
     super(service);
   }
 
   @HttpPost()
-  override create(@HttpBody(SendMessageDto) body: SendMessageDto): Promise<SessionMessageEntity> {
+  override create(@HttpBody(SendMessageDto) body: SendMessageDto): Promise<SnipetMessageEntity> {
     return this.service.sendMessage(body);
   }
 
@@ -39,12 +39,12 @@ export class SessionMessageController extends BaseController({
   @Sse('stream')
   async sendMessageStream(
     @Param("knowledgeId") knowledgeId: string,
-    @Param("sessionId") sessionId: string,
+    @Param("snipetId") snipetId: string,
     @Query("q") q: string,
   ): Promise<Observable<MessageEvent>> {
     const body = new SendMessageDto();
     body.content = q;
-    body.sessionId = sessionId;
+    body.snipetId = snipetId;
     body.knowledgeId = knowledgeId;
     const source$ = await this.service.sendMessageStream(body);
     return new Observable(subscriber => {

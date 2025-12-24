@@ -1,7 +1,5 @@
 import { ApiKeyEntity } from "@/entities";
 import { AuthRequest } from "@/types/request";
-// import { AuthRequest } from "@/types/auth-request";
-// import { Session } from "@/modules/auth/types";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { CookieOptions, Response } from "express";
 import { CLS_REQ, CLS_RES, ClsService } from "nestjs-cls";

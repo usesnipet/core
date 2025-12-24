@@ -1,12 +1,12 @@
 import { Field } from '@/shared/model';
 import { BaseFragment } from './fragment';
 
-export class SessionFragment extends BaseFragment {
+export class SnipetFragment extends BaseFragment {
   @Field({ type: "string", required: true })
   role: string;
 
   @Field({ type: "string", required: true, uuid: true })
-  sessionId: string;
+  snipetId: string;
 
   @Field({ type: "string", required: true, uuid: true })
   knowledgeId: string;
@@ -15,16 +15,16 @@ export class SessionFragment extends BaseFragment {
   metadata: any;
 
   constructor(
-    f: Omit<SessionFragment, "id" | "createdAt" | "updatedAt"> & { id?: string, createdAt?: Date, updatedAt?: Date }
+    f: Omit<SnipetFragment, "id" | "createdAt" | "updatedAt"> & { id?: string, createdAt?: Date, updatedAt?: Date }
   ) {
     super(f);
     this.knowledgeId = f.knowledgeId;
     this.role = f.role;
-    this.sessionId = f.sessionId;
+    this.snipetId = f.snipetId;
     this.metadata = f.metadata;
   }
 
-  static fromObject(obj: SessionFragment): SessionFragment {
-    return new SessionFragment(obj);
+  static fromObject(obj: SnipetFragment): SnipetFragment {
+    return new SnipetFragment(obj);
   }
 }

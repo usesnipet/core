@@ -8,16 +8,16 @@ import { PromptModule } from "@snipet/nest-prompt";
 
 import { KnowledgeModule } from "../../knowledge.module";
 import { MemoryModule } from "../../../memory/memory.module";
-import { SessionMessageController } from "./message.controller";
-import { SessionMessageService } from "./message.service";
-import { SessionModule } from "../session.module";
+import { SnipetModule } from "../snipet.module";
+import { SnipetMessageController } from "./message.controller";
+import { SnipetMessageService } from "./message.service";
 
 @Module({
   imports: [
     HTTPContextModule,
     DatabaseModule,
     KnowledgeModule,
-    SessionModule,
+    SnipetModule,
     LLMManagerModule,
     MemoryModule,
     PromptModule.forRoot({
@@ -26,8 +26,8 @@ import { SessionModule } from "../session.module";
       templates: PromptTemplates
     }),
   ],
-  controllers: [SessionMessageController],
-  providers: [SessionMessageService],
+  controllers: [SnipetMessageController],
+  providers: [SnipetMessageService],
   exports: []
 })
-export class SessionMessageModule {}
+export class SnipetMessageModule {}

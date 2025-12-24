@@ -389,7 +389,7 @@ components:
       required:
         - name
       type: object
-    CreateSessionDto:
+    CreateSnipetDto:
       properties:
         metadata:
           additionalProperties: true
@@ -777,38 +777,12 @@ components:
       required:
         - content
       type: object
-    SessionContextEntity:
+    SnipetEntity:
       properties:
-        lastRun:
-          additionalProperties:
-            properties:
-              runId:
-                type: string
-              status:
-                type: string
-              stepIndex:
-                type: number
-            type: object
-          type: object
-        session:
-          $ref: "#/components/schemas/SessionEntity"
-        sessionId:
-          description: The unique identifier for the session context
-          format: uuid
-          type: string
-        state:
-          enum:
-            - GENERATING
-            - IDLE
-          nullable: true
-          type: string
-      required:
-        - sessionId
-      type: object
-    SessionEntity:
-      properties:
-        context:
-          $ref: "#/components/schemas/SessionContextEntity"
+        chatMessages:
+          items:
+            $ref: "#/components/schemas/SnipetMessageEntity"
+          type: array
         createdAt:
           description: The timestamp when the invite was created
           format: date-time
@@ -820,10 +794,6 @@ components:
         knowledgeId:
           format: uuid
           type: string
-        messages:
-          items:
-            $ref: "#/components/schemas/SessionMessageEntity"
-          type: array
         metadata:
           additionalProperties: true
           type: object
@@ -844,10 +814,9 @@ components:
         - updatedAt
         - type
         - knowledgeId
-        - context
-        - messages
+        - chatMessages
       type: object
-    SessionMessageEntity:
+    SnipetMessageEntity:
       properties:
         content:
           type: string
@@ -871,9 +840,9 @@ components:
             - SYSTEM
             - FUNCTION
           type: string
-        session:
-          $ref: "#/components/schemas/SessionEntity"
-        sessionId:
+        snipet:
+          $ref: "#/components/schemas/SnipetEntity"
+        snipetId:
           format: uuid
           type: string
         updatedAt:
@@ -884,7 +853,7 @@ components:
         - id
         - createdAt
         - updatedAt
-        - sessionId
+        - snipetId
         - knowledgeId
         - content
         - role
@@ -1872,9 +1841,9 @@ paths:
         - access-token: []
       tags:
         - Connector
-  /api/knowledge/{knowledgeId}/session:
+  /api/knowledge/{knowledgeId}/snipet:
     get:
-      operationId: SessionController_findMany
+      operationId: SnipetController_findMany
       parameters:
         - description: Maximum number of records to return
           in: query
@@ -1909,7 +1878,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/SessionEntity"
+                  $ref: "#/components/schemas/SnipetEntity"
                 type: array
           description: Records found successfully
         "400":
@@ -1928,9 +1897,9 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - Session
+        - Snipet
     post:
-      operationId: SessionController_create
+      operationId: SnipetController_create
       parameters:
         - in: path
           name: knowledgeId
@@ -1941,14 +1910,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateSessionDto"
+              $ref: "#/components/schemas/CreateSnipetDto"
         required: true
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/SnipetEntity"
           description: Record created successfully
         "400":
           content:
@@ -1972,10 +1941,10 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - Session
-  /api/knowledge/{knowledgeId}/session/{id}:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{id}:
     delete:
-      operationId: SessionController_delete
+      operationId: SnipetController_delete
       parameters:
         - in: path
           name: id
@@ -1992,7 +1961,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/SnipetEntity"
           description: Record deleted successfully
         "400":
           content:
@@ -2016,9 +1985,9 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - Session
+        - Snipet
     get:
-      operationId: SessionController_findByID
+      operationId: SnipetController_findByID
       parameters:
         - in: path
           name: id
@@ -2035,7 +2004,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/SnipetEntity"
           description: Record found successfully
         "400":
           content:
@@ -2059,9 +2028,9 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - Session
+        - Snipet
     put:
-      operationId: SessionController_update
+      operationId: SnipetController_update
       parameters:
         - in: path
           name: id
@@ -2084,7 +2053,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/SnipetEntity"
           description: Record updated successfully
         "400":
           content:
@@ -2108,10 +2077,10 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - Session
-  /api/knowledge/{knowledgeId}/session/{sessionId}/message:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snippet/{snipetId}/message:
     get:
-      operationId: SessionMessageController_findMany
+      operationId: SnipetMessageController_findMany
       parameters:
         - description: Maximum number of records to return
           in: query
@@ -2141,7 +2110,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
           schema:
             type: string
@@ -2151,7 +2120,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/SessionMessageEntity"
+                  $ref: "#/components/schemas/SnipetMessageEntity"
                 type: array
           description: Records found successfully
         "400":
@@ -2170,9 +2139,9 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
+        - SnipetMessage
     post:
-      operationId: SessionMessageController_create
+      operationId: SnipetMessageController_create
       parameters:
         - in: path
           name: knowledgeId
@@ -2180,7 +2149,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
           schema:
             type: string
@@ -2198,10 +2167,10 @@ paths:
         - access-token: []
         - access-token: []
       tags:
-        - SessionMessage
-  /api/knowledge/{knowledgeId}/session/{sessionId}/message/stream:
+        - SnipetMessage
+  /api/knowledge/{knowledgeId}/snippet/{snipetId}/message/stream:
     get:
-      operationId: SessionMessageController_sendMessageStream
+      operationId: SnipetMessageController_sendMessageStream
       parameters:
         - in: path
           name: knowledgeId
@@ -2209,7 +2178,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
           schema:
             type: string
@@ -2234,10 +2203,10 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
-  /api/knowledge/{knowledgeId}/session/{sessionId}/message/{id}:
+        - SnipetMessage
+  /api/knowledge/{knowledgeId}/snippet/{snipetId}/message/{id}:
     delete:
-      operationId: SessionMessageController_delete
+      operationId: SnipetMessageController_delete
       parameters:
         - in: path
           name: id
@@ -2250,7 +2219,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
           schema:
             type: string
@@ -2259,7 +2228,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionMessageEntity"
+                $ref: "#/components/schemas/SnipetMessageEntity"
           description: Record deleted successfully
         "400":
           content:
@@ -2283,9 +2252,9 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
+        - SnipetMessage
     get:
-      operationId: SessionMessageController_findByID
+      operationId: SnipetMessageController_findByID
       parameters:
         - in: path
           name: id
@@ -2298,7 +2267,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
           schema:
             type: string
@@ -2307,7 +2276,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionMessageEntity"
+                $ref: "#/components/schemas/SnipetMessageEntity"
           description: Record found successfully
         "400":
           content:
@@ -2331,9 +2300,9 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
+        - SnipetMessage
     put:
-      operationId: SessionMessageController_update
+      operationId: SnipetMessageController_update
       parameters:
         - in: path
           name: id
@@ -2346,7 +2315,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
           schema:
             type: string
@@ -2361,7 +2330,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionMessageEntity"
+                $ref: "#/components/schemas/SnipetMessageEntity"
           description: Record updated successfully
         "400":
           content:
@@ -2385,7 +2354,7 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
+        - SnipetMessage
   /api/utilities/expand:
     post:
       operationId: UtilitiesController_expand

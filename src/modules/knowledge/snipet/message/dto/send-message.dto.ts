@@ -5,8 +5,8 @@ export class SendMessageDto {
   @Field({ type: "string", required: true, description: "The content of message to send" })
   content: string;
 
-  @FromParams("sessionId")
-  sessionId: string;
+  @FromParams("snipetId")
+  snipetId: string;
 
   @KnowledgeId()
   knowledgeId: string;
