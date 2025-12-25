@@ -22,7 +22,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
 
     filterOptions ??= {};
     filterOptions.where ??= {};
-    filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
+    if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).find(filterOptions);
   }
 
@@ -42,7 +42,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   ): Promise<KnowledgeEntity | null> {
     filterOptions ??= {};
     filterOptions.where ??= {};
-    filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
+    if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).findOne(filterOptions);
   }
 
@@ -52,7 +52,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   ): Promise<KnowledgeEntity | null> {
     filterOptions ??= {};
     filterOptions.where ??= {};
-    filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
+    if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).findOne(filterOptions);
   }
 }
