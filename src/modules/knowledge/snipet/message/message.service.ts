@@ -106,7 +106,7 @@ export class SnipetMessageService extends Service<SnipetMessageEntity> {
     return this.promptService.getTemplate("AnswerQuestion").build({
       question: message,
       recentMessages: SnipetSearchResult.lastNMessages.map(f => ({ role: f.role, content: f.content })),
-      relevantMessages: SnipetSearchResult.searchQuery.map(f => ({ content: f.content, role: f.role })),
+      relevantMessages: SnipetSearchResult.searchQuery.map(f => ({ content: f.content, role: f.metadata.role })),
       retrievedFragments: sourceSearchResult.map(f => f.content)
     });
   }
