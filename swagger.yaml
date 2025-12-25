@@ -1161,6 +1161,7 @@ paths:
         "201":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Ingest
@@ -1177,6 +1178,7 @@ paths:
         "200":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Ingest
@@ -2369,6 +2371,7 @@ paths:
         "201":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Utilities
@@ -2386,6 +2389,7 @@ paths:
         "201":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Utilities
@@ -2403,6 +2407,7 @@ paths:
         "201":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Utilities
