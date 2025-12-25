@@ -46,7 +46,6 @@ export function BaseController<
   responses?: ControllerResponses;
   requiredPermissions?: RequiredPermissions;
 }) {
-  @ApiSecurity("x-api-key")
   @ControllerFilter({ allowedFilters, allowedRelations })
   abstract class Base {
     constructor(public readonly service: Service<TEntity>) {}
