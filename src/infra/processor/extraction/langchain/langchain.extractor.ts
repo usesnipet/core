@@ -38,7 +38,7 @@ export class LangchainExtractor implements DocumentExtractor {
   @Inject() private readonly jsonProcessor!: LangchainJSONLoader;
   @Inject() private readonly jsonlProcessor!: LangchainJSONLLoader;
 
-  private getProcessor(extension: string): BaseLoader {
+  private getLoader(extension: string): BaseLoader {
     const ext = extension.toLowerCase();
 
     if (['pdf'].includes(ext)) return this.pdfProcessor;
@@ -52,11 +52,7 @@ export class LangchainExtractor implements DocumentExtractor {
     throw new Error(`Unsupported file extension: ${extension}`);
   }
 
-  extract(
-    input: string | Blob,
-    metadata: Record<string, any>,
-    options?: Record<string, any>
-  ): Promise<ExtractedDocument> {
+  extract(input: string | Blob, metadata: Record<string, any>): Promise<ExtractedDocument> {
     let blob: Blob;
     if (typeof input === 'string') {
       blob = new Blob([input], { type: 'text/plain' });
@@ -65,8 +61,7 @@ export class LangchainExtractor implements DocumentExtractor {
     } else {
       blob = new Blob([input]);
     }
-    // const processor = this.getProcessor(metadata.extension);
-    throw new Error('Not implemented');
-
+    const loader = this.getLoader(metadata.extension);
+    return loader.process(blob, metadata);
   }
 }
