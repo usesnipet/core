@@ -19,7 +19,7 @@ export class ExtractionService {
       return this.unstructuredExtractor.extract(input, metadata, options);
     }
     if (extractor === "langchain") {
-      return this.langchainExtractor.extract(input, metadata, options);
+      return this.langchainExtractor.extract(input, metadata);
     }
     throw new Error(`Unknown extractor: ${extractor}`);
   }
