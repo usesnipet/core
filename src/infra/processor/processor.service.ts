@@ -1,14 +1,28 @@
 import { env } from "@/env";
-import { Fragments, SourceFragment } from "@/fragment";
 import { Inject, Injectable } from "@nestjs/common";
 
 import { ExtractionService } from "./extraction/extraction.service";
+import { SourceVectorStorePayload } from "../vector/payload/source-vector-store-payload";
+import { EmbeddingService } from "../embedding/embedding.service";
+import { fingerprint } from "@/lib/fingerprint";
+import { canonicalize } from "@/lib/canonicalize";
+
+type ProcessorMetadata = {
+  externalId?: string;
+  connectorId: string;
+  knowledgeId: string;
+} & { [key: string]: any };
 
 @Injectable()
 export class ProcessorService {
-  @Inject() private readonly extractorService: ExtractionService;
 
-  async process(blob: Blob, metadata: Record<string, any>): Promise<Fragments<SourceFragment>> {
+  @Inject() private readonly extractorService: ExtractionService;
+  @Inject() private readonly embeddingService: EmbeddingService;
+
+  async process(
+    blob: Blob,
+    { connectorId, externalId, knowledgeId, ...metadata}: ProcessorMetadata
+  ): Promise<SourceVectorStorePayload[]> {
     const genericDocument = await this.extractorService.extract(
       env.DEFAULT_EXTRACTOR,
       blob,
@@ -16,13 +30,28 @@ export class ProcessorService {
       env.EXTRACTOR_SETTINGS,
     );
 
-    return Fragments.fromFragmentArray(
-      genericDocument.nodes.filter(node => !!node.content).map((node, seqId) => (new SourceFragment({
-      connectorId: metadata.connectorId,
-      knowledgeId: metadata.knowledgeId,
-      seqId,
-      metadata,
-      content: node.content!,
-    }))));
+    const payloads = await Promise.all(genericDocument.nodes.map(async ({ id, content, metadata: nodeMetadata }, index) => {
+      if (!content) {
+        throw new Error('Content cannot be empty');
+      }
+
+      const canonicalText = canonicalize(content);
+
+      const { embeddings } = await this.embeddingService.getOrCreateEmbedding(canonicalText);
+
+      return new SourceVectorStorePayload({
+        id,
+        connectorId,
+        knowledgeId,
+        externalId,
+        content,
+        fullContent: content,
+        seqId: index,
+        dense: embeddings,
+        metadata: { ...metadata, ...nodeMetadata },
+      });
+    }));
+
+    return payloads;
   }
 }
