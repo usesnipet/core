@@ -4,6 +4,7 @@ import { KnowledgeModule } from "@/modules/knowledge/knowledge.module";
 import { Module } from "@nestjs/common";
 
 import { SourceMemoryService } from "./source-memory.service";
+import { EmbeddingModule } from "@/infra/embedding/embedding.module";
 
 @Module({
   providers: [SourceMemoryService],
@@ -11,6 +12,7 @@ import { SourceMemoryService } from "./source-memory.service";
     VectorStoreModule,
     CacheModule.register('source-memory'),
     KnowledgeModule,
+    EmbeddingModule
   ],
   exports: [SourceMemoryService],
 })

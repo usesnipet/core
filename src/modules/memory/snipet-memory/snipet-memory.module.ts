@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 
 import { SnipetMemoryService } from './snipet-memory.service';
 import { VectorStoreModule } from '@/infra/vector/vector.module';
+import { EmbeddingModule } from '@/infra/embedding/embedding.module';
 
 @Module({
   providers: [SnipetMemoryService],
@@ -11,6 +12,7 @@ import { VectorStoreModule } from '@/infra/vector/vector.module';
     VectorStoreModule,
     CacheModule.register("chat-memory"),
     KnowledgeModule,
+    EmbeddingModule
   ],
   exports: [SnipetMemoryService]
 })

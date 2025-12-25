@@ -5,9 +5,11 @@ import { CacheService } from "@/infra/cache/cache.service";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { KnowledgeService } from "@/modules/knowledge/knowledge.service";
 import { buildOptions } from "@/utils/build-options";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { Recent } from "../type/recent";
+import { EmbeddingService } from "@/infra/embedding/embedding.service";
+import { SourceVectorStorePayload } from "@/infra/vector/payload/source-vector-store-payload";
 
 export type FindOptions = {
   knowledgeId: string;
@@ -23,43 +25,41 @@ export type Finder = (...args: any[]) => Partial<FindOptions>;
 export class SourceMemoryService {
   private readonly logger = new Logger(SourceMemoryService.name);
 
-  constructor(
-    private readonly vectorStore:      SourceVectorStoreService,
-    private readonly knowledgeService: KnowledgeService,
-    private readonly cacheService:     CacheService,
-  ) {}
+  @Inject() private readonly embeddingService: EmbeddingService;
+  @Inject() private readonly vectorStore:      SourceVectorStoreService;
+  @Inject() private readonly knowledgeService: KnowledgeService;
+  @Inject() private readonly cacheService:     CacheService;
 
   private buildFindOptions(knowledgeId: string, userInput: string, ...opts: Finder[]): FindOptions {
     return buildOptions({ knowledgeId, userInput }, opts);
   }
 
-  async search(knowledgeId: string, userInput: string, ...options: Finder[]): Promise<Fragments<SourceFragment>> {
-    const opts = this.buildFindOptions(knowledgeId, userInput, ...options);
+  async search(knowledgeId: string, query: string, ...options: Finder[]): Promise<SourceVectorStorePayload[]> {
+    const opts = this.buildFindOptions(knowledgeId, query, ...options);
     // get knowledge
     const knowledge = await this.knowledgeService.findByID(knowledgeId);
     if (!knowledge) throw new NotFoundException("Knowledge not found");
 
-    const fragments = new Fragments<SourceFragment>();
-
-    return fragments.merge(await this.vectorStore.search(
+    const queryEmbedding = await this.embeddingService.getOrCreateEmbedding(query);
+    return this.vectorStore.search(
       knowledgeId,
       SourceVectorStoreService.withFilters({ ...opts.metadata }),
-      SourceVectorStoreService.withDense({ query: userInput, topK: 100 }),
-      SourceVectorStoreService.withSparse({ query: userInput, topK: 100 }),
+      SourceVectorStoreService.withDense({ vector: queryEmbedding.embeddings, topK: 100 }),
+      SourceVectorStoreService.withSparse({ query: query, topK: 100 }),
       SourceVectorStoreService.withTopK(10),
-    ));
+    );
   }
 
-  private async findFragmentsInCache(knowledgeId: string, userInput: string): Promise<SourceFragment[] | null> {
+  private async findPayloadInCache(knowledgeId: string, userInput: string): Promise<SourceVectorStorePayload[] | null> {
     const key = encodeURIComponent(userInput.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase());
-    return this.cacheService.get<SourceFragment[]>(`fragments:${key}`, { namespace: knowledgeId });
+    return this.cacheService.get<SourceVectorStorePayload[]>(`source-payload:${key}`, { namespace: knowledgeId });
   }
 
-  private async saveFragmentsInCache(knowledgeId: string, userInput: string, fragments: SourceFragment[]) {
+  private async savePayloadInCache(knowledgeId: string, userInput: string, payload: SourceVectorStorePayload[]) {
     const key = encodeURIComponent(userInput.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase());
-    await this.cacheService.set<SourceFragment[]>(
-      `fragments:${key}`,
-      fragments,
+    await this.cacheService.set<SourceVectorStorePayload[]>(
+      `source-payload:${key}`,
+      payload,
       { namespace: knowledgeId, ttl: 60 * 5 } // expires cache in 5 minutes
     );
   }
@@ -79,24 +79,19 @@ export class SourceMemoryService {
     await this.cacheService.set<Recent[]>("recent", recents, { namespace: knowledgeId });
   }
 
-  async findByTerm(knowledgeId: string, userInput: string): Promise<Fragments<SourceFragment>> {
-    this.logger.verbose("Finding fragments by term");
-    await this.saveInputToRecents(knowledgeId, userInput);
+  async findByTerm(knowledgeId: string, term: string): Promise<SourceVectorStorePayload[]> {
+    await this.saveInputToRecents(knowledgeId, term);
 
-    const cachedFragments = await this.findFragmentsInCache(knowledgeId, userInput);
-    if (cachedFragments) {
-      this.logger.verbose("Found fragments in cache");
-      return Fragments.fromFragmentArray(cachedFragments);
-    }
+    const cachedPayload = await this.findPayloadInCache(knowledgeId, term);
+    if (cachedPayload) return cachedPayload;
 
-    const fragments = await this.vectorStore.search(
+    const payload = await this.vectorStore.search(
       knowledgeId,
-      SourceVectorStoreService.withSparse(userInput),
-      SourceVectorStoreService.withTerm(userInput),
+      SourceVectorStoreService.withSparse(term),
+      SourceVectorStoreService.withTerm(term),
     );
-    this.logger.verbose(fragments);
-    await this.saveFragmentsInCache(knowledgeId, userInput, fragments.toArray());
-    return fragments;
+    await this.savePayloadInCache(knowledgeId, term, payload);
+    return payload;
   }
 
   async findRecent(knowledgeId: string) {

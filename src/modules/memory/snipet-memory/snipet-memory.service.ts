@@ -1,8 +1,10 @@
 import { SnipetMessageEntity } from "@/entities";
 import { Fragments, SnipetFragment } from "@/fragment";
+import { EmbeddingService } from "@/infra/embedding/embedding.service";
+import { SnipetVectorStorePayload } from "@/infra/vector/payload/snipet-vector-store-payload";
 import { SnipetVectorStoreService } from "@/infra/vector/snipet-vector-store.service";
 import { buildOptions } from "@/utils/build-options";
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { DataSource, EntityManager, Repository } from "typeorm";
 
 export type SnipetSearchOptions = {
@@ -24,37 +26,44 @@ export class SnipetMemoryService {
       this.dataSource.getRepository(SnipetMessageEntity);
   }
 
-  constructor(private readonly snipetVectorStore: SnipetVectorStoreService) {}
+  @Inject() private readonly embeddingService: EmbeddingService;
+  @Inject() private readonly snipetVectorStore: SnipetVectorStoreService;
 
-  private messageToFragment(
+  private messageToPayload(
     knowledgeId: string,
-    message: SnipetMessageEntity
-  ): SnipetFragment {
-    return SnipetFragment.fromObject({
+    message: SnipetMessageEntity,
+    embedding: number[]
+  ): SnipetVectorStorePayload {
+    return new SnipetVectorStorePayload({
+      dense: embedding,
       id: message.id,
-      createdAt: message.createdAt,
-      role: message.role,
-      knowledgeId: knowledgeId,
       snipetId: message.snipetId,
-      metadata: {},
-      updatedAt: message.updatedAt,
       content: message.content,
-    });
+      fullContent: message.content,
+      metadata: {
+        role: message.role,        
+      },
+      knowledgeId,
+      createdAt: message.createdAt,
+      updatedAt: message.updatedAt,
+    })
   }
 
   async add(knowledgeId: string, message: SnipetMessageEntity) {
-    await this.snipetVectorStore.addFragments(this.messageToFragment(knowledgeId, message));
+    const embedding = await this.embeddingService.getOrCreateEmbedding(message.content);
+    await this.snipetVectorStore.add(this.messageToPayload(knowledgeId, message, embedding.embeddings));
   }
 
   async remove(knowledgeId: string, message: SnipetMessageEntity) {
-    await this.snipetVectorStore.deleteFragments(this.messageToFragment(knowledgeId, message));
+    const embedding = await this.embeddingService.getOrCreateEmbedding(message.content);
+    await this.snipetVectorStore.remove(this.messageToPayload(knowledgeId, message, embedding.embeddings));
   }
 
   async search(knowledgeId: string, snipetId: string, ...opts: WithSnipetSearchOptions[]) {
     const options = this.buildSnipetSearchOptions(...opts);
-    const response: { lastNMessages: SnipetMessageEntity[], searchQuery: Fragments<SnipetFragment> } = {
+    const response: { lastNMessages: SnipetMessageEntity[], searchQuery: SnipetVectorStorePayload[] } = {
       lastNMessages: [],
-      searchQuery: Fragments.fromFragmentArray([]),
+      searchQuery: []
     }
     if (options.lastNMessages) {
       response.lastNMessages = await this.snipetMessageRepository().find({
@@ -66,11 +75,16 @@ export class SnipetMemoryService {
     }
 
     if (options.searchQuery) {
+      const query = options.searchQuery;
+      const queryEmbedding = await this.embeddingService.getOrCreateEmbedding(typeof query === "string" ? query : query.query);
+      const opts = [
+        SnipetVectorStoreService.withSnipetId(snipetId),
+        SnipetVectorStoreService.withDense({ vector: queryEmbedding.embeddings, topK: typeof query === "string" ? undefined : query.topK }),
+      ]
+      if (options.filters) opts.push(SnipetVectorStoreService.withFilters(options.filters))
       const searchQuery = await this.snipetVectorStore.search(
         knowledgeId,
-        SnipetVectorStoreService.withSnipetId(snipetId),
-        SnipetVectorStoreService.withQuery(options.searchQuery),
-        options.filters && SnipetVectorStoreService.withFilters(options.filters)
+        ...opts
       )
       response.searchQuery = searchQuery;
     }
