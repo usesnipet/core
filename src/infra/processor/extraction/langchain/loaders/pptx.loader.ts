@@ -3,18 +3,20 @@ import { PPTXLoader } from "@langchain/community/document_loaders/fs/pptx";
 import { Injectable } from "@nestjs/common";
 
 import { BaseLoader } from "./base.loader";
+import { ExtractedDocument } from "../../interfaces/extracted-document";
 
 @Injectable()
 export class LangchainPPTXLoader extends BaseLoader {
   async process(
-    connectorId: string,
-    knowledgeId: string,
-    pathOrBlob: string | Blob,
-    metadata: Record<string, any>,
-  ): Promise<Fragments<SourceFragment>> {
-    const loader = new PPTXLoader(pathOrBlob);
+    blob: Blob,
+    metadata: Record<string, any>
+  ): Promise<ExtractedDocument> {
+    const loader = new PPTXLoader(blob);
     const docs = await loader.load();
-    const chunks = await this.splitter.splitDocuments(docs);
-    return this.createFragments(chunks, { connectorId, knowledgeId, metadata });
+    const nodes = this.createDocumentNodes(docs, metadata);
+    return this.createDocument(nodes, {
+      ...metadata,
+      fileType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    });
   }
 }

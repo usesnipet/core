@@ -1,11 +1,9 @@
-import { Fragments, SourceFragment } from "@/fragment";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-type CreateFragmentOptions = {
-  connectorId: string;
-  knowledgeId: string;
-  metadata: any;
-}
+import { randomUUID } from 'crypto';
+import { ExtractedDocument,  } from '../../interfaces/extracted-document';
+import { ExtractedDocumentNode } from "../../interfaces/document-node";
+import { DocumentNodeType } from "../../interfaces/document-node-type";
 
 export abstract class BaseLoader {
   protected splitter = new RecursiveCharacterTextSplitter({
@@ -13,28 +11,41 @@ export abstract class BaseLoader {
     chunkOverlap: 100,
   });
 
-  protected createFragments(
-    docs: { pageContent: string }[],
-    { connectorId, knowledgeId , metadata }: CreateFragmentOptions,
-  ): Fragments<SourceFragment> {
-    const fragmentsArray = docs.map(({ pageContent }, seqId) => {
-      return new SourceFragment({
-        content: pageContent,
-        connectorId,
-        knowledgeId,
-        seqId,
-        metadata,
-      });
-    });
+  protected createDocumentNodes(
+    docs: { pageContent: string; metadata?: Record<string, any> }[],
+    metadata: Record<string, any>,
+  ): ExtractedDocumentNode[] {
+    return docs.map(({ pageContent, metadata: docMetadata = {} }, index) => ({
+      id: randomUUID(),
+      type: DocumentNodeType.PARAGRAPH,
+      content: pageContent,
+      metadata: {
+        ...metadata,
+        ...docMetadata,
+      },
+      position: {
+        order: index,
+        page: docMetadata?.pageNumber || 1,
+      },
+    }));
+  }
 
-    return Fragments.fromFragmentArray(fragmentsArray);
+  protected createDocument(
+    nodes: ExtractedDocumentNode[],
+    metadata: Record<string, any>,
+  ): ExtractedDocument {
+    return {
+      source: 'langchain',
+      nodes,
+      metadata: {
+        ...metadata,
+        extractor: 'langchain',
+      },
+    };
   }
 
   abstract process(
-    connectorId: string,
-    knowledgeId: string,
-    pathOrBlob: string | Blob,
+    blob: Blob,
     metadata: Record<string, any>
-  ): Promise<Fragments<SourceFragment>>;
+  ): Promise<ExtractedDocument>;
 }
-

@@ -1,20 +1,23 @@
-import { Fragments, SourceFragment } from "@/fragment";
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 import { Injectable } from "@nestjs/common";
 
 import { BaseLoader } from "./base.loader";
+import { ExtractedDocument } from "../../interfaces/extracted-document";
 
 @Injectable()
 export class LangchainDocxLoader extends BaseLoader {
   async process(
-    connectorId: string,
-    knowledgeId: string,
-    pathOrBlob: string | Blob,
-    metadata: Record<string, any>,
-  ): Promise<Fragments<SourceFragment>> {
-    const loader = new DocxLoader(pathOrBlob, { type: metadata.extension === "doc" ? "doc" : "docx" });
+    blob: Blob,
+    metadata: Record<string, any>
+  ): Promise<ExtractedDocument> {
+    const loader = new DocxLoader(blob, { 
+      type: metadata.extension === "doc" ? "doc" : "docx" 
+    });
     const docs = await loader.load();
-    const chunks = await this.splitter.splitDocuments(docs);
-    return this.createFragments(chunks, { connectorId, knowledgeId, metadata });
+    const nodes = this.createDocumentNodes(docs, metadata);
+    return this.createDocument(nodes, {
+      ...metadata,
+      fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
   }
 }
