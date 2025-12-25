@@ -17,16 +17,15 @@ import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
 import {
-  VectorStore, VectorStoreAddFragmentOptions, VectorStoreOptions, WithSearchOptions
+  VectorStore, VectorStoreAddOptions, VectorStoreOptions, WithSearchOptions
 } from "../vector-store.service";
+import { VectorStorePayload } from "../payload/vector-store-payload";
 
-export abstract class MilvusService<T extends BaseFragment>
+export abstract class MilvusService<T extends VectorStorePayload>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {
 
   protected abstract readonly logger: Logger;
   client: MilvusClient;
-
-  embeddingsCache: Map<string, { embeddings: number[], createdAt: Date }> = new Map();
 
   constructor(
     protected readonly llmManager: LLMManagerService,
@@ -86,64 +85,38 @@ export abstract class MilvusService<T extends BaseFragment>
     await this.client.closeConnection();
   }
 
-  abstract fragmentToChunk(fragment: T | T[] | Fragments<T>): RowData[];
-  abstract chunkToFragments(data: RowData[]): Fragments<T>;
+  abstract payloadToChunk(data: T): RowData;
+  abstract payloadToChunk(data: T[]): RowData[];
 
-  toFragments(c: T | T[] | Fragments<T>): Fragments<T> {
-    const fragments = new Fragments<T>();
+  abstract chunkToPayload(data: RowData[]): T[];
+  abstract chunkToPayload(data: RowData): T;
 
-    if (c instanceof this.Type) fragments.push(c);
-    else if (c instanceof Fragments) fragments.import(c);
-    else {
-      if (Array.isArray(c)) fragments.push(...c);
-      else fragments.push(c);
-    }
+  async add(c: T[], opts?: VectorStoreAddOptions): Promise<T[]>
+  async add(c: T, opts?: VectorStoreAddOptions): Promise<T>
+  async add(c: T[] | T, opts?: VectorStoreAddOptions): Promise<T | T[]> {
+    const collection_name = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
-    return fragments;
+    const res = await this.client.insert({ 
+      collection_name,
+      fields_data: Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)]
+    });
+
+    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collection_name, res);
+    return c;
   }
 
-  async addFragments(c: T[] | T | Fragments<T>, opts?: VectorStoreAddFragmentOptions): Promise<Fragments<T>> {
-    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
-
-    const chunks = this.fragmentToChunk(this.toFragments(c));
-    const embeddingProvider = await this.llmManager.getEmbeddingProvider();
-    if (!embeddingProvider) {
-      this.logger.error("No embedding provider found");
-      throw new VectorMutationError("No embedding provider found");
-    }
-
-    for (const chunk of chunks) {
-      const hasEmbeddings = this.embeddingsCache.has(chunk.id as string);
-      if (hasEmbeddings) {
-        chunk.dense = this.embeddingsCache.get(chunk.id as string)?.embeddings;
-        continue;
-      }
-
-      const embeddings = await embeddingProvider.embed(chunk.content as string);
-      chunk.dense = embeddings;
-      this.embeddingsCache.set(chunk.id as string, { embeddings, createdAt: new Date() });
-    }
-
-    const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
-
-    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collectionName, res);
-    return this.chunkToFragments(chunks);
-  }
-
-  async deleteFragments(c: T | T[] | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
-    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
-
-    const ids = this.toFragments(c).map((f: any) => f.id);
+  async remove(c: T | T[], opts?: VectorStoreOptions): Promise<void> {
+    const ids = Array.isArray(c) ? c.map((item: any) => item.id) : [c.id];
     if (!ids.length) return;
 
     const res = await this.client.delete({
-      collection_name: collectionName,
+      collection_name: await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey),
       filter: `id in [${ids.map(id => `"${id}"`).join(", ")}]`
     });
     if (res.err_index.length > 0) throw new VectorMutationError("Error deleting fragments", res);
   }
 
-  async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<Fragments<T>> {
+  async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<T[]> {
     const options = this.buildSearchOptions(...opts);
     if (!options.filters) options.filters = {};
     options.filters.knowledgeId = knowledgeId;
@@ -170,10 +143,8 @@ export abstract class MilvusService<T extends BaseFragment>
     const data: HybridSearchSingleReq[] = [];
     if (options.dense) {
       let topK = options.topK;
-      if (typeof options.dense !== "string" && options.dense.topK) topK = options.dense.topK;
-      const embeddings = await embeddingProvider.embed(
-        typeof options.dense === "string" ? options.dense : options.dense.query
-      );
+      if (!Array.isArray(options.dense) && options.dense.topK) topK = options.dense.topK;
+      const embeddings = Array.isArray(options.dense) ? options.dense : options.dense.vector;
       data.push({
         anns_field: "dense",
         data: embeddings,
@@ -201,10 +172,10 @@ export abstract class MilvusService<T extends BaseFragment>
       topk: options.topK,
       rerank: options.dense && options.sparse ? this.reranker : undefined
     });
-    if (!result.results?.length) return new Fragments<T>();
+    if (!result.results?.length) return [];
     if (result.status.error_code !== "Success") throw new VectorSearchError("Error searching fragments");
 
-    return this.chunkToFragments(result.results);
+    return this.chunkToPayload(result.results);
   }
 
   async deleteByFilter(
@@ -240,14 +211,6 @@ export abstract class MilvusService<T extends BaseFragment>
     });
 
     return exprParts.join(" && ");
-  }
-
-  @Cron(CronExpression.EVERY_HOUR)
-  async clearEmbeddingsCache(): Promise<void> {
-    this.embeddingsCache.forEach((value, key) => {
-      // check if the cache is older than 1 hour
-      if (value.createdAt < new Date(Date.now() - 60 * 60 * 1000)) this.embeddingsCache.delete(key);
-    });
   }
 }
 

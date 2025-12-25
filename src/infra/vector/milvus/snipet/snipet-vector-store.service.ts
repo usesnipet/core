@@ -7,41 +7,49 @@ import moment from "moment";
 import { MilvusService } from "../base";
 
 import { snipetFields, snipetFunctions, snipetIndexSchema } from "./snipet-schemas";
+import { SnipetVectorStorePayload } from "../../payload/snipet-vector-store-payload";
 
 @Injectable()
-export class MilvusSnipetVectorStoreService extends MilvusService<SnipetFragment> {
+export class MilvusSnipetVectorStoreService extends MilvusService<SnipetVectorStorePayload> {
   protected override logger = new Logger(MilvusSnipetVectorStoreService.name);
   constructor(llmManager: LLMManagerService) {
-    super(llmManager, "snipet", SnipetFragment, snipetFields, snipetFunctions, snipetIndexSchema)
+    super(llmManager, "snipet", SnipetVectorStorePayload, snipetFields, snipetFunctions, snipetIndexSchema)
   }
 
-  fragmentToChunk(c: SnipetFragment | SnipetFragment[] | Fragments<SnipetFragment>): RowData[] {
-    const fragments = this.toFragments(c);
-
-    return fragments.map<RowData>(c => ({
-      id: c.id,
-      content: c.content,
-      role: c.role,
-      knowledgeId: c.knowledgeId,
-      snipetId: c.snipetId,
-      createdAt: c.createdAt.getTime() ?? Date.now(),
-      updatedAt: c.updatedAt.getTime() ?? Date.now(),
-      metadata: c.metadata,
-    }));
+  payloadToChunk(c: SnipetVectorStorePayload): RowData 
+  payloadToChunk(c: SnipetVectorStorePayload[]): RowData[]
+  payloadToChunk(c: SnipetVectorStorePayload | SnipetVectorStorePayload[]): RowData | RowData[] {
+    const mapper = (payload: SnipetVectorStorePayload): RowData => ({
+      id: payload.id,
+      content: payload.content,
+      fullContent: payload.fullContent,
+      dense: payload.dense,
+      createdAt: payload.createdAt.getTime() ?? Date.now(),
+      updatedAt: payload.updatedAt.getTime() ?? Date.now(),
+      metadata: payload.metadata,
+      snipetId: payload.snipetId,
+      knowledgeId: payload.knowledgeId,
+    });
+    
+    if (Array.isArray(c)) return c.map(mapper);
+    return mapper(c);
   }
 
-  chunkToFragments(data: RowData[]): Fragments<SnipetFragment> {
-    return Fragments.fromFragmentArray(
-      data.map(c => new SnipetFragment({
-        id: c.id as string,
-        content: c.content as string,
-        role: c.role as string,
-        knowledgeId: c.knowledgeId as string,
-        metadata: c.metadata as any,
-        snipetId: c.snipetId as string,
-        createdAt: moment(Number(c.createdAt)).toDate(),
-        updatedAt: moment(Number(c.updatedAt)).toDate(),
-      }))
-    );
+  chunkToPayload(data: RowData): SnipetVectorStorePayload
+  chunkToPayload(data: RowData[]): SnipetVectorStorePayload[]
+  chunkToPayload(data: RowData | RowData[]): SnipetVectorStorePayload | SnipetVectorStorePayload[] {
+    const mapper = (chunk: RowData): SnipetVectorStorePayload => new SnipetVectorStorePayload({
+      id: chunk.id as string,
+      content: chunk.content as string,
+      fullContent: chunk.fullContent as string,
+      dense: chunk.dense as number[],
+      createdAt: moment(Number(chunk.createdAt)).toDate(),
+      updatedAt: moment(Number(chunk.updatedAt)).toDate(),
+      metadata: chunk.metadata as any,
+      snipetId: chunk.snipetId as string,
+      knowledgeId: chunk.knowledgeId as string,
+    });
+    if (Array.isArray(data)) return data.map(mapper);
+    return mapper(data);
   }
 }
