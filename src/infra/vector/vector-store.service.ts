@@ -29,7 +29,7 @@ export abstract class VectorStore<T extends VectorStorePayload> {
   abstract add(data: T, opts?: VectorStoreAddOptions): Promise<T>;
   abstract add(data: T[], opts?: VectorStoreAddOptions): Promise<T[]>;
 
-  abstract remove(data: T[] | T, opts?: VectorStoreOptions): Promise<void>;
+  abstract remove(ids: string | string[], opts?: VectorStoreOptions): Promise<void>;
 
   abstract search(knowledgeId: string, ...options: Array<WithSearchOptions>): Promise<T[]>;
 

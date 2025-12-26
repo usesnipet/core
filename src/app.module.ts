@@ -19,7 +19,6 @@ import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ContextInterceptor } from "./shared/interceptor/context";
-import { SnipetMessageModule } from "./modules/knowledge/snipet/message/message.module";
 import { UtilitiesModule } from "./modules/utilities/utilities.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
@@ -61,7 +60,6 @@ import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
     ApiKeyModule,
     IngestModule,
     SnipetModule,
-    SnipetMessageModule,
     UtilitiesModule,
     PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,

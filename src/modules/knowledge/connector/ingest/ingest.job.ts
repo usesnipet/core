@@ -31,10 +31,10 @@ export class IngestJob extends WorkerHost {
     this.logger.debug(`Processing file "${data.path}"`);
     const buffer = await fs.readFile(data.path);
 
-    const fragments = await this.processorService.process(
+    const payloads = await this.processorService.process(
       await streamToBlob(Readable.from(buffer)),
       {
-        externalId: data.externalId,
+        // externalId: data.externalId,
         connectorId: data.connectorId,
         knowledgeId: data.knowledgeId,
         extension: data.extension,
@@ -44,7 +44,7 @@ export class IngestJob extends WorkerHost {
       }
     );
 
-    if (fragments.length > 0) await this.vectorStore.addFragments(fragments);
+    if (payloads.length > 0) await this.vectorStore.add(payloads);
 
     await fs.unlink(data.path);
     this.logger.log(`File "${data.path}" processed`);

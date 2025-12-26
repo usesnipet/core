@@ -6,5 +6,5 @@ export * from "./knowledge.entity";
 export * from "./api-key-assignment.entity";
 export * from "./api-key-connector-permission.entity";
 export * from "./api-key.entity";
-export * from "./snipet-message.entity";
 export * from "./snipet.entity";
+export * from "./snipet-memory.entity";

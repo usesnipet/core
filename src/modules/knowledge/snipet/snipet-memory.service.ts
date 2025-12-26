@@ -1,11 +1,11 @@
-import { SnipetMessageEntity } from "@/entities";
-import { Fragments, SnipetFragment } from "@/fragment";
+import { SnipetMemoryEntity } from "@/entities/snipet-memory.entity";
 import { EmbeddingService } from "@/infra/embedding/embedding.service";
 import { SnipetVectorStorePayload } from "@/infra/vector/payload/snipet-vector-store-payload";
 import { SnipetVectorStoreService } from "@/infra/vector/snipet-vector-store.service";
+import { Service } from "@/shared/service";
 import { buildOptions } from "@/utils/build-options";
-import { Inject, Injectable } from "@nestjs/common";
-import { DataSource, EntityManager, Repository } from "typeorm";
+import { Inject, Logger } from "@nestjs/common";
+import { EntityManager } from "typeorm";
 
 export type SnipetSearchOptions = {
   lastNMessages?: number;
@@ -13,60 +13,77 @@ export type SnipetSearchOptions = {
   filters?: Record<string, string | number | boolean>;
 }
 
-export type WithSnipetSearchOptions = (currentOpts: Partial<SnipetSearchOptions>) =>  Partial<SnipetSearchOptions>;
+export type WithSnipetSearchOptions = (currentOpts: Partial<SnipetSearchOptions>) => Partial<SnipetSearchOptions>;
 
-
-@Injectable()
-export class SnipetMemoryService {
-  private readonly dataSource: DataSource;
-
-  snipetMessageRepository(manager?: EntityManager): Repository<SnipetMessageEntity> {
-    return manager ?
-      manager.getRepository(SnipetMessageEntity) :
-      this.dataSource.getRepository(SnipetMessageEntity);
-  }
+export class SnipetMemoryService extends Service<SnipetMemoryEntity> {
+  entity = SnipetMemoryEntity;
+  logger: Logger;
 
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly snipetVectorStore: SnipetVectorStoreService;
 
-  private messageToPayload(
+  private memoryToPayload(
     knowledgeId: string,
-    message: SnipetMessageEntity,
-    embedding: number[]
+    memory: SnipetMemoryEntity,
+    embedding: number[],
+    content: string
   ): SnipetVectorStorePayload {
     return new SnipetVectorStorePayload({
       dense: embedding,
-      id: message.id,
-      snipetId: message.snipetId,
-      content: message.content,
-      fullContent: message.content,
+      id: memory.id,
+      snipetId: memory.snipetId,
+      content: content,
+      fullContent: content,
       metadata: {
-        role: message.role,        
+        type: memory.type,
+        payload: memory.payload,
       },
       knowledgeId,
-      createdAt: message.createdAt,
-      updatedAt: message.updatedAt,
+      createdAt: memory.createdAt,
+      updatedAt: memory.updatedAt,
     })
   }
 
-  async add(knowledgeId: string, message: SnipetMessageEntity) {
-    const embedding = await this.embeddingService.getOrCreateEmbedding(message.content);
-    await this.snipetVectorStore.add(this.messageToPayload(knowledgeId, message, embedding.embeddings));
+  override create(input: SnipetMemoryEntity, manager?: EntityManager): Promise<SnipetMemoryEntity>;
+  override create(input: SnipetMemoryEntity[], manager?: EntityManager): Promise<SnipetMemoryEntity[]>;
+  override create(
+    input: SnipetMemoryEntity | SnipetMemoryEntity[],
+    manager?: EntityManager
+  ): Promise<SnipetMemoryEntity | SnipetMemoryEntity[]> {
+    return this.transaction(async (manager) => {
+      const createdMemories: SnipetMemoryEntity[] = [];
+      if (Array.isArray(input)) createdMemories.push(...await super.create(input, manager));
+      else createdMemories.push(await super.create(input, manager));
+
+      await Promise.all(createdMemories.map(m => this.embed(m.knowledgeId, m, m.payload.text)));
+      if (Array.isArray(input)) return createdMemories;
+      return createdMemories[0];
+    }, manager);
   }
 
-  async remove(knowledgeId: string, message: SnipetMessageEntity) {
-    const embedding = await this.embeddingService.getOrCreateEmbedding(message.content);
-    await this.snipetVectorStore.remove(this.messageToPayload(knowledgeId, message, embedding.embeddings));
+  private async embed(
+    knowledgeId: string,
+    memory: SnipetMemoryEntity,
+    content: string
+  ): Promise<SnipetVectorStorePayload> {
+    const embedding = await this.embeddingService.getOrCreateEmbedding(content);
+    return await this.snipetVectorStore.add(
+      this.memoryToPayload(knowledgeId, memory, embedding.embeddings, content)
+    );
+  }
+
+  async remove(memory: SnipetMemoryEntity) {
+    await this.snipetVectorStore.remove(memory.id);
   }
 
   async search(knowledgeId: string, snipetId: string, ...opts: WithSnipetSearchOptions[]) {
     const options = this.buildSnipetSearchOptions(...opts);
-    const response: { lastNMessages: SnipetMessageEntity[], searchQuery: SnipetVectorStorePayload[] } = {
-      lastNMessages: [],
+    const response: { lastNMemories: SnipetMemoryEntity[], searchQuery: SnipetVectorStorePayload[] } = {
+      lastNMemories: [],
       searchQuery: []
     }
     if (options.lastNMessages) {
-      response.lastNMessages = await this.snipetMessageRepository().find({
+      response.lastNMemories = await this.find({
         where: { snipetId },
         order: { createdAt: "DESC" },
         take: options.lastNMessages,
@@ -90,8 +107,6 @@ export class SnipetMemoryService {
     }
     return response;
   }
-
-
 
   static withFilters(filters: Record<string, string | number | boolean>): WithSnipetSearchOptions {
     return (currentOpts: Partial<SnipetSearchOptions>) => {

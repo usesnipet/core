@@ -48,23 +48,23 @@ export abstract class MilvusService<T extends VectorStorePayload>
         this.logger.warn("Invalid model name or dimension:", model, dimension);
         return;
       }
-  
+
       const collectionName = this.buildCollectionName(preset);
-  
+
       const existsCollection = (await this.client.hasCollection({ collection_name: collectionName })).value;
-      
+
       if (!env.MILVUS_RECREATE_COLLECTION && existsCollection) return;
       if (env.MILVUS_RECREATE_COLLECTION && existsCollection) {
         this.logger.warn("Env var MILVUS_RECREATE_COLLECTION is true, dropping collection");
         await this.client.dropCollection({ collection_name: collectionName });
       }
-  
+
       await this.client.createCollection({
         collection_name: collectionName,
         fields: this.fields instanceof Function ? this.fields(model, dimension) : this.fields,
         functions: this.functions instanceof Function ? this.functions() : this.functions
       });
-      
+
       await this.client.createIndex(
         this.indexSchema instanceof Function ? this.indexSchema(collectionName) : this.indexSchema
       );
@@ -96,7 +96,7 @@ export abstract class MilvusService<T extends VectorStorePayload>
   async add(c: T[] | T, opts?: VectorStoreAddOptions): Promise<T | T[]> {
     const collection_name = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
-    const res = await this.client.insert({ 
+    const res = await this.client.insert({
       collection_name,
       fields_data: Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)]
     });
@@ -105,8 +105,8 @@ export abstract class MilvusService<T extends VectorStorePayload>
     return c;
   }
 
-  async remove(c: T | T[], opts?: VectorStoreOptions): Promise<void> {
-    const ids = Array.isArray(c) ? c.map((item: any) => item.id) : [c.id];
+  async remove(ids: string | string[], opts?: VectorStoreOptions): Promise<void> {
+    ids = Array.isArray(ids) ? ids : [ids];
     if (!ids.length) return;
 
     const res = await this.client.delete({

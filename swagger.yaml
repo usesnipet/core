@@ -398,8 +398,6 @@ components:
           nullable: true
           type: string
         type:
-          enum:
-            - CHAT
           type: string
       required:
         - type
@@ -769,20 +767,8 @@ components:
         - type
         - schema
       type: object
-    SendMessageDto:
-      properties:
-        content:
-          description: The content of message to send
-          type: string
-      required:
-        - content
-      type: object
     SnipetEntity:
       properties:
-        chatMessages:
-          items:
-            $ref: "#/components/schemas/SnipetMessageEntity"
-          type: array
         createdAt:
           description: The timestamp when the invite was created
           format: date-time
@@ -794,15 +780,20 @@ components:
         knowledgeId:
           format: uuid
           type: string
+        memory:
+          items:
+            $ref: "#/components/schemas/SnipetMemoryEntity"
+          type: array
         metadata:
           additionalProperties: true
           type: object
         name:
           nullable: true
           type: string
+        state:
+          additionalProperties: true
+          type: object
         type:
-          enum:
-            - CHAT
           type: string
         updatedAt:
           description: The timestamp when the invite was last updated
@@ -814,12 +805,10 @@ components:
         - updatedAt
         - type
         - knowledgeId
-        - chatMessages
+        - memory
       type: object
-    SnipetMessageEntity:
+    SnipetMemoryEntity:
       properties:
-        content:
-          type: string
         createdAt:
           description: The timestamp when the invite was created
           format: date-time
@@ -833,17 +822,15 @@ components:
         knowledgeId:
           format: uuid
           type: string
-        role:
-          enum:
-            - USER
-            - ASSISTANT
-            - SYSTEM
-            - FUNCTION
-          type: string
+        payload:
+          additionalProperties: true
+          type: object
         snipet:
           $ref: "#/components/schemas/SnipetEntity"
         snipetId:
           format: uuid
+          type: string
+        type:
           type: string
         updatedAt:
           description: The timestamp when the invite was last updated
@@ -855,8 +842,8 @@ components:
         - updatedAt
         - snipetId
         - knowledgeId
-        - content
-        - role
+        - type
+        - payload
       type: object
     StringFieldSchema:
       properties:
@@ -2080,283 +2067,6 @@ paths:
         - access-token: []
       tags:
         - Snipet
-  /api/knowledge/{knowledgeId}/snippet/{snipetId}/message:
-    get:
-      operationId: SnipetMessageController_findMany
-      parameters:
-        - description: Maximum number of records to return
-          in: query
-          name: limit
-          required: false
-          schema:
-            example: 10
-            type: number
-        - description: Number of records to skip
-          in: query
-          name: offset
-          required: false
-          schema:
-            example: 0
-            type: number
-        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
-          in: query
-          name: sort
-          required: false
-          schema:
-            items:
-              type: string
-            type: array
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: snipetId
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: "#/components/schemas/SnipetMessageEntity"
-                type: array
-          description: Records found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - SnipetMessage
-    post:
-      operationId: SnipetMessageController_create
-      parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: snipetId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendMessageDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - x-api-key: []
-        - access-token: []
-        - access-token: []
-      tags:
-        - SnipetMessage
-  /api/knowledge/{knowledgeId}/snippet/{snipetId}/message/stream:
-    get:
-      operationId: SnipetMessageController_sendMessageStream
-      parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: snipetId
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: q
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            text/event-stream:
-              schema:
-                example: |+
-                  data: hello
-
-                  data: world
-
-                type: string
-          description: SSE stream
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - SnipetMessage
-  /api/knowledge/{knowledgeId}/snippet/{snipetId}/message/{id}:
-    delete:
-      operationId: SnipetMessageController_delete
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: snipetId
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SnipetMessageEntity"
-          description: Record deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - SnipetMessage
-    get:
-      operationId: SnipetMessageController_findByID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: snipetId
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SnipetMessageEntity"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - SnipetMessage
-    put:
-      operationId: SnipetMessageController_update
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: snipetId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SnipetMessageEntity"
-          description: Record updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - SnipetMessage
   /api/utilities/expand:
     post:
       operationId: UtilitiesController_expand

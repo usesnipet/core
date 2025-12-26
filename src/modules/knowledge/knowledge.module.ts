@@ -4,9 +4,11 @@ import { Module } from "@nestjs/common";
 
 import { KnowledgeController } from "./knowledge.controller";
 import { KnowledgeService } from "./knowledge.service";
+import { EmbeddingModule } from "@/infra/embedding/embedding.module";
+import { VectorStoreModule } from "@/infra/vector/vector.module";
 
 @Module({
-  imports: [HTTPContextModule, DatabaseModule],
+  imports: [HTTPContextModule, DatabaseModule, EmbeddingModule, VectorStoreModule],
   controllers: [KnowledgeController],
   providers: [KnowledgeService],
   exports: [KnowledgeService]

@@ -1,11 +1,7 @@
 import { Column, Entity, Index, OneToMany } from "typeorm";
 import { BaseEntity } from "./entity";
 import { Field } from "../shared/model";
-import { SnipetMessageEntity } from "./snipet-message.entity";
-
-export enum SnipetType {
-  CHAT = "CHAT",
-}
+import { SnipetMemoryEntity } from "./snipet-memory.entity";
 
 @Entity("snipets")
 @Index("snipet_name", ["name"])
@@ -14,9 +10,13 @@ export class SnipetEntity extends BaseEntity {
   @Column({ type: "varchar", nullable: true })
   name?: string | null;
 
-  @Field({ type: "enum", enum: SnipetType, required: true })
-  @Column({ type: "enum", enum: SnipetType, default: SnipetType.CHAT })
-  type: SnipetType;
+  @Field({ type: "string", required: true })
+  @Column()
+  type: string;
+
+  @Field({ type: "object", additionalProperties: true, required: false, nullable: true })
+  @Column({ type: "jsonb", nullable: true })
+  state?: Record<string, any>;
 
   @Field({
     type: "object",
@@ -31,9 +31,9 @@ export class SnipetEntity extends BaseEntity {
   @Column({ type: "uuid", name: "knowledge_id" })
   knowledgeId: string;
 
-  @Field({ type: "class", class: () => SnipetMessageEntity, isArray: true })
-  @OneToMany(() => SnipetMessageEntity, (message) => message.snipet)
-  chatMessages: SnipetMessageEntity[];
+  @Field({ type: "class", class: () => SnipetMemoryEntity, isArray: true })
+  @OneToMany(() => SnipetMemoryEntity, (message) => message.snipet)
+  memory: SnipetMemoryEntity[];
 
   constructor(partial: Partial<SnipetEntity>) {
     super(partial);
