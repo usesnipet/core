@@ -84,23 +84,30 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
     }
 
     if (input.knowledgeBases) {
-      const { apiKeyAssignments } = await this.createOrUpdateApiKeyAssignments(input.knowledgeBases);
+      const { apiKeyAssignments } = await this.createOrUpdateApiKeyAssignments(input.knowledgeBases, input.skipAccessValidation);
       apiKeys.map(r => r.apiKeyAssignments = apiKeyAssignments);
     }
 
     await this.repository(manager).save(apiKeys);
   }
 
-  validateApiKeyAssignments(apiKey: ApiKeyEntity, knowledgeBases?: KnowledgeBaseApiKeyConfig[]) {
-    if (apiKey.root) return;
+  validateApiKeyAssignments(apiKey: ApiKeyEntity, knowledgeBases?: KnowledgeBaseApiKeyConfig[], allowSuper = false) {
+    if (apiKey.root || allowSuper) return;
     const permissionException = new UnauthorizedException("You do not have permission to create/update a api key with a higher permission than the one you have");
     for (const kn of knowledgeBases ?? []) {
+      // check if the knowledge base is assigned to the api key
       const apiKeyAssignment = apiKey.apiKeyAssignments?.find(a => a.knowledgeId === kn.knowledgeId);
       if (!apiKeyAssignment) throw permissionException;
+
+      // check if the knowledge base permissions are higher than the api key permissions
       if (apiKeyAssignment.kbPermissions < kn.permissions) throw permissionException;
+      
       for (const cp of kn.connectorPermissions ?? []) {
+        // check if the connector is assigned to the api key
         const connectorPermission = apiKeyAssignment.connectorPermissions?.find(c => c.connectorId === cp.connectorId);
         if (!connectorPermission) throw permissionException;
+
+        // check if the connector permissions are higher than the api key permissions
         if (cp.resources?.some(r => !connectorPermission.resources?.includes(r))) throw permissionException;
         if (cp.tools?.some(t => !connectorPermission.tools?.includes(t))) throw permissionException;
         if (cp.webhookEvents?.some(e => !connectorPermission.webhookEvents?.includes(e))) throw permissionException;
@@ -109,11 +116,12 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
   }
 
   private async createOrUpdateApiKeyAssignments(
-    knowledgeBases?: KnowledgeBaseApiKeyConfig[]
+    knowledgeBases?: KnowledgeBaseApiKeyConfig[],
+    allowSuper = false
   ): Promise<{ apiKeyAssignments: ApiKeyAssignmentEntity[] }> {
     const apiKey = this.context.apiKey;
     if (!apiKey) throw new UnauthorizedException("You do not have permission to create/update a api key");
-    this.validateApiKeyAssignments(apiKey, knowledgeBases);
+    this.validateApiKeyAssignments(apiKey, knowledgeBases, allowSuper);
 
     const apiKeyAssignments: ApiKeyAssignmentEntity[] = [];
 
@@ -122,7 +130,7 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
         kb.connectorPermissions?.map(cp => cp.connectorId) ?? []
       );
       const uniqueConnectorIds = [...new Set(connectorIds)];
-      const connectors = await this.connectorService.find({
+      const connectors = await this.connectorService.repository().find  ({
         where: { id: In(uniqueConnectorIds) }, relations: ["integration"]
       });
 

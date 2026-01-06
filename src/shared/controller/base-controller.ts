@@ -25,6 +25,7 @@ export function BaseController<
   entity,
   createDto,
   updateDto,
+  idField = "id",
   allowedFilters = [],
   allowedRelations = [],
   ignore = [],
@@ -40,12 +41,15 @@ export function BaseController<
   entity: Constructor<TEntity>;
   createDto?: Constructor<TCreateDto>;
   updateDto?: Constructor<TUpdateDto>;
+  idField?: string;
   allowedFilters?: (keyof TEntity)[];
   allowedRelations?: (keyof TEntity)[];
   ignore?: Array<"find" | "findByID" | "create" | "update" | "delete">;
   responses?: ControllerResponses;
   requiredPermissions?: RequiredPermissions;
 }) {
+  if (!createDto) createDto = entity as unknown as Constructor<TCreateDto>;
+  if (!updateDto) updateDto = entity as unknown as Constructor<TUpdateDto>;
   @ControllerFilter({ allowedFilters, allowedRelations })
   abstract class Base {
     constructor(public readonly service: Service<TEntity>) {}
@@ -53,7 +57,7 @@ export function BaseController<
     @ApiFilterQuery([], allowedRelations, false)
     @HttpGet(":id", { ignore: ignore.includes("findByID"), responses: responses.findByID })
     @Permissions(requiredPermissions?.findByID)
-    async findByID(@Param("id", ParseUUIDPipe) id: string): Promise<TEntity | null> {
+    async findByID(@Param(idField) id: string): Promise<TEntity | null> {
       return this.service.findByID(id);
     }
 

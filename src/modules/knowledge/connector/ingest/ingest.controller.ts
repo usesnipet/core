@@ -5,19 +5,21 @@ import { Param, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiConsumes } from "@nestjs/swagger";
 
-import { IngestDto } from "./dto/ingest.dto";
+import { IngestDto, IngestResponseDto } from "./dto/ingest.dto";
 import { IngestService } from "./ingest.service";
+import { getDefaultCreateResponses, getDefaultFindByIDResponses } from "@/shared/controller/default-response";
+import { JobStateResponseDto } from "./dto/job-state.dto";
 
-@Controller("connector/ingest")
+@Controller("knowledge/:knowledgeId/connector/:connectorId/ingest")
 export class IngestController {
   constructor(private readonly service: IngestService) {}
 
-  @HttpGet("status/:id")
+  @HttpGet("status/:id", { responses: getDefaultFindByIDResponses(JobStateResponseDto) })
   async getStatus(@Param("id") id: string) {
     return this.service.getStatus(id);
   }
 
-  @HttpPost()
+  @HttpPost("", { responses: getDefaultCreateResponses(IngestResponseDto) })
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
   async ingest(

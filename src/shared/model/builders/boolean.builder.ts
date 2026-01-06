@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean } from "class-validator";
+import { IsBoolean, IsOptional } from "class-validator";
 
 import { FieldBooleanOptions } from "../types";
 import { buildApiProperty } from "./api-property";
@@ -9,6 +9,8 @@ export const buildBooleanDecorators = (opts: FieldBooleanOptions): PropertyDecor
 
   // Swagger
   decorators.push(buildApiProperty(opts));
+  if (opts.required === false) decorators.push(IsOptional());
+
 
   // TRANSFORM: convert "true"/"false"/1/0/etc in boolean
   decorators.push(

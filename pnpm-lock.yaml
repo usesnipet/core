@@ -90,11 +90,11 @@ importers:
         specifier: ^1.0.8
         version: 1.0.8
       '@snipet/nest-prompt':
-        specifier: ^1.0.1
-        version: 1.0.1(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+        specifier: ^1.0.3
+        version: 1.0.3(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@snipet/permission':
-        specifier: ^1.0.2
-        version: 1.0.2
+        specifier: ^1.0.3
+        version: 1.0.3
       '@zilliz/milvus2-sdk-node':
         specifier: ^2.6.0
         version: 2.6.5
@@ -2307,14 +2307,14 @@ packages:
   '@sinonjs/fake-timers@13.0.5':
     resolution: {integrity: sha512-36/hTbH2uaWuGVERyC6da9YwGWnzUZXuPro/F2LfsdOsLnCojz/iSH8MxUt/FD2S5XBSVPhmArFUXcpCQ2Hkiw==}
 
-  '@snipet/nest-prompt@1.0.1':
-    resolution: {integrity: sha512-rqZEEZ1B999VVMmbOFTvD1EqkQwfrUll8QD6Zg7Nxp1peg7Ap2itsW5462vOMwztnjXBxMGGoEyCcSU0F7FqBw==}
+  '@snipet/nest-prompt@1.0.3':
+    resolution: {integrity: sha512-L/TRknyW4OFhVajQ53JENM7/uSM2UFNUUFFJ+JJsXWBlTnwwGSjvhqHliwuFIoL+pNOFIN/Z2Ok4gEl/huDQ5g==}
 
-  '@snipet/permission@1.0.2':
-    resolution: {integrity: sha512-iEUlchhkf6Pg3Qfdtp2ZtZNev+Czwg6A61jIFVHfPa3Wd8gMwzurNtZNTz4CugsLNn4i8m6DIXcH1Gq91IaX/A==}
+  '@snipet/permission@1.0.3':
+    resolution: {integrity: sha512-U+4zUNyu71k8ty79z8l/BGyDsoZhNRJFcXxUEz07y7YBCz65ZjG/IG+4P9A+bdwTVsV4Xh5Sd2TwZlbUZhniYw==}
 
-  '@snipet/prompts@1.0.0':
-    resolution: {integrity: sha512-N3sORvZwOUY1s6jpQVNTbqPIX9SXBlQQQbg+YvPICU/sJ57jhFZOIe6S1cJtY6Xi6ymphXE4kBDa05EThpAGnQ==}
+  '@snipet/prompts@1.0.1':
+    resolution: {integrity: sha512-ZN/J2nMiiJ7NrXzgDDhXVs0kReaeuI6WD4uT3UvCIOGq2c9tGdBoaP/a1iUvsh4yFChg/gE1ZqM83Zi9AYWG/g==}
 
   '@so-ric/colorspace@1.1.6':
     resolution: {integrity: sha512-/KiKkpHNOBgkFJwu9sh48LkHSMYGyuTcSFK/qMBdnOAlrRJzRSXAOFB5qwzaVQuDl8wAvHVMkaASQDReTahxuw==}
@@ -7699,10 +7699,10 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@snipet/nest-prompt@1.0.1(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
+  '@snipet/nest-prompt@1.0.3(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
       '@nestjs/common': 11.1.9(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@snipet/prompts': 1.0.0
+      '@snipet/prompts': 1.0.1
     transitivePeerDependencies:
       - class-transformer
       - class-validator
@@ -7710,13 +7710,13 @@ snapshots:
       - rxjs
       - supports-color
 
-  '@snipet/permission@1.0.2':
+  '@snipet/permission@1.0.3':
     dependencies:
       gray-matter: 4.0.3
       handlebars: 4.7.8
       zod: 4.1.13
 
-  '@snipet/prompts@1.0.0':
+  '@snipet/prompts@1.0.1':
     dependencies:
       gray-matter: 4.0.3
       handlebars: 4.7.8
@@ -9402,7 +9402,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.13.2(debug@4.4.3))
+      retry-axios: 2.6.0(axios@1.13.2)
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -10630,7 +10630,7 @@ snapshots:
       onetime: 5.1.2
       signal-exit: 3.0.7
 
-  retry-axios@2.6.0(axios@1.13.2(debug@4.4.3)):
+  retry-axios@2.6.0(axios@1.13.2):
     dependencies:
       axios: 1.13.2(debug@4.4.3)
 

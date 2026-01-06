@@ -1,3 +1,5 @@
+import { applyDecorators } from "@nestjs/common";
+import { Expose } from "class-transformer";
 import "reflect-metadata";
 
 export const CONTEXT_FIELDS_KEY = Symbol("context:fields");
@@ -8,16 +10,19 @@ export interface ContextFieldOptions {
 }
 
 export function ContextField(options: ContextFieldOptions): PropertyDecorator {
-  return (target, propertyKey) => {
-    const constructor = target.constructor;
-
-    const existing = Reflect.getMetadata(CONTEXT_FIELDS_KEY, constructor) || [];
-
-    if (!existing.find((item: any) => item.propertyKey === propertyKey)) {
-      existing.push({ propertyKey, ...options });
-      Reflect.defineMetadata(CONTEXT_FIELDS_KEY, existing, constructor);
-    }
-  };
+  return applyDecorators(
+    Expose(),
+    (target: Object, propertyKey: string | symbol) => {
+     const constructor = target.constructor;
+ 
+     const existing = Reflect.getMetadata(CONTEXT_FIELDS_KEY, constructor) || [];
+ 
+     if (!existing.find((item: any) => item.propertyKey === propertyKey)) {
+       existing.push({ propertyKey, ...options });
+       Reflect.defineMetadata(CONTEXT_FIELDS_KEY, existing, constructor);
+     }
+   }
+  )
 }
 
 // Mantenha os helpers
@@ -26,5 +31,5 @@ export const KnowledgeId = () => ContextField({ source: "params", key: "knowledg
 export const SnipetId = () => ContextField({ source: "params", key: "snipetId" });
 export const MemberId = () => ContextField({ source: "memberId" });
 
-export const FromQuery = (key: string) => ContextField({ source: "query", key });
-export const FromParams = (key: string) => ContextField({ source: "params", key });
+export const FromQuery = (key?: string) => ContextField({ source: "query", key });
+export const FromParams = (key?: string) => ContextField({ source: "params", key });

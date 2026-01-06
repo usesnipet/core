@@ -58,6 +58,5 @@ export const Filter = <TEntity>(config?: {
         mergedConfig.allowedRelations.includes(i as any)
       );
     }
-
     return options;
   })();

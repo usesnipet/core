@@ -365,6 +365,39 @@ components:
         - integrationId
         - name
       type: object
+    CreateIntegrationDto:
+      properties:
+        authMethods:
+          description: The authentication methods of the integration
+          items:
+            enum:
+              - OAUTH
+              - API_KEY
+              - JWT
+            type: string
+          type: array
+        manual:
+          allOf:
+            - $ref: "#/components/schemas/ManualIntegrationManifest"
+          description: Manual integration configuration
+        mcp:
+          allOf:
+            - $ref: "#/components/schemas/MCPIntegrationManifest"
+          description: MCP integration configuration
+        name:
+          description: The name of the integration
+          type: string
+        type:
+          description: The type of the integration
+          enum:
+            - MANUAL
+            - MCP
+          type: string
+      required:
+        - name
+        - type
+        - authMethods
+      type: object
     CreateKnowledgeDto:
       properties:
         name:
@@ -389,18 +422,17 @@ components:
       required:
         - name
       type: object
-    CreateSnipetDto:
+    CreateOrUpdateSnipetDto:
       properties:
         metadata:
           additionalProperties: true
+          default: null
+          description: Metadata of the snipet
+          nullable: true
           type: object
         name:
           nullable: true
           type: string
-        type:
-          type: string
-      required:
-        - type
       type: object
     ErrorResponse:
       properties:
@@ -415,6 +447,113 @@ components:
         - error
         - code
         - timestamp
+      type: object
+    ExecuteSnipetContextKnowledgeOptions:
+      properties:
+        filters:
+          additionalProperties: true
+          type: object
+        metadata:
+          additionalProperties: true
+          type: object
+        searchTypes:
+          items:
+            enum:
+              - dense
+              - sparse
+            type: string
+          type: array
+        topK:
+          type: number
+        use:
+          description: force/ignore/auto policy for knowledge, this indicates if should
+            filter the knowledge
+          enum:
+            - force
+            - ignore
+            - auto
+          type: string
+      required:
+        - searchTypes
+        - use
+      type: object
+    ExecuteSnipetContextOptions:
+      properties:
+        knowledgeOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions"
+        snipetOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextSnipetOptions"
+      type: object
+    ExecuteSnipetContextSnipetOptions:
+      properties:
+        filters:
+          additionalProperties: true
+          type: object
+        lastNMemories:
+          type: number
+        metadata:
+          additionalProperties: true
+          type: object
+        searchTypes:
+          items:
+            enum:
+              - dense
+              - sparse
+            type: string
+          type: array
+        topK:
+          type: number
+        use:
+          description: force/ignore/auto policy for snipet memory, this indicates if
+            should filter the memories
+          enum:
+            - force
+            - ignore
+            - auto
+          type: string
+      required:
+        - searchTypes
+        - use
+      type: object
+    ExecuteSnipetDto:
+      properties:
+        intent:
+          description: The intent of the query
+          enum:
+            - answer
+            - summarize
+            - expand
+          type: string
+        options:
+          $ref: "#/components/schemas/ExecuteSnipetOptions"
+        query:
+          description: The query to execute
+          type: string
+        stream:
+          description: Enable streaming response for the output
+          nullable: true
+          type: boolean
+      required:
+        - query
+        - intent
+      type: object
+    ExecuteSnipetOptions:
+      properties:
+        contextOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextOptions"
+        memory:
+          $ref: "#/components/schemas/MemoryOptions"
+        output:
+          $ref: "#/components/schemas/OutputOptions"
+      type: object
+    ExecuteSnipetResponseDto:
+      properties:
+        executionId:
+          description: Execution identifier for tracking the snipet execution
+          format: uuid
+          type: string
+      required:
+        - executionId
       type: object
     ExpandDto:
       properties: {}
@@ -458,6 +597,14 @@ components:
         - knowledgeId
         - connectorId
       type: object
+    IngestResponseDto:
+      properties:
+        id:
+          format: uuid
+          type: string
+      required:
+        - id
+      type: object
     IntegrationEntity:
       properties:
         authMethods:
@@ -483,7 +630,7 @@ components:
           format: uuid
           type: string
         manifest:
-          description: The name of the integration
+          description: The manifest of the integration
           oneOf:
             - $ref: "#/components/schemas/MCPIntegrationManifest"
             - $ref: "#/components/schemas/ManualIntegrationManifest"
@@ -509,6 +656,18 @@ components:
         - authMethods
         - manifest
         - connectors
+      type: object
+    JobStateResponseDto:
+      properties:
+        state:
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - COMPLETED
+            - FAILED
+          type: string
+      required:
+        - state
       type: object
     KnowledgeBaseApiKeyConfig:
       properties:
@@ -723,6 +882,17 @@ components:
         - capabilities
         - features
       type: object
+    MemoryOptions:
+      properties:
+        mode:
+          default: stateless
+          enum:
+            - stateless
+            - conversation
+          type: string
+      required:
+        - mode
+      type: object
     NumberFieldSchema:
       properties:
         description:
@@ -767,6 +937,16 @@ components:
         - type
         - schema
       type: object
+    OutputOptions:
+      properties:
+        maxTokens:
+          description: Maximum number of tokens to generate
+          type: number
+        temperature:
+          default: 0.7
+          description: Temperature for text generation (0.0 to 1.0)
+          type: number
+      type: object
     SnipetEntity:
       properties:
         createdAt:
@@ -786,14 +966,11 @@ components:
           type: array
         metadata:
           additionalProperties: true
+          default: null
+          description: Metadata of the snipet
           type: object
         name:
           nullable: true
-          type: string
-        state:
-          additionalProperties: true
-          type: object
-        type:
           type: string
         updatedAt:
           description: The timestamp when the invite was last updated
@@ -803,7 +980,6 @@ components:
         - id
         - createdAt
         - updatedAt
-        - type
         - knowledgeId
         - memory
       type: object
@@ -816,6 +992,12 @@ components:
         id:
           description: The unique identifier for the entity
           format: uuid
+          type: string
+        intent:
+          enum:
+            - answer
+            - summarize
+            - expand
           type: string
         knowledge:
           $ref: "#/components/schemas/KnowledgeEntity"
@@ -831,6 +1013,9 @@ components:
           format: uuid
           type: string
         type:
+          enum:
+            - user_input
+            - text_assistant_output
           type: string
         updatedAt:
           description: The timestamp when the invite was last updated
@@ -843,7 +1028,11 @@ components:
         - snipetId
         - knowledgeId
         - type
+        - intent
         - payload
+      type: object
+    StreamDto:
+      properties: {}
       type: object
     StringFieldSchema:
       properties:
@@ -883,6 +1072,55 @@ components:
       type: object
     SummaryDto:
       properties: {}
+      type: object
+    UpdateConnectorDto:
+      properties:
+        name:
+          description: The name of the connector
+          type: string
+      required:
+        - name
+      type: object
+    UpdateIntegrationDto:
+      properties:
+        authMethods:
+          description: The authentication methods of the integration
+          items:
+            enum:
+              - OAUTH
+              - API_KEY
+              - JWT
+            type: string
+          type: array
+        manual:
+          allOf:
+            - $ref: "#/components/schemas/ManualIntegrationManifest"
+          description: Manual integration configuration
+        mcp:
+          allOf:
+            - $ref: "#/components/schemas/MCPIntegrationManifest"
+          description: MCP integration configuration
+        name:
+          description: The name of the integration
+          type: string
+        type:
+          description: The type of the integration
+          enum:
+            - MANUAL
+            - MCP
+          type: string
+      required:
+        - name
+        - type
+        - authMethods
+      type: object
+    UpdateKnowledgeDto:
+      properties:
+        name:
+          description: The name of the knowledge base
+          type: string
+      required:
+        - name
       type: object
     Webhook:
       properties:
@@ -1134,41 +1372,6 @@ paths:
         - access-token: []
       tags:
         - ApiKey
-  /api/connector/ingest:
-    post:
-      operationId: IngestController_ingest
-      parameters: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/IngestDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Ingest
-  /api/connector/ingest/status/{id}:
-    get:
-      operationId: IngestController_getStatus
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: ""
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Ingest
   /api/integration:
     get:
       operationId: IntegrationController_findMany
@@ -1228,7 +1431,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateIntegrationDto"
         required: true
       responses:
         "201":
@@ -1349,7 +1552,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/UpdateIntegrationDto"
         required: true
       responses:
         "200":
@@ -1561,7 +1764,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/UpdateKnowledgeDto"
         required: true
       responses:
         "200":
@@ -1694,6 +1897,105 @@ paths:
         - access-token: []
       tags:
         - Connector
+  /api/knowledge/{knowledgeId}/connector/{connectorId}/ingest:
+    post:
+      operationId: IngestController_ingest
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: connectorId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/IngestDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Ingest
+  /api/knowledge/{knowledgeId}/connector/{connectorId}/ingest/status/{id}:
+    get:
+      operationId: IngestController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: connectorId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobStateResponseDto"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Ingest
   /api/knowledge/{knowledgeId}/connector/{id}:
     delete:
       operationId: ConnectorController_delete
@@ -1798,7 +2100,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/UpdateConnectorDto"
         required: true
       responses:
         "200":
@@ -1899,7 +2201,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateSnipetDto"
+              $ref: "#/components/schemas/CreateOrUpdateSnipetDto"
         required: true
       responses:
         "201":
@@ -2035,7 +2337,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateOrUpdateSnipetDto"
         required: true
       responses:
         "200":
@@ -2062,6 +2364,89 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{snipetId}/execute:
+    post:
+      operationId: SnipetController_execute
+      parameters:
+        - description: The id of the snipet to execute
+          in: path
+          name: snipetId
+          required: true
+          schema: {}
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecuteSnipetDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecuteSnipetResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{snipetId}/stream/{id}:
+    get:
+      operationId: SnipetController_stream
+      parameters:
+        - description: Execution ID
+          in: path
+          name: id
+          required: true
+          schema: {}
+        - description: The id of the snipet to stream
+          in: path
+          name: snipetId
+          required: true
+          schema: {}
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StreamDto"
+        required: true
+      responses:
+        "200":
+          description: ""
       security:
         - x-api-key: []
         - access-token: []

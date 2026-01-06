@@ -1,4 +1,4 @@
-import { Exclude } from "class-transformer";
+import { Exclude, Expose } from "class-transformer";
 
 import { applyDecorators } from "@nestjs/common";
 
@@ -8,5 +8,7 @@ import { FieldOptions } from "./types";
 export const Field = (opts: FieldOptions) => {
   const decorators = builder[opts.type](opts as any);
   if (opts.hidden) decorators.push(Exclude());
+  else decorators.push(Expose());
+
   return applyDecorators(...decorators);
 };

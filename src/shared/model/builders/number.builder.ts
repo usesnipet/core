@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsInt, IsNegative, IsNumber, IsPositive, Max, Min } from "class-validator";
+import { IsInt, IsNegative, IsNumber, IsOptional, IsPositive, Max, Min } from "class-validator";
 
 import { FieldNumberOptions } from "../types";
 import { buildApiProperty } from "./api-property";
@@ -8,6 +8,8 @@ export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorat
   const decorators: PropertyDecorator[] = [];
 
   decorators.push(buildApiProperty(opts));
+  if (opts.required === false) decorators.push(IsOptional());
+  
 
   decorators.push(Transform(({ value }) => Number(value)));
   if (opts.debug) console.log("added number transformer");

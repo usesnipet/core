@@ -43,7 +43,10 @@ export function ApiParamsInherit(params: Array<{ name: string; type?: any; requi
   };
 }
 
-export function Controller(path: string, params: Array<{ name: string; type?: any; required?: boolean }> = []) {
+export function Controller(
+  path: string,
+  params: Array<{ name: string; type?: any; required?: boolean;  }> = []
+) {
   const regex = /:([^/]+)/g;
   let match;
 

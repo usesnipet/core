@@ -1,14 +1,22 @@
 import { SnipetEntity } from "@/entities";
 import { BaseController } from "@/shared/controller";
-import { Controller } from "@/shared/controller/decorators";
-import { CreateSnipetDto } from "./dto/create-snipet.dto";
+import { Controller, HttpPost } from "@/shared/controller/decorators";
+import { CreateOrUpdateSnipetDto } from "./dto/create-or-update-snipet.dto";
 import { SnipetService } from "./snipet.service";
 import { Permission } from "@/lib/permissions";
+import { HttpBody } from "@/shared/controller/decorators/body";
+import { ExecuteSnipetDto, ExecuteSnipetResponseDto } from "./dto/execute-snipet.dto";
+import { Sse } from "@nestjs/common";
+import { ApiParam, ApiProduces } from "@nestjs/swagger";
+import { map, Observable } from "rxjs";
+import { StreamDto } from "./dto/stream.dto";
+import { getDefaultCreateResponses } from "@/shared/controller/default-response";
 
 @Controller("knowledge/:knowledgeId/snipet")
 export class SnipetController extends BaseController({
   entity: SnipetEntity,
-  createDto: CreateSnipetDto,
+  createDto: CreateOrUpdateSnipetDto,
+  updateDto: CreateOrUpdateSnipetDto,
   requiredPermissions: {
     create:   [Permission.CREATE_SNIPET],
     update:   [Permission.UPDATE_SNIPET],
@@ -19,5 +27,24 @@ export class SnipetController extends BaseController({
 }) {
   constructor(public service: SnipetService) {
     super(service);
+  }
+
+  @HttpPost(":snipetId/execute", {
+    params: [ { name: "snipetId", description: "The id of the snipet to execute", required: true } ],
+    responses: getDefaultCreateResponses(ExecuteSnipetResponseDto)
+  })
+  execute(@HttpBody(ExecuteSnipetDto) data: ExecuteSnipetDto): ExecuteSnipetResponseDto {
+    console.log(data);
+    
+    return this.service.execute(data);
+  }
+
+  @ApiProduces("text/event-stream")
+  @ApiParam({ name: "snipetId", description: "The id of the snipet to stream", required: true })
+  @ApiParam({ name: "id", description: "Execution ID", required: true })
+  @Sse(":snipetId/stream/:id")
+  async stream(@HttpBody(StreamDto) data: StreamDto): Promise<Observable<any>> {
+    const stream = await this.service.stream(data.executionId);
+    return stream.pipe(map(v => ({ data: v })));
   }
 }

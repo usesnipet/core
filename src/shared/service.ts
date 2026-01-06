@@ -22,7 +22,7 @@ export abstract class Service<
   }
 
   async findUnique(filterOptions: FilterOptions<TEntity>, manager?: EntityManager): Promise<TEntity | null> {
-    return await this.repository(manager).findOneOrFail(filterOptions);
+    return await this.repository(manager).findOne(filterOptions);
   }
 
   async findFirst(filterOptions: FilterOptions<TEntity>, manager?: EntityManager): Promise<TEntity | null> {
@@ -36,10 +36,10 @@ export abstract class Service<
 
   async findByID(
     id: string,
-    opts?: Omit<FindOneOptions<TEntity>, "where"> & { manager?: EntityManager }
+    opts?: FindOneOptions<TEntity> & { manager?: EntityManager }
   ): Promise<TEntity | null> {
     return await this.repository(opts?.manager)
-      .findOne({ ...opts, where: { [this.idField]: id } as FindOptionsWhere<TEntity> } );
+      .findOne({ ...opts, where: { [this.idField]: id, ...(opts?.where ?? {}) } as FindOptionsWhere<TEntity> } );
   }
 
   async create(input: TCreateDto, manager?: EntityManager): Promise<TEntity>

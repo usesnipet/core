@@ -1,6 +1,6 @@
 import { ConnectorAuth, ConnectorEntity, IntegrationEntity } from "@/entities";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { EntityManager, In } from "typeorm";
+import { EntityManager, FindOptionsWhere, In } from "typeorm";
 
 import { IntegrationService } from "../../integration/integration.service";
 
@@ -12,9 +12,7 @@ export class ConnectorService extends SubKnowledgeService<ConnectorEntity> {
   logger = new Logger(ConnectorService.name);
   entity = ConnectorEntity;
 
-  constructor(
-    private readonly integrationService: IntegrationService
-  ) {
+  constructor(private readonly integrationService: IntegrationService) {
     super();
   }
 
@@ -52,5 +50,9 @@ export class ConnectorService extends SubKnowledgeService<ConnectorEntity> {
       config: integration.manifest,
       auth: integration.authMethods?.[0] ? new ConnectorAuth({ type: integration.authMethods[0] }) : undefined
     })
+  }
+
+  override update(id: string | FindOptionsWhere<ConnectorEntity>, input: Partial<ConnectorEntity>, manager?: EntityManager): Promise<void> {
+    return super.update(id, input, manager);
   }
 }

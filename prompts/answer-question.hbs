@@ -1,13 +1,10 @@
 ---
 vars:
   question: string
-  recentMessages:
-    - role: string
-      content: string
-  relevantMessages:
+  snipetMemories:
     - content: string
       role: string
-  retrievedFragments:
+  knowledgeMemories:
     - string
 ---
 
@@ -19,24 +16,17 @@ Below are details you should use to answer the user's question:
 **User Question:**
 {{question}}
 
-{{#if (gt recentMessages.length 0)}}
-**Recent Conversation (up to 20 messages):**
-{{#each recentMessages}}
-- {{this.role}}: {{this.content}}
-{{/each}}
-{{/if}}
-
-{{#if (gt relevantMessages.length 0)}}
-**Relevant Messages Retrieved from the Session:**
-{{#each relevantMessages}}
-- {{this.role}}: {{this.content}}
+{{#if (gt snipetMemories.length 0)}}
+**Relevant Memories Retrieved:**
+{{#each snipetMemories}}
+- [{{this.role}}]: {{this.content}}
 {{/each}}
 {{/if}}
 
 
-{{#if (gt retrievedFragments.length 0)}}
+{{#if (gt knowledgeMemories.length 0)}}
 **Relevant Contents Retrieved from the Knowledge Base:**
-{{#each retrievedFragments}}
+{{#each knowledgeMemories}}
 - {{this}}
 {{/each}}
 {{/if}}

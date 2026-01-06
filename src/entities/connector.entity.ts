@@ -33,7 +33,7 @@ export class ConnectorEntity extends BaseEntity {
   @Column({ type: "uuid", name: "integration_id" })
   integrationId: string;
 
-  @Field({ type: "string", required: true, description: "The name of the connector" })
+  @Field({ type: "string", required: true, description: "The name of the connector", max: 255 })
   @Column({ type: "varchar", length: 255 })
   name: string;
 

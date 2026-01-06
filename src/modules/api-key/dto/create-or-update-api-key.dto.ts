@@ -9,6 +9,11 @@ export class CreateOrUpdateApiKeyDto extends PickType(ApiKeyEntity, ["name"]) {
 
   @Field({ type: "class", class: () => KnowledgeBaseApiKeyConfig, isArray: true, required: false })
   knowledgeBases?: Array<KnowledgeBaseApiKeyConfig>;
+
+  /**
+   * Allow to create/update a api key with a higher permission than the one you have
+   */
+  skipAccessValidation?: boolean;
 }
 
 

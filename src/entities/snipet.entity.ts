@@ -10,19 +10,13 @@ export class SnipetEntity extends BaseEntity {
   @Column({ type: "varchar", nullable: true })
   name?: string | null;
 
-  @Field({ type: "string", required: true })
-  @Column()
-  type: string;
-
-  @Field({ type: "object", additionalProperties: true, required: false, nullable: true })
-  @Column({ type: "jsonb", nullable: true })
-  state?: Record<string, any>;
-
   @Field({
     type: "object",
     additionalProperties: true,
     required: false,
-    nullable: true
+    nullable: true,
+    description: "Metadata of the snipet",
+    default: null
   })
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, any> | null;

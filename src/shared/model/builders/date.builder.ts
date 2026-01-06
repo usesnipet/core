@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsDate, MaxDate, MinDate } from "class-validator";
+import { IsDate, IsOptional, MaxDate, MinDate } from "class-validator";
 import moment from "moment";
 
 import { FieldDateOptions } from "../types";
@@ -10,6 +10,9 @@ export const buildDateDecorators = (opts: FieldDateOptions): PropertyDecorator[]
 
   // Swagger
   decorators.push(buildApiProperty(opts));
+
+  if (opts.required === false) decorators.push(IsOptional());
+  
 
   // TRANSFORM: allow transforming string to Date
   decorators.push(

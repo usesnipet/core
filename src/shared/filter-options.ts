@@ -2,6 +2,7 @@ import { Request } from "express";
 import { FindManyOptions, FindOptionsOrder, FindOptionsWhere } from "typeorm";
 
 export class FilterOptions<TEntity> implements FindManyOptions<TEntity> {
+  params?: Record<string, any>;
   take?: number;
   skip?: number;
   where?: FindOptionsWhere<TEntity>;
@@ -89,7 +90,8 @@ export class FilterOptions<TEntity> implements FindManyOptions<TEntity> {
       skip: query.offset ? parseInt(query.offset as string) : undefined,
       where: where as FindOptionsWhere<TEntity>,
       order,
-      relations
+      relations,
+      params
     });
   }
 }

@@ -5,11 +5,13 @@ import { Controller } from "@/shared/controller/decorators";
 
 import { ConnectorService } from "./connector.service";
 import { CreateConnectorDto } from "./dto/create-connector.dto";
+import { UpdateConnectorDto } from "./dto/update-connector.dto";
 
 @Controller("knowledge/:knowledgeId/connector")
 export class ConnectorController extends BaseController({
   entity: ConnectorEntity,
   createDto: CreateConnectorDto,
+  updateDto: UpdateConnectorDto,
   requiredPermissions: {
     create:   [Permission.CREATE_CONNECTOR],
     update:   [Permission.UPDATE_CONNECTOR],

@@ -72,10 +72,10 @@ import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
       provide: APP_GUARD,
       useClass: ApiKeyGuard
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ContextInterceptor
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: ContextInterceptor
+    // },
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor

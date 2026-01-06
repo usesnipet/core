@@ -11,14 +11,13 @@ import { ErrorsInterceptor } from "./interceptors/error.interceptor";
 import { FileLogger } from "./lib/file-logger";
 import "./utils/$log";
 
-// Logger utility is now imported where needed
-
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: env.FILE_LOGGER_ENABLED ? new FileLogger() : undefined
   });
   app.useGlobalInterceptors(new ErrorsInterceptor());
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: false }));
+
   app.setGlobalPrefix("api");
   app.enableCors({
     origin: env.CORS_ORIGINS, // ou "*"

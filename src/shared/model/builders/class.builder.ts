@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { ValidateNested } from "class-validator";
+import { IsOptional, ValidateNested } from "class-validator";
 
 import { ApiProperty, ApiPropertyOptional, ApiPropertyOptions } from "@nestjs/swagger";
 
@@ -17,6 +17,10 @@ export const buildClassDecorators = (opts: FieldClassOptions): PropertyDecorator
     default: opts.default,
     isArray: opts.isArray
   };
+
+  if (opts.required === false) decorators.push(IsOptional());
+  
+
   if (opts.debug) console.log(apiMetadata);
   decorators.push(isRequired ? ApiProperty(apiMetadata) : ApiPropertyOptional(apiMetadata));
   if (opts.debug) console.log("added api property");

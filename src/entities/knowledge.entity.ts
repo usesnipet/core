@@ -8,7 +8,7 @@ import { ApiKeyAssignmentEntity } from "./api-key-assignment.entity";
 @Entity("knowledge_bases")
 @Index("knowledge_base_namespace_unique", ["namespace"])
 export class KnowledgeEntity extends BaseEntity {
-  @Field({ type: "string", description: "The name of the knowledge base" })
+  @Field({ type: "string", min: 10, description: "The name of the knowledge base", required: true })
   @Column({ type: "varchar", length: 255 })
   name: string;
 

@@ -10,15 +10,17 @@ export class ContextInterceptor implements NestInterceptor {
   constructor(private readonly httpContext: HTTPContext) {}
 
   intercept(_: any, next: CallHandler): Observable<any> {
+    console.log("ContextInterceptor");
     const req = this.httpContext.req;
     const body = req.body;
-
+    console.log("ContextInterceptor", body);
     if (!body || typeof body !== "object") return next.handle();
 
     const metatype = body.constructor;
     const fields =
       Reflect.getMetadata(CONTEXT_FIELDS_KEY, metatype) || [];
-
+    console.log("ContextInterceptor", fields);
+    
     if (!fields.length) return next.handle();
 
     for (const { propertyKey, source, key } of fields) {
@@ -28,6 +30,7 @@ export class ContextInterceptor implements NestInterceptor {
       }
     }
 
+    console.log("ContextInterceptor", body);
     return next.handle();
   }
 
@@ -42,3 +45,4 @@ export class ContextInterceptor implements NestInterceptor {
     }
   }
 }
+

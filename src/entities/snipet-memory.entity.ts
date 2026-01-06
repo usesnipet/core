@@ -1,11 +1,17 @@
-import { Field } from "@/shared/model";
+import { Field } from "../shared/model";
 import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { BaseEntity } from "./entity";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
+import { SnipetIntent } from "../types/snipet-intent";
+
+export enum MemoryType {
+  USER_INPUT = "user_input",
+  TEXT_ASSISTANT_OUTPUT = "text_assistant_output",
+}
 
 @Entity("snipet_memory")
-export class SnipetMemoryEntity extends BaseEntity {
+export class SnipetMemoryEntity<TPayload = any> extends BaseEntity {
   @Field({ type: "string", required: true, uuid: true })
   @Column({ name: "snipet_id", type: "uuid" })
   snipetId: string;
@@ -14,13 +20,17 @@ export class SnipetMemoryEntity extends BaseEntity {
   @Column({ name: "knowledge_id", type: "uuid" })
   knowledgeId: string;
 
-  @Field({ type: "string", required: true })
-  @Column()
-  type: string; // user | system | tool | model | custom
+  @Field({ type: "enum", enum: MemoryType })
+  @Column({ type: "enum", enum: MemoryType })
+  type: MemoryType;
+
+  @Field({ type: "enum", enum: SnipetIntent })
+  @Column({ type: "enum", enum: SnipetIntent })
+  intent: SnipetIntent;
 
   @Field({ type: "object", additionalProperties: true })
   @Column({ type: "jsonb" })
-  payload: { text: string, } & any;
+  payload: TPayload;
 
   @Field({ type: "class", class: () => KnowledgeEntity, required: false })
   @ManyToOne(() => KnowledgeEntity, { onDelete: "CASCADE" })
@@ -32,7 +42,7 @@ export class SnipetMemoryEntity extends BaseEntity {
   @JoinColumn({ name: "snipet_id" })
   snipet?: SnipetEntity;
 
-  constructor(partial: Partial<SnipetMemoryEntity>) {
+  constructor(partial: Partial<SnipetMemoryEntity<TPayload>>) {
     super(partial);
     Object.assign(this, partial);
   }

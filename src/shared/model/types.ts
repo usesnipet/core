@@ -27,6 +27,8 @@ export type BaseFieldOptions = {
 
 export type FieldStringOptions = BaseFieldOptions & {
   type: "string";
+  source?: "params" | "query" | "body";
+  sourceKey?: string;
   min?: number | { length: number } & ValidationOptions;
   max?: number | { length: number } & ValidationOptions;
   length?: number | { length: number } & ValidationOptions;

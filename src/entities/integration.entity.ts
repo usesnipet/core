@@ -199,7 +199,7 @@ export enum IntegrationAuthType {
   JWT = 'JWT'
 }
 
-@ApiExtraModels(MCPIntegrationManifest, ManualIntegrationManifest)
+@ApiExtraModels(MCPIntegrationManifest, ManualIntegrationManifest, Webhook, MCPResource, MCPTool)
 @Entity("integrations")
 export class IntegrationEntity extends BaseEntity {
   @Field({ type: "string", required: true, description: "The name of the integration" })
@@ -221,7 +221,7 @@ export class IntegrationEntity extends BaseEntity {
       () => ManualIntegrationManifest
     ],
     required: true,
-    description: "The name of the integration"
+    description: "The manifest of the integration"
   })
   @Column({ type: "jsonb" })
   manifest: MCPIntegrationManifest | ManualIntegrationManifest;
