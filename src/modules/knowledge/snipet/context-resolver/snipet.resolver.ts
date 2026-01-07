@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
-import { SnipetMemoryService } from "../snipet-memory.service";
+import { SnipetMemoryService } from "../memory/snipet-memory.service";
 
 export type SnipetContextResolverOptions = {
   filters?: Record<string, string | number | boolean>;

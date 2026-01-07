@@ -1,4 +1,4 @@
-import { MemoryType, SnipetEntity } from "@/entities";
+import { MemoryType, SnipetEntity, SnipetMemoryEntity } from "@/entities";
 import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { SubKnowledgeService } from "@/shared/services/sub-knowledge.service";
@@ -8,7 +8,10 @@ import { Observable } from "rxjs";
 import { ExecutionEvent } from "./types/execution-event";
 import { OutputParserService } from "./output-parser/output-parser.service";
 import { randomUUID } from "crypto";
-import { SnipetMemoryService } from "./snipet-memory.service";
+import { SnipetMemoryService } from "./memory/snipet-memory.service";
+import { As, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
+import { FilterOptions } from "@/shared/filter-options";
+import { th } from "zod/v4/locales";
 
 @Injectable()
 export class SnipetService extends SubKnowledgeService<SnipetEntity> {
@@ -20,7 +23,7 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
   @Inject() private readonly memoryService: SnipetMemoryService;
 
   private readonly executionStore = new Map<string, ExecuteSnipetDto>();
-  
+
   execute(data: ExecuteSnipetDto) {
     const executionId = randomUUID();
     this.executionStore.set(executionId, data);
@@ -35,7 +38,7 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
         try {
           const { intent, knowledgeId, query, snipetId, options } = execution;
           subscriber.next({ event: "start" });
-          
+
           const snipet = await this.findUnique({ where: { id: snipetId, knowledgeId } });
           if (!snipet) {
             subscriber.error(new NotFoundException("Snipet not found"));
@@ -55,7 +58,7 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
           }, subscriber);
 
           // TODO run action resolver
-          
+
           // Output parser
           const result = await this.outputParser.execute(execution, context, subscriber);
           await this.memoryService.save(execution, MemoryType.TEXT_ASSISTANT_OUTPUT, result);
@@ -66,5 +69,14 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
       })();
       return () => {};
     });
+  }
+
+  readMemoryAs(filter: FilterOptions<SnipetMemoryEntity>, data: ReadMemoryAsDto) {
+    switch (data.as) {
+      case As.CHAT:
+        return this.memoryService.readMemoryAsChat(filter);
+      default:
+        throw new Error("Invalid read memory as");
+    }
   }
 }

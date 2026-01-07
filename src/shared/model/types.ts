@@ -52,6 +52,8 @@ export type FieldNumberOptions = BaseFieldOptions & {
 };
 
 export type FieldEnumOptions = BaseFieldOptions & {
+  source?: "params" | "query" | "body";
+  sourceKey?: string;
   type: "enum";
   enum: EnumAllowedTypes;
 };

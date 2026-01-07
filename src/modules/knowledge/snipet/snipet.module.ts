@@ -9,7 +9,7 @@ import { EmbeddingModule } from "@/infra/embedding/embedding.module";
 import { ContextResolver } from "./context-resolver/context-resolver.service";
 import { KnowledgeContextResolver } from "./context-resolver/knowledge.resolver";
 import { SnipetContextResolver } from "./context-resolver/snipet.resolver";
-import { SnipetMemoryService } from "./snipet-memory.service";
+import { SnipetMemoryService } from "./memory/snipet-memory.service";
 import { LLMManagerModule } from "@/infra/llm-manager/llm-manager.module";
 import { PromptModule } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
@@ -28,7 +28,7 @@ import { ExpandOutputStrategy } from "./output-parser/expand.parser";
     EmbeddingModule,
     VectorStoreModule,
     LLMManagerModule,
-    PromptModule.forRoot({ 
+    PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,
       templatesDir: env.PROMPT_TEMPLATES_DIR,
       templates: PromptTemplates
@@ -46,13 +46,13 @@ import { ExpandOutputStrategy } from "./output-parser/expand.parser";
     KnowledgeContextResolver,
     SnipetContextResolver,
     // #endregion
-  
+
     // #region Output Parsers
     OutputParserService,
     AnswerOutputStrategy,
     ExpandOutputStrategy,
     SummarizeOutputStrategy,
-    // #endregion 
+    // #endregion
   ],
   exports: [ SnipetService ],
 })

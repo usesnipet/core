@@ -5,13 +5,12 @@ import { SnipetVectorStoreService } from "@/infra/vector/snipet-vector-store.ser
 import { GenericService } from "@/shared/generic-service";
 import { buildOptions } from "@/utils/build-options";
 import { BadRequestException, Inject, Logger } from "@nestjs/common";
-import { EntityManager, Repository } from "typeorm";
-import { ExecuteSnipetDto } from "./dto/execute-snipet.dto";
-import { AnswerOutput } from "./output-parser/answer.parser";
-import { SummarizeOutput } from "./output-parser/summarize.parser";
-import { SnipetIntent } from "@/types/snipet-intent";
-import { ExpandOutput } from "./output-parser/expand.parser";
-import { OutputParserResult } from "./output-parser/output-parser.types";
+import { EntityManager, In, Repository } from "typeorm";
+import { ExecuteSnipetDto } from "../dto/execute-snipet.dto";
+import { OutputParserResult } from "../output-parser/output-parser.types";
+import { FilterOptions } from "@/shared/filter-options";
+import { extractText, MEMORY_POLICIES } from "./memory-policy";
+import { ChatDto, ChatRole, ReadMemoryAsChatDto } from "../dto/read-memory-as.dto";
 
 export type SnipetSearchOptions = {
   lastNMemories?: number;
@@ -52,36 +51,24 @@ export class SnipetMemoryService extends GenericService {
     })
   }
 
-  async save(ex: ExecuteSnipetDto, type: MemoryType.USER_INPUT, payload: string, manager?: EntityManager): Promise<SnipetMemoryEntity>
+  async save(
+    ex: ExecuteSnipetDto,
+    type: MemoryType.USER_INPUT,
+    payload: string,
+    manager?: EntityManager
+  ): Promise<SnipetMemoryEntity>
   async save(
     ex: ExecuteSnipetDto,
     type: MemoryType.TEXT_ASSISTANT_OUTPUT,
     payload: OutputParserResult,
     manager?: EntityManager
   ): Promise<SnipetMemoryEntity>
-  async save({ knowledgeId, snipetId, intent }: ExecuteSnipetDto, type: MemoryType, payload: any, manager?: EntityManager): Promise<SnipetMemoryEntity> {
-    const MEMORY_POLICIES = {
-      [MemoryType.USER_INPUT]: {
-        embed: true,
-        extractText: (payload: string) => payload
-      },
-      [MemoryType.TEXT_ASSISTANT_OUTPUT]: {
-        embed: true,
-        extractText: (payload: OutputParserResult) => {
-          switch (intent) {
-            case SnipetIntent.ANSWER:
-              return (payload as AnswerOutput).answer;
-            case SnipetIntent.SUMMARIZE:
-              return (payload as SummarizeOutput).summary;
-            case SnipetIntent.EXPAND:
-              return (payload as ExpandOutput).expandedText;
-            default:
-              throw new BadRequestException("Invalid intent");
-          }
-        }
-      }
-    };
-
+  async save(
+    { knowledgeId, snipetId }: ExecuteSnipetDto,
+    type: MemoryType,
+    payload: any,
+    manager?: EntityManager
+  ): Promise<SnipetMemoryEntity> {
     return this.transaction(async (manager) => {
       const memory = new SnipetMemoryEntity({ knowledgeId, snipetId, type, payload });
 
@@ -111,6 +98,30 @@ export class SnipetMemoryService extends GenericService {
     await this.snipetVectorStore.remove(memory.id);
   }
 
+  //#region read
+  async readMemoryAsChat(
+    filterOpts: FilterOptions<SnipetMemoryEntity>,
+    manager?: EntityManager
+  ): Promise<ReadMemoryAsChatDto> {
+    const memories = await this.repository(manager).find({
+      ...filterOpts,
+      where: {
+        ...filterOpts.where,
+        type: In([MemoryType.TEXT_ASSISTANT_OUTPUT, MemoryType.USER_INPUT])
+      }
+    });
+
+    return new ReadMemoryAsChatDto(memories.map((m) => new ChatDto({
+      role: m.type === MemoryType.USER_INPUT ? ChatRole.USER : ChatRole.ASSISTANT,
+      content: extractText(m),
+      id: m.id,
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt
+    })));
+  }
+  //#endregion
+
+  //#region Search
   async search(knowledgeId: string, snipetId: string, ...opts: WithSnipetSearchOptions[]) {
     const options = this.buildSnipetSearchOptions(...opts);
     const response: { lastNMemories: SnipetMemoryEntity[], query: SnipetVectorStorePayload[] } = {
@@ -128,16 +139,18 @@ export class SnipetMemoryService extends GenericService {
 
     if (options.query) {
       const query = options.query;
-      const queryEmbedding = await this.embeddingService.getOrCreateEmbedding(typeof query === "string" ? query : query.query);
+      const queryEmbedding = await this.embeddingService.getOrCreateEmbedding(
+        typeof query === "string" ? query : query.query
+      );
       const opts = [
         SnipetVectorStoreService.withSnipetId(snipetId),
-        SnipetVectorStoreService.withDense({ vector: queryEmbedding.embeddings, topK: typeof query === "string" ? undefined : query.topK }),
+        SnipetVectorStoreService.withDense({
+          vector: queryEmbedding.embeddings,
+          topK: typeof query === "string" ? undefined : query.topK
+        }),
       ]
       if (options.filters) opts.push(SnipetVectorStoreService.withFilters(options.filters))
-      const searchQuery = await this.snipetVectorStore.search(
-        knowledgeId,
-        ...opts
-      )
+      const searchQuery = await this.snipetVectorStore.search(knowledgeId, ...opts);
       response.query = searchQuery;
     }
     return response;
@@ -167,4 +180,5 @@ export class SnipetMemoryService extends GenericService {
   protected buildSnipetSearchOptions(...opts: WithSnipetSearchOptions[]) {
     return buildOptions<WithSnipetSearchOptions, SnipetSearchOptions>({}, opts);
   }
+  //#endregion
 }

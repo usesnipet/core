@@ -11,8 +11,8 @@ import { getDefaultFindByIDResponses, getDefaultCreateResponses } from "@/shared
 import { Param, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiConsumes } from "@nestjs/swagger";
-import { JobStateResponseDto } from "./connector/ingest/dto/job-state.dto";
 import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
+import { IngestJobStateResponseDto } from "./dto/job-state.dto";
 
 @Controller("knowledge")
 export class KnowledgeController extends BaseController({
@@ -31,8 +31,7 @@ export class KnowledgeController extends BaseController({
     super(service);
   }
 
-
-  @HttpGet("status/:id", { responses: getDefaultFindByIDResponses(JobStateResponseDto) })
+  @HttpGet("status/:id", { responses: getDefaultFindByIDResponses(IngestJobStateResponseDto) })
   async getStatus(@Param("id") id: string) {
     return this.service.getStatus(id);
   }

@@ -1,6 +1,6 @@
-import { SnipetEntity } from "@/entities";
+import { SnipetEntity, SnipetMemoryEntity } from "@/entities";
 import { BaseController } from "@/shared/controller";
-import { Controller, HttpPost } from "@/shared/controller/decorators";
+import { Controller, Filter, HttpGet, HttpPost } from "@/shared/controller/decorators";
 import { CreateOrUpdateSnipetDto } from "./dto/create-or-update-snipet.dto";
 import { SnipetService } from "./snipet.service";
 import { Permission } from "@/lib/permissions";
@@ -10,7 +10,9 @@ import { Sse } from "@nestjs/common";
 import { ApiParam, ApiProduces } from "@nestjs/swagger";
 import { map, Observable } from "rxjs";
 import { StreamDto } from "./dto/stream.dto";
-import { getDefaultCreateResponses } from "@/shared/controller/default-response";
+import { getDefaultCreateResponses, getDefaultFindResponses } from "@/shared/controller/default-response";
+import { ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
+import { FilterOptions } from "@/shared/filter-options";
 
 @Controller("knowledge/:knowledgeId/snipet")
 export class SnipetController extends BaseController({
@@ -44,5 +46,16 @@ export class SnipetController extends BaseController({
   async stream(@HttpBody(StreamDto) data: StreamDto): Promise<Observable<any>> {
     const stream = await this.service.stream(data.executionId);
     return stream.pipe(map(v => ({ data: v })));
+  }
+
+  @HttpGet(":snipetId/read-as", {
+    params: [ { name: "snipetId", description: "The id of the snipet to read", required: true } ],
+    responses: getDefaultFindResponses(ReadMemoryAsChatDto)
+  })
+  async readMemoryAs(
+    @HttpBody(ReadMemoryAsDto) data: ReadMemoryAsDto,
+    @Filter() filterOpts: FilterOptions<SnipetMemoryEntity>
+  ) {
+    return this.service.readMemoryAs(filterOpts, data);
   }
 }

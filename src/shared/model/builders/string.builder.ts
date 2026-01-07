@@ -3,12 +3,12 @@ import { IsEmail, IsOptional, IsUrl, IsUUID, Matches, MaxLength, MinLength } fro
 
 import { FieldStringOptions } from "../types";
 import { buildApiProperty } from "./api-property";
-import { FromParams, FromQuery } from "@/shared/controller/decorators";
+import { FromParams, FromQuery } from "./context";
 
 export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
   const isFromBody = !opts.source || opts.source === "body"
-  
+
   // Swagger
   if (isFromBody) decorators.push(buildApiProperty(opts));
 
