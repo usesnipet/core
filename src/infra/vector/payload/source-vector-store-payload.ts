@@ -3,7 +3,7 @@ import { VectorStorePayload } from "./vector-store-payload";
 export class SourceVectorStorePayload extends VectorStorePayload {
   seqId?: number;
   knowledgeId: string;
-  connectorId: string;
+  connectorId?: string;
   externalId?: string;
   
   constructor(payload: Omit<SourceVectorStorePayload, 'createdAt' | 'updatedAt'> & { createdAt?: Date, updatedAt?: Date }) {

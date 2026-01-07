@@ -10,6 +10,7 @@ import { PromptService } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 
 export type SummarizeOutput = {
+  intent: SnipetIntent.SUMMARIZE;
   summary: string;
 }
 
@@ -45,7 +46,7 @@ export class SummarizeOutputStrategy implements OutputParserStrategy<SummarizeOu
         const subscription = stream.subscribe({
           next: chunk => {
             summary += chunk.data;
-            subscriber.next({ event: "output.streaming", payload: { answer: chunk.data } });
+            subscriber.next({ event: "output.streaming", payload: { chunk: chunk.data } });
           },
           error: err => {
             subscriber.error(err);
@@ -55,7 +56,7 @@ export class SummarizeOutputStrategy implements OutputParserStrategy<SummarizeOu
           complete: () => {
             subscriber.next({ event: "output.finish" });
             subscriber.complete();
-            resolve({ summary });
+            resolve({ intent: SnipetIntent.SUMMARIZE, summary });
           }
         });
 
@@ -67,7 +68,7 @@ export class SummarizeOutputStrategy implements OutputParserStrategy<SummarizeOu
         maxTokens: executeSnipet.options?.output?.maxTokens,
         temperature: executeSnipet.options?.output?.temperature,
       });
-      const res: SummarizeOutput = { summary: generateResponse.output };
+      const res: SummarizeOutput = { intent: SnipetIntent.SUMMARIZE, summary: generateResponse.output };
       subscriber.next({ event: "output.data", payload: res });
       subscriber.next({ event: "output.finish" });
       return res;

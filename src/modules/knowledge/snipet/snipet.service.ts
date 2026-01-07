@@ -28,12 +28,12 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
   }
 
   async stream(executionId: string) {
-    const data = this.executionStore.get(executionId);
-    if (!data) throw new NotFoundException("Execution not found");
+    const execution = this.executionStore.get(executionId);
+    if (!execution) throw new NotFoundException("Execution not found");
      return new Observable<ExecutionEvent>((subscriber) => {
       (async () => {
         try {
-          const { intent, knowledgeId, query, snipetId, options } = data;
+          const { intent, knowledgeId, query, snipetId, options } = execution;
           subscriber.next({ event: "start" });
           
           const snipet = await this.findUnique({ where: { id: snipetId, knowledgeId } });
@@ -43,11 +43,11 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
           }
 
           if (options?.memory?.mode === MemoryMode.CONVERSATION) {
-            await this.memoryService.save(data, MemoryType.USER_INPUT, query);
+            await this.memoryService.save(execution, MemoryType.USER_INPUT, query);
           }
 
           // run context resolver
-          const context = await this.contextResolver.resolve({ 
+          const context = await this.contextResolver.resolve({
             intent,
             query,
             snipet,
@@ -57,10 +57,8 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
           // TODO run action resolver
           
           // Output parser
-          const result = await this.outputParser.execute(data, context, subscriber);
-          if (options?.memory?.mode === MemoryMode.CONVERSATION) {
-            await this.memoryService.save(data, MemoryType.TEXT_ASSISTANT_OUTPUT, result);
-          }
+          const result = await this.outputParser.execute(execution, context, subscriber);
+          await this.memoryService.save(execution, MemoryType.TEXT_ASSISTANT_OUTPUT, result);
           subscriber.complete();
         } catch (error) {
           subscriber.error(error);

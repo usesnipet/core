@@ -1,4 +1,4 @@
-import { ProcessorService } from "@/infra/processor/processor.service";
+import { FileProcessorService } from "@/infra/file-processor/file-processor.service";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject, Logger } from "@nestjs/common";
@@ -7,36 +7,33 @@ import * as fs from "fs/promises";
 import { Readable } from "stream";
 import streamToBlob from "stream-to-blob";
 
-export type IngestJobData = {
+export type FileIngestJobData = {
   metadata: Record<string, any>;
   knowledgeId: string;
-  connectorId: string;
-  externalId?: string | null;
+  connectorId?: string;
+  externalId?: string;
   path: string;
   extension: string;
   mimetype: string;
   originalname: string;
 };
 
-@Processor(IngestJob.INGEST_KEY, { concurrency: 1 })
-export class IngestJob extends WorkerHost {
-  static INGEST_KEY = "ingest";
-  private readonly logger = new Logger(IngestJob.name);
+@Processor(FileIngestJob.INGEST_KEY, { concurrency: 1 })
+export class FileIngestJob extends WorkerHost {
+  static INGEST_KEY = "file-ingest";
+  private readonly logger = new Logger(FileIngestJob.name);
 
-  @Inject() private readonly processorService: ProcessorService;
+  @Inject() private readonly fileIndexer: FileProcessorService;
   @Inject() private readonly vectorStore: SourceVectorStoreService;
 
-  async process(job: Job<IngestJobData>): Promise<any> {
+  async process(job: Job<FileIngestJobData>): Promise<any> {
     const { data } = job;
     this.logger.debug(`Processing file "${data.path}"`);
     const buffer = await fs.readFile(data.path);
 
-    const payloads = await this.processorService.process(
+    const payloads = await this.fileIndexer.process(
       await streamToBlob(Readable.from(buffer)),
       {
-        // externalId: data.externalId,
-        connectorId: data.connectorId,
-        knowledgeId: data.knowledgeId,
         extension: data.extension,
         mimetype: data.mimetype,
         originalname: data.originalname,
@@ -51,17 +48,17 @@ export class IngestJob extends WorkerHost {
   }
 
   @OnWorkerEvent("active")
-  async onStart(job: Job<IngestJobData>) {
+  async onStart(job: Job<FileIngestJobData>) {
     this.logger.log("ingest started");
   }
 
   @OnWorkerEvent("completed")
-  async onCompleted(job: Job<IngestJobData>) {
+  async onCompleted(job: Job<FileIngestJobData>) {
     this.logger.log("ingest completed");
   }
 
   @OnWorkerEvent("failed")
-  async onFailed(job: Job<IngestJobData>, error: Error) {
+  async onFailed(job: Job<FileIngestJobData>, error: Error) {
     this.logger.log(error);
   }
 }

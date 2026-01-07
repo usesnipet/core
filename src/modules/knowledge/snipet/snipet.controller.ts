@@ -34,8 +34,6 @@ export class SnipetController extends BaseController({
     responses: getDefaultCreateResponses(ExecuteSnipetResponseDto)
   })
   execute(@HttpBody(ExecuteSnipetDto) data: ExecuteSnipetDto): ExecuteSnipetResponseDto {
-    console.log(data);
-    
     return this.service.execute(data);
   }
 

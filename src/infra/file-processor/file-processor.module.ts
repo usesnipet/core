@@ -2,11 +2,11 @@ import { Module } from "@nestjs/common";
 
 import { ExtractionModule } from "./extraction/extraction.module";
 import { EmbeddingModule } from "../embedding/embedding.module";
-import { ProcessorService } from "./processor.service";
+import { FileProcessorService } from "./file-processor.service";
 
 @Module({
   imports: [ExtractionModule, EmbeddingModule],
-  providers: [ProcessorService],
-  exports: [ProcessorService],
+  providers: [FileProcessorService],
+  exports: [FileProcessorService],
 })
-export class ProcessorModule {}
+export class FileProcessorModule {}

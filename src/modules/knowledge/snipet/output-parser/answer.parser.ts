@@ -10,6 +10,7 @@ import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { SnipetIntent } from "@/types/snipet-intent";
 
 export type AnswerOutput = {
+  intent: SnipetIntent.ANSWER;
   answer: string;
 }
 
@@ -47,7 +48,7 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
         const subscription = stream.subscribe({
           next: chunk => {
             answer += chunk.data;
-            subscriber.next({ event: "output.streaming", payload: { answer: chunk.data } });
+            subscriber.next({ event: "output.streaming", payload: { chunk: chunk.data } });
           },
           error: err => {
             subscriber.error(err);
@@ -57,7 +58,7 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
           complete: () => {
             subscriber.next({ event: "output.finish" });
             subscriber.complete();
-            resolve({ answer });
+            resolve({ intent: SnipetIntent.ANSWER, answer });
           }
         });
 
@@ -69,7 +70,7 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
         maxTokens: executeSnipet.options?.output?.maxTokens,
         temperature: executeSnipet.options?.output?.temperature,
       });
-      const res: AnswerOutput = { answer: generateResponse.output };
+      const res: AnswerOutput = { intent: SnipetIntent.ANSWER, answer: generateResponse.output };
       subscriber.next({ event: "output.data", payload: res });
       subscriber.next({ event: "output.finish" });
       return res;

@@ -10,6 +10,7 @@ import { PromptService } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 
 export type ExpandOutput = {
+  intent: SnipetIntent.EXPAND;
   expandedText: string;
 }
 
@@ -43,7 +44,7 @@ export class ExpandOutputStrategy implements OutputParserStrategy<ExpandOutput> 
         const subscription = stream.subscribe({
           next: chunk => {
             expandedText += chunk.data;
-            subscriber.next({ event: "output.streaming", payload: { expandedText: chunk.data } });
+            subscriber.next({ event: "output.streaming", payload: { chunk: chunk.data } });
           },
           error: err => {
             subscriber.error(err);
@@ -53,7 +54,7 @@ export class ExpandOutputStrategy implements OutputParserStrategy<ExpandOutput> 
           complete: () => {
             subscriber.next({ event: "output.finish" });
             subscriber.complete();
-            resolve({ expandedText });
+            resolve({ intent: SnipetIntent.EXPAND, expandedText });
           }
         });
 
@@ -65,7 +66,7 @@ export class ExpandOutputStrategy implements OutputParserStrategy<ExpandOutput> 
         maxTokens: executeSnipet.options?.output?.maxTokens,
         temperature: executeSnipet.options?.output?.temperature,
       });
-      const res: ExpandOutput = { expandedText: generateResponse.output };
+      const res: ExpandOutput = { intent: SnipetIntent.EXPAND, expandedText: generateResponse.output };
       subscriber.next({ event: "output.data", payload: res });
       subscriber.next({ event: "output.finish" });
       return res;

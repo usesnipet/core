@@ -5,12 +5,17 @@ import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.ser
 import { FilterOptions } from "@/shared/filter-options";
 import { Service } from "@/shared/service";
 import { buildOptions } from "@/utils/build-options";
-import { Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { EntityManager, FindOneOptions } from "typeorm";
 import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
 import { ApiKeyService } from "../api-key/api-key.service";
-import { en } from "zod/v4/locales";
 import { KnowledgeBaseApiKeyConfig } from "../api-key/dto/knowledge-base-api-key-config.dto";
+import { InjectQueue } from "@nestjs/bullmq";
+import { FileIngestJob, FileIngestJobData } from "./file-ingest.job";
+import { Queue } from "bullmq";
+import { IngestJobState, IngestJobStateResponseDto } from "./dto/job-state.dto";
+import { randomUUID } from "crypto";
+import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
 
 export type SearchOptions = {
   knowledgeId: string;
@@ -27,6 +32,9 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   logger = new Logger(KnowledgeService.name);
   entity = KnowledgeEntity;
 
+
+  @InjectQueue(FileIngestJob.INGEST_KEY) private readonly ingestQueue: Queue<FileIngestJobData>;
+
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly vectorStore:      SourceVectorStoreService;
   @Inject() private readonly apiKeyService:    ApiKeyService;
@@ -36,7 +44,57 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!apiKey) throw new UnauthorizedException();
     return apiKey;
   }
+  private knowledgeToApiConfig(knowledge: KnowledgeEntity | KnowledgeEntity[]): KnowledgeBaseApiKeyConfig[] {
+    const toApiConfig = (kn: KnowledgeEntity): KnowledgeBaseApiKeyConfig => {
+      return {
+        knowledgeId: kn.id,
+        permissions: KbPermission.MANAGE,
+        connectorPermissions: []
+      } as KnowledgeBaseApiKeyConfig;
+    }
+    return Array.isArray(knowledge) ? knowledge.map(toApiConfig) : [toApiConfig(knowledge)];
+  }
 
+  async ingest(data: FileIngestDto): Promise<FileIngestResponseDto> {
+    const ext = data.file.originalname.split('.').pop();
+    if (!ext) throw new BadRequestException("Failed to ingest content");
+    const job = await this.ingestQueue.add("", {
+      knowledgeId: data.knowledgeId,
+      metadata: data.metadata,
+      path: data.file.path,
+      mimetype: data.file.mimetype,
+      originalname: data.file.originalname,
+      extension: ext,
+      externalId: data.externalId,
+    }, { jobId: randomUUID() });
+    if (!job.id) throw new BadRequestException("Failed to ingest content");
+    return new FileIngestResponseDto(job.id);
+  }
+
+  async getStatus(id: string): Promise<IngestJobStateResponseDto> {
+    const state = await this.ingestQueue.getJobState(id);
+    let jobState: IngestJobState;
+    switch (state) {
+      case "waiting":
+      case "waiting-children":
+      case "delayed":
+      case "unknown":
+        jobState = IngestJobState.PENDING;
+      case "active":
+      case "prioritized":
+        jobState = IngestJobState.IN_PROGRESS;
+      case "completed":
+        jobState = IngestJobState.COMPLETED;
+      case "failed":
+        jobState = IngestJobState.FAILED;
+      default:
+        jobState = IngestJobState.FAILED;
+    }
+
+    return new IngestJobStateResponseDto(jobState);
+  }
+
+  //#region Override crud methods
   override create(input: CreateKnowledgeDto, manager?: EntityManager): Promise<KnowledgeEntity>;
   override create(input: CreateKnowledgeDto[], manager?: EntityManager): Promise<KnowledgeEntity[]>;
   override create(input: CreateKnowledgeDto | CreateKnowledgeDto[], manager?: EntityManager): Promise<KnowledgeEntity | KnowledgeEntity[]> {
@@ -61,18 +119,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       return kns;
     }, manager);
   }
-
-  private knowledgeToApiConfig(knowledge: KnowledgeEntity | KnowledgeEntity[]): KnowledgeBaseApiKeyConfig[] {
-    const toApiConfig = (kn: KnowledgeEntity): KnowledgeBaseApiKeyConfig => {
-      return {
-        knowledgeId: kn.id,
-        permissions: KbPermission.MANAGE,
-        connectorPermissions: []
-      } as KnowledgeBaseApiKeyConfig;
-    }
-    return Array.isArray(knowledge) ? knowledge.map(toApiConfig) : [toApiConfig(knowledge)];
-  }
-
   override find(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -83,7 +129,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).find(filterOptions);
   }
-
   override findByID(
     id: string,
     opts?: (Omit<FindOneOptions<KnowledgeEntity>, "where"> & { manager?: EntityManager; })
@@ -93,7 +138,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     }
     throw new UnauthorizedException("You do not have permission to access this knowledge");
   }
-
   override findFirst(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -103,7 +147,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).findOne(filterOptions);
   }
-
   override findUnique(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -113,7 +156,9 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).findOne(filterOptions);
   }
+  //#endregion
 
+  //#region Ai search
   private buildFindOptions(knowledgeId: string, userInput: string, ...opts: WithSearchOptions[]): SearchOptions {
     return buildOptions({ knowledgeId, userInput }, opts);
   }
@@ -153,4 +198,5 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       return { ...currentOpts, filters: { ...currentOpts.filters, ...filters } };
     };
   }
+  //#endregion
 }

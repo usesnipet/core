@@ -4,24 +4,19 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ExtractionService } from "./extraction/extraction.service";
 import { SourceVectorStorePayload } from "../vector/payload/source-vector-store-payload";
 import { EmbeddingService } from "../embedding/embedding.service";
-import { fingerprint } from "@/lib/fingerprint";
 import { canonicalize } from "@/lib/canonicalize";
 
-type ProcessorMetadata = {
-  externalId?: string;
-  connectorId: string;
-  knowledgeId: string;
-} & { [key: string]: any };
+type FileIndexerMetadata = { [key: string]: any };
 
 @Injectable()
-export class ProcessorService {
+export class FileProcessorService {
 
   @Inject() private readonly extractorService: ExtractionService;
   @Inject() private readonly embeddingService: EmbeddingService;
 
   async process(
     blob: Blob,
-    { connectorId, externalId, knowledgeId, ...metadata}: ProcessorMetadata
+    { connectorId, externalId, knowledgeId, ...metadata}: FileIndexerMetadata
   ): Promise<SourceVectorStorePayload[]> {
     const genericDocument = await this.extractorService.extract(
       env.DEFAULT_EXTRACTOR,
@@ -31,14 +26,9 @@ export class ProcessorService {
     );
 
     const payloads = await Promise.all(genericDocument.nodes.map(async ({ id, content, metadata: nodeMetadata }, index) => {
-      if (!content) {
-        throw new Error('Content cannot be empty');
-      }
-
+      if (!content) throw new Error('Content cannot be empty');
       const canonicalText = canonicalize(content);
-
       const { embeddings } = await this.embeddingService.getOrCreateEmbedding(canonicalText);
-
       return new SourceVectorStorePayload({
         id,
         connectorId,

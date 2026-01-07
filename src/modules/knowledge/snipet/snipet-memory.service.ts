@@ -11,6 +11,7 @@ import { AnswerOutput } from "./output-parser/answer.parser";
 import { SummarizeOutput } from "./output-parser/summarize.parser";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { ExpandOutput } from "./output-parser/expand.parser";
+import { OutputParserResult } from "./output-parser/output-parser.types";
 
 export type SnipetSearchOptions = {
   lastNMemories?: number;
@@ -55,19 +56,18 @@ export class SnipetMemoryService extends GenericService {
   async save(
     ex: ExecuteSnipetDto,
     type: MemoryType.TEXT_ASSISTANT_OUTPUT,
-    payload: AnswerOutput | SummarizeOutput | ExpandOutput,
+    payload: OutputParserResult,
     manager?: EntityManager
   ): Promise<SnipetMemoryEntity>
-
   async save({ knowledgeId, snipetId, intent }: ExecuteSnipetDto, type: MemoryType, payload: any, manager?: EntityManager): Promise<SnipetMemoryEntity> {
     const MEMORY_POLICIES = {
-      user_input: {
+      [MemoryType.USER_INPUT]: {
         embed: true,
         extractText: (payload: string) => payload
       },
-      text_assistant_output: {
+      [MemoryType.TEXT_ASSISTANT_OUTPUT]: {
         embed: true,
-        extractText: (payload: any) => {
+        extractText: (payload: OutputParserResult) => {
           switch (intent) {
             case SnipetIntent.ANSWER:
               return (payload as AnswerOutput).answer;

@@ -575,6 +575,26 @@ components:
       required:
         - type
       type: object
+    FileIngestDto:
+      properties:
+        externalId:
+          type: string
+        file:
+          format: binary
+          type: string
+        metadata:
+          type: string
+      required:
+        - file
+      type: object
+    FileIngestResponseDto:
+      properties:
+        id:
+          format: uuid
+          type: string
+      required:
+        - id
+      type: object
     IngestDto:
       properties:
         connectorId:
@@ -1664,6 +1684,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Knowledge
+  /api/knowledge/status/{id}:
+    get:
+      operationId: KnowledgeController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobStateResponseDto"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
         "500":
           content:
             application/json:
