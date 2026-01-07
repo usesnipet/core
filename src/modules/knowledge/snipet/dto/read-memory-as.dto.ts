@@ -5,7 +5,8 @@ export enum As {
 }
 
 export class ReadMemoryAsDto {
-  @Field({ type: "enum", enum: As, required: true, source: "query" })
+
+  @Field({ type: "enum", enum: As, source: "query" })
   as: As;
 }
 

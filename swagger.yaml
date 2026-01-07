@@ -2098,6 +2098,51 @@ paths:
         - access-token: []
       tags:
         - Connector
+  /api/knowledge/{knowledgeId}/ingest:
+    post:
+      operationId: KnowledgeController_ingest
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileIngestDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileIngestResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Knowledge
   /api/knowledge/{knowledgeId}/snipet:
     get:
       operationId: SnipetController_findMany
@@ -2394,6 +2439,14 @@ paths:
           name: snipetId
           required: true
           schema: {}
+        - description: The role to read the snipet as
+          in: query
+          name: as
+          required: true
+          schema:
+            enum:
+              - chat
+            type: string
         - in: path
           name: knowledgeId
           required: true

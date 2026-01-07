@@ -11,7 +11,7 @@ import { ApiParam, ApiProduces } from "@nestjs/swagger";
 import { map, Observable } from "rxjs";
 import { StreamDto } from "./dto/stream.dto";
 import { getDefaultCreateResponses, getDefaultFindResponses } from "@/shared/controller/default-response";
-import { ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
+import { As, ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
 import { FilterOptions } from "@/shared/filter-options";
 
 @Controller("knowledge/:knowledgeId/snipet")
@@ -50,6 +50,7 @@ export class SnipetController extends BaseController({
 
   @HttpGet(":snipetId/read-as", {
     params: [ { name: "snipetId", description: "The id of the snipet to read", required: true } ],
+    query: [ { name: "as", description: "The role to read the snipet as", required: true, enum: As } ],
     responses: getDefaultFindResponses(ReadMemoryAsChatDto)
   })
   async readMemoryAs(

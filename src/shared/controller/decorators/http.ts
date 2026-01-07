@@ -1,6 +1,6 @@
 import { applyDecorators, Delete, Get, Post, Put } from "@nestjs/common";
 import { ResponseConfig } from "../types";
-import { ApiParam, ApiParamOptions, ApiResponse } from "@nestjs/swagger";
+import { ApiParam, ApiParamOptions, ApiQuery, ApiQueryOptions, ApiResponse } from "@nestjs/swagger";
 
 export const ApiResponses = (responseConfigs: ResponseConfig[] = []) => {
   return applyDecorators(...responseConfigs.map(config => ApiResponse(config)));
@@ -30,30 +30,36 @@ type HttpOptions = {
   ignore?: boolean;
   responses?: ResponseConfig[];
   params?: Array<ApiParamOptions>;
+  query?: Array<ApiQueryOptions>;
 }
 
 export const HttpGet = (path?: string, opts?: HttpOptions) => applyDecorators(
   Http("GET", path ?? "", opts?.ignore),
   ApiResponses(opts?.responses ?? []),
-  ...(opts?.params?.map(p => ApiParam(p)) ?? [])
+  ...(opts?.params?.map(p => ApiParam(p)) ?? []),
+  ...(opts?.query?.map(q => ApiQuery(q)) ?? [])
 );
 export const HttpPost = (path?: string, opts?: HttpOptions) => applyDecorators(
   Http("POST", path ?? "", opts?.ignore),
   ApiResponses(opts?.responses ?? []),
-  ...(opts?.params?.map(p => ApiParam(p)) ?? [])
+  ...(opts?.params?.map(p => ApiParam(p)) ?? []),
+  ...(opts?.query?.map(q => ApiQuery(q)) ?? [])
 );
 export const HttpPut = (path?: string, opts?: HttpOptions) => applyDecorators(
   Http("PUT", path ?? "", opts?.ignore),
   ApiResponses(opts?.responses ?? []),
-  ...(opts?.params?.map(p => ApiParam(p)) ?? [])
+  ...(opts?.params?.map(p => ApiParam(p)) ?? []),
+  ...(opts?.query?.map(q => ApiQuery(q)) ?? [])
 );
 export const HttpPatch = (path?: string, opts?: HttpOptions) => applyDecorators(
   Http("PATCH", path ?? "", opts?.ignore),
   ApiResponses(opts?.responses ?? []),
-  ...(opts?.params?.map(p => ApiParam(p)) ?? [])
+  ...(opts?.params?.map(p => ApiParam(p)) ?? []),
+  ...(opts?.query?.map(q => ApiQuery(q)) ?? [])
 );
 export const HttpDelete = (path?: string, opts?: HttpOptions) => applyDecorators(
   Http("DELETE", path ?? "", opts?.ignore),
   ApiResponses(opts?.responses ?? []),
-  ...(opts?.params?.map(p => ApiParam(p)) ?? [])
+  ...(opts?.params?.map(p => ApiParam(p)) ?? []),
+  ...(opts?.query?.map(q => ApiQuery(q)) ?? [])
 );

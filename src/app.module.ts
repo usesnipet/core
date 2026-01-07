@@ -20,6 +20,7 @@ import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { UtilitiesModule } from "./modules/utilities/utilities.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
+import { ContextInterceptor } from "./shared/interceptor/context";
 
 @Module({
   imports: [
@@ -69,10 +70,10 @@ import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
       provide: APP_GUARD,
       useClass: ApiKeyGuard
     },
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: ContextInterceptor
-    // },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ContextInterceptor
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor

@@ -7,7 +7,7 @@ export class FileIngestDto {
   @Field({ type: "string", required: false, transform: (v) => JSON.parse(v) })
   metadata: Record<string, any>;
 
-  @Field({ type: "string", required: true, uuid: true, source: "params", sourceKey: "id" })
+  @Field({ type: "string", required: true, uuid: true, source: "params" })
   knowledgeId: string;
 
   @Field({ type: "string", required: false })

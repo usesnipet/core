@@ -36,7 +36,12 @@ export class KnowledgeController extends BaseController({
     return this.service.getStatus(id);
   }
 
-  @HttpPost("", { responses: getDefaultCreateResponses(FileIngestResponseDto) })
+  @HttpPost(":knowledgeId/ingest", {
+    responses: getDefaultCreateResponses(FileIngestResponseDto),
+    params: [
+      { name: "knowledgeId", type: String, required: true }
+    ]
+  })
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
   async ingest(@UploadedFile() file: Express.Multer.File, @HttpBody(FileIngestDto) body: FileIngestDto) {
