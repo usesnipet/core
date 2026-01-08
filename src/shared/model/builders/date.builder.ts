@@ -4,13 +4,14 @@ import moment from "moment";
 
 import { FieldDateOptions } from "../types";
 import { buildApiProperty } from "./api-property";
+import { FromBody, FromParams, FromQuery } from "./source";
 
 export const buildDateDecorators = (opts: FieldDateOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
+  const isFromBody = !opts.source || opts.source === "body"
 
   // Swagger
-  decorators.push(buildApiProperty(opts));
-
+  if (isFromBody) decorators.push(buildApiProperty(opts));
   if (opts.required === false) decorators.push(IsOptional());
   
 
@@ -37,5 +38,9 @@ export const buildDateDecorators = (opts: FieldDateOptions): PropertyDecorator[]
     if (opts.debug) console.log("added max date validator");
   }
 
+  if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
+  if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
+  
   return decorators;
 };

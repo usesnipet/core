@@ -13,6 +13,9 @@ import { StreamDto } from "./dto/stream.dto";
 import { getDefaultCreateResponses, getDefaultFindResponses } from "@/shared/controller/default-response";
 import { As, ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
 import { FilterOptions } from "@/shared/filter-options";
+import { HTTPData } from "@/shared/http-data/http-data.decorator";
+import { TestDto } from "./dto/test.dto";
+import { HTTPDataSwagger } from "@/shared/http-data/http-data-swagger.decorator";
 
 @Controller("knowledge/:knowledgeId/snipet")
 export class SnipetController extends BaseController({
@@ -58,5 +61,12 @@ export class SnipetController extends BaseController({
     @Filter() filterOpts: FilterOptions<SnipetMemoryEntity>
   ) {
     return this.service.readMemoryAs(filterOpts, data);
+  }
+
+
+  @HttpPost("test/:id")
+  @HTTPDataSwagger(TestDto)
+  test(@HTTPData(TestDto) data: TestDto) {
+    return data;
   }
 }

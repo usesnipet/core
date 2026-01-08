@@ -72,10 +72,6 @@ import { ContextInterceptor } from "./shared/interceptor/context";
     },
     {
       provide: APP_INTERCEPTOR,
-      useClass: ContextInterceptor
-    },
-    {
-      provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor
     }
   ]

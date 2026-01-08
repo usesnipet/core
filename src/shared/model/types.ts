@@ -27,7 +27,7 @@ export type BaseFieldOptions = {
 
 export type FieldStringOptions = BaseFieldOptions & {
   type: "string";
-  source?: "params" | "query" | "body";
+  source?: "params" | "query" | "body" | "apiKey";
   sourceKey?: string;
   min?: number | { length: number } & ValidationOptions;
   max?: number | { length: number } & ValidationOptions;
@@ -44,6 +44,8 @@ export type FieldStringOptions = BaseFieldOptions & {
 
 export type FieldNumberOptions = BaseFieldOptions & {
   type: "number";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   min?: number | { min: number } & ValidationOptions;
   max?: number | { max: number } & ValidationOptions;
   integer?: boolean;
@@ -52,7 +54,7 @@ export type FieldNumberOptions = BaseFieldOptions & {
 };
 
 export type FieldEnumOptions = BaseFieldOptions & {
-  source?: "params" | "query" | "body";
+  source?: "params" | "query" | "body" | "apiKey";
   sourceKey?: string;
   type: "enum";
   enum: EnumAllowedTypes;
@@ -64,6 +66,8 @@ export type FieldBooleanOptions = BaseFieldOptions & {
 
 export type FieldDateOptions = BaseFieldOptions & {
   type: "date";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   minDate?: Date | string;
   maxDate?: Date | string;
 };

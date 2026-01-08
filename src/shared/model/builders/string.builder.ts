@@ -1,16 +1,18 @@
 import { Transform } from "class-transformer";
-import { IsEmail, IsOptional, IsUrl, IsUUID, Matches, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsOptional, IsString, IsUrl, IsUUID, Matches, MaxLength, MinLength } from "class-validator";
 
 import { FieldStringOptions } from "../types";
 import { buildApiProperty } from "./api-property";
-import { FromParams, FromQuery } from "./context";
+import { FromBody, FromParams, FromQuery } from "./source";
 
 export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
-  const isFromBody = !opts.source || opts.source === "body"
+  const isFromBody = !opts.source || opts.source === "body";
 
   // Swagger
   if (isFromBody) decorators.push(buildApiProperty(opts));
+  
+  decorators.push(IsString());
 
   if (opts.required === false) decorators.push(IsOptional());
 
@@ -58,6 +60,7 @@ export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorat
 
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
   if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
 
   return decorators;
 };

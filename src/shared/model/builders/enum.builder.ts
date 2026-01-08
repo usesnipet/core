@@ -2,7 +2,7 @@ import { IsEnum, IsOptional } from "class-validator";
 
 import { FieldEnumOptions } from "../types";
 import { buildApiProperty } from "./api-property";
-import { FromParams, FromQuery } from "./context";
+import { FromBody, FromParams, FromQuery } from "./source";
 
 export const buildEnumDecorators = (opts: FieldEnumOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
@@ -19,6 +19,7 @@ export const buildEnumDecorators = (opts: FieldEnumOptions): PropertyDecorator[]
 
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
   if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
 
   return decorators;
 };

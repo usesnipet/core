@@ -973,6 +973,34 @@ components:
     ReadMemoryAsDto:
       properties: {}
       type: object
+    SettingsDto:
+      properties:
+        active:
+          type: boolean
+        fontColor:
+          type: string
+        fontFamily:
+          type: string
+        fontSize:
+          type: number
+        language:
+          type: string
+        other:
+          additionalProperties: true
+          type: object
+        theme:
+          enum:
+            - light
+            - dark
+          type: string
+      required:
+        - active
+        - language
+        - theme
+        - fontSize
+        - fontFamily
+        - fontColor
+      type: object
     SnipetEntity:
       properties:
         createdAt:
@@ -1098,6 +1126,28 @@ components:
       type: object
     SummaryDto:
       properties: {}
+      type: object
+    TestDto:
+      properties:
+        age:
+          type: number
+        email:
+          type: string
+        name:
+          type: string
+        settings:
+          $ref: "#/components/schemas/SettingsDto"
+        sex:
+          enum:
+            - male
+            - female
+          type: string
+      required:
+        - name
+        - age
+        - sex
+        - email
+        - settings
       type: object
     UpdateConnectorDto:
       properties:
@@ -2239,6 +2289,42 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/test/{id}:
+    post:
+      operationId: SnipetController_test
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {}
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                age:
+                  $ref: "#/components/schemas/TestDto#/properties/age"
+                email:
+                  $ref: "#/components/schemas/TestDto#/properties/email"
+                name:
+                  $ref: "#/components/schemas/TestDto#/properties/name"
+                sex:
+                  $ref: "#/components/schemas/TestDto#/properties/sex"
+              type: object
+        required: true
+      responses:
+        "201":
+          description: ""
       security:
         - x-api-key: []
         - access-token: []

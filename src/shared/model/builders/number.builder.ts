@@ -3,11 +3,15 @@ import { IsInt, IsNegative, IsNumber, IsOptional, IsPositive, Max, Min } from "c
 
 import { FieldNumberOptions } from "../types";
 import { buildApiProperty } from "./api-property";
+import { FromBody, FromParams, FromQuery } from "./source";
 
 export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
 
-  decorators.push(buildApiProperty(opts));
+  const isFromBody = !opts.source || opts.source === "body"
+
+  // Swagger
+  if (isFromBody) decorators.push(buildApiProperty(opts));
   if (opts.required === false) decorators.push(IsOptional());
   
 
@@ -35,6 +39,10 @@ export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorat
   if (opts.positive && opts.debug) console.log("added positive validator");
   if (opts.negative) decorators.push(IsNegative());
   if (opts.negative && opts.debug) console.log("added negative validator");
+
+  if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
+  if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
 
   return decorators;
 };
