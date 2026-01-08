@@ -11,9 +11,9 @@ export const buildDateDecorators = (opts: FieldDateOptions): PropertyDecorator[]
   const isFromBody = !opts.source || opts.source === "body"
 
   // Swagger
-  if (isFromBody) decorators.push(buildApiProperty(opts));
+  decorators.push(buildApiProperty(opts));
   if (opts.required === false) decorators.push(IsOptional());
-  
+
 
   // TRANSFORM: allow transforming string to Date
   decorators.push(
@@ -41,6 +41,6 @@ export const buildDateDecorators = (opts: FieldDateOptions): PropertyDecorator[]
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
   if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
   if (isFromBody) decorators.push(FromBody(opts.sourceKey));
-  
+
   return decorators;
 };

@@ -14,18 +14,18 @@ export class SettingsDto {
   active: boolean;
   @Field({ type: "string", required: true })
   language: string;
-  
+
   @Field({ type: "enum", enum: Theme, required: true })
   theme: Theme;
-  
+
   @Field({ type: "number", required: true })
   fontSize: number;
-  
+
   @Field({ type: "string", required: true })
   fontFamily: string;
-  
+
   @Field({ type: "string", required: true })
-  fontColor: string;  
+  fontColor: string;
 
   @Field({ type: "object", additionalProperties: true, required: false })
   other?: any;

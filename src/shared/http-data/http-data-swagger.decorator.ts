@@ -6,7 +6,7 @@ import {
   getSchemaPath
 } from "@nestjs/swagger";
 import { applyDecorators } from "@nestjs/common";
-import { getAllSources, isClassType } from "./utils";
+import { getAllSources, getApiPropertyMetadata, isClassType } from "./utils";
 import { Constructor } from "@/types/constructor";
 
 
@@ -18,7 +18,7 @@ function generateSwaggerDecoratorsFor(DtoClass: new () => any) {
   const paramProps: string[] = [];
 
   const nestedClasses: any[] = [];
-  
+
   for (const { key, source } of sources) {
     if (isClassType(DtoClass, key)) {
       const nestedType = Reflect.getMetadata("design:type", DtoClass.prototype, key);
@@ -38,16 +38,15 @@ function generateSwaggerDecoratorsFor(DtoClass: new () => any) {
   for (const nested of nestedClasses) {
     decorators.push(...generateSwaggerDecoratorsFor(nested));
   }
-  
+
   if (bodyProps.length > 0) {
+
     decorators.push(
       ApiBody({
         schema: {
           type: "object",
           properties: bodyProps.reduce((acc, key) => {
-            acc[key] = {
-              $ref: `${getSchemaPath(DtoClass)}#/properties/${key}`
-            };
+            acc[key] = { $ref: `${getSchemaPath(DtoClass)}#/properties/${key}` };
             return acc;
           }, {})
         }
@@ -60,9 +59,7 @@ function generateSwaggerDecoratorsFor(DtoClass: new () => any) {
       ApiQuery({
         name: key,
         required: false,
-        schema: {
-          $ref: `${getSchemaPath(DtoClass)}#/properties/${key}`
-        }
+        schema: getApiPropertyMetadata(DtoClass, key)
       })
     );
   }
@@ -72,9 +69,7 @@ function generateSwaggerDecoratorsFor(DtoClass: new () => any) {
       ApiParam({
         name: key,
         required: true,
-        // schema: {
-        //   $ref: `${getSchemaPath(DtoClass)}#/properties/${key}`
-        // }
+        schema: getApiPropertyMetadata(DtoClass, key)
       })
     );
   }

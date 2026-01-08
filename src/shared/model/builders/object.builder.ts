@@ -8,8 +8,8 @@ export const buildObjectDecorators = (opts: FieldObjectOptions): PropertyDecorat
   const decorators: PropertyDecorator[] = [];
 
   const isRequired = opts.required ?? true;
-    if (opts.required === false) decorators.push(IsOptional());
-  
+  if (opts.required === false) decorators.push(IsOptional());
+
 
   const apiMetadata: ApiPropertyOptions = {
     required: isRequired,

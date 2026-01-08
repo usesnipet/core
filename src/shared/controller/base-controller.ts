@@ -8,7 +8,6 @@ import { Service } from "../service";
 
 import { HttpDelete, HttpGet, HttpPost, HttpPut, Permissions } from "./decorators";
 import { ApiFilterQuery } from "./decorators/api-filter-options";
-import { HttpBody } from "./decorators/body";
 import { ControllerFilter, Filter } from "./decorators/filter";
 import {
   getDefaultCreateResponses, getDefaultDeleteResponses, getDefaultFindByIDResponses, getDefaultFindResponses,
@@ -16,6 +15,7 @@ import {
 } from "./default-response";
 import { GenericResponse } from "./generic-response";
 import { ControllerResponses, RequiredPermissions } from "./types";
+import { HTTPData } from "../http-data/http-data.decorator";
 
 export function BaseController<
   TEntity extends ObjectLiteral,
@@ -71,14 +71,14 @@ export function BaseController<
     @HttpPost("", { ignore: ignore.includes("create"), responses: responses.create })
     @ApiBody({ type: createDto })
     @Permissions(requiredPermissions?.create)
-    async create(@HttpBody(createDto ?? entity) body: TCreateDto): Promise<TEntity> {
+    async create(@HTTPData(createDto ?? entity) body: TCreateDto): Promise<TEntity> {
       return this.service.create(body as unknown as TEntity);
     }
 
     @HttpPut(":id", { ignore: ignore.includes("update"), responses: responses.update })
     @ApiBody({ type: updateDto })
     @Permissions(requiredPermissions?.update)
-    async update(@Param("id", ParseUUIDPipe) id: string, @HttpBody(updateDto ?? entity) body: TUpdateDto) {
+    async update(@Param("id", ParseUUIDPipe) id: string, @HTTPData(updateDto ?? entity) body: TUpdateDto) {
       await this.service.update(id, body as unknown as TEntity);
       return new GenericResponse("Update successful");
     }

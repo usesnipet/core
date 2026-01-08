@@ -5,6 +5,11 @@ export enum As {
 }
 
 export class ReadMemoryAsDto {
+  @Field({ type: "string", required: true, uuid: true, source: "params" })
+  knowledgeId: string;
+
+  @Field({ type: "string", required: true, uuid: true, source: "params" })
+  snipetId: string;
 
   @Field({ type: "enum", enum: As, source: "query" })
   as: As;

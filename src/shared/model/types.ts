@@ -74,6 +74,8 @@ export type FieldDateOptions = BaseFieldOptions & {
 
 export type FieldClassOptions<T = any> = BaseFieldOptions & {
   type: "class";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   class: () => Constructor<T>;
 };
 

@@ -4,6 +4,7 @@ import { IsOptional, ValidateNested } from "class-validator";
 import { ApiProperty, ApiPropertyOptional, ApiPropertyOptions } from "@nestjs/swagger";
 
 import { FieldClassOptions } from "../types";
+import { FromParams, FromQuery, FromBody } from "./source";
 
 export const buildClassDecorators = (opts: FieldClassOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
@@ -19,16 +20,23 @@ export const buildClassDecorators = (opts: FieldClassOptions): PropertyDecorator
   };
 
   if (opts.required === false) decorators.push(IsOptional());
-  
 
   if (opts.debug) console.log(apiMetadata);
+  const isFromBody = !opts.source || opts.source === "body";
+
+  // Swagger
   decorators.push(isRequired ? ApiProperty(apiMetadata) : ApiPropertyOptional(apiMetadata));
-  if (opts.debug) console.log("added api property");
 
   decorators.push(Type(() => opts.class()));
   if (opts.debug) console.log("added type");
 
   decorators.push(ValidateNested({ each: opts.isArray }));
   if (opts.debug) console.log("added validate nested");
+
+  if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
+  if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
+
+
   return decorators;
 };

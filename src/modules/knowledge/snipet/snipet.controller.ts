@@ -4,17 +4,15 @@ import { Controller, Filter, HttpGet, HttpPost } from "@/shared/controller/decor
 import { CreateOrUpdateSnipetDto } from "./dto/create-or-update-snipet.dto";
 import { SnipetService } from "./snipet.service";
 import { Permission } from "@/lib/permissions";
-import { HttpBody } from "@/shared/controller/decorators/body";
 import { ExecuteSnipetDto, ExecuteSnipetResponseDto } from "./dto/execute-snipet.dto";
 import { Sse } from "@nestjs/common";
 import { ApiParam, ApiProduces } from "@nestjs/swagger";
 import { map, Observable } from "rxjs";
 import { StreamDto } from "./dto/stream.dto";
 import { getDefaultCreateResponses, getDefaultFindResponses } from "@/shared/controller/default-response";
-import { As, ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
+import { ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
 import { FilterOptions } from "@/shared/filter-options";
 import { HTTPData } from "@/shared/http-data/http-data.decorator";
-import { TestDto } from "./dto/test.dto";
 import { HTTPDataSwagger } from "@/shared/http-data/http-data-swagger.decorator";
 
 @Controller("knowledge/:knowledgeId/snipet")
@@ -38,7 +36,8 @@ export class SnipetController extends BaseController({
     params: [ { name: "snipetId", description: "The id of the snipet to execute", required: true } ],
     responses: getDefaultCreateResponses(ExecuteSnipetResponseDto)
   })
-  execute(@HttpBody(ExecuteSnipetDto) data: ExecuteSnipetDto): ExecuteSnipetResponseDto {
+  @HTTPDataSwagger(ExecuteSnipetDto)
+  execute(@HTTPData(ExecuteSnipetDto) data: ExecuteSnipetDto): ExecuteSnipetResponseDto {
     return this.service.execute(data);
   }
 
@@ -46,27 +45,17 @@ export class SnipetController extends BaseController({
   @ApiParam({ name: "snipetId", description: "The id of the snipet to stream", required: true })
   @ApiParam({ name: "id", description: "Execution ID", required: true })
   @Sse(":snipetId/stream/:id")
-  async stream(@HttpBody(StreamDto) data: StreamDto): Promise<Observable<any>> {
+  @HTTPDataSwagger(StreamDto)
+  async stream(@HTTPData(StreamDto) data: StreamDto): Promise<Observable<any>> {
     const stream = await this.service.stream(data.executionId);
     return stream.pipe(map(v => ({ data: v })));
   }
 
-  @HttpGet(":snipetId/read-as", {
-    params: [ { name: "snipetId", description: "The id of the snipet to read", required: true } ],
-    query: [ { name: "as", description: "The role to read the snipet as", required: true, enum: As } ],
-    responses: getDefaultFindResponses(ReadMemoryAsChatDto)
-  })
+  @HttpGet(":snipetId/read-as", { responses: getDefaultFindResponses(ReadMemoryAsChatDto) })
+  @HTTPDataSwagger(ReadMemoryAsDto)
   async readMemoryAs(
-    @HttpBody(ReadMemoryAsDto) data: ReadMemoryAsDto,
-    @Filter() filterOpts: FilterOptions<SnipetMemoryEntity>
+    @HTTPData(ReadMemoryAsDto) data: ReadMemoryAsDto, @Filter() filterOpts: FilterOptions<SnipetMemoryEntity>
   ) {
     return this.service.readMemoryAs(filterOpts, data);
-  }
-
-
-  @HttpPost("test/:id")
-  @HTTPDataSwagger(TestDto)
-  test(@HTTPData(TestDto) data: TestDto) {
-    return data;
   }
 }

@@ -1,6 +1,15 @@
 import { getSourceFields } from "../model/builders/source";
 import { Constructor } from "@/types/constructor";
 import { AuthRequest } from "@/types/request";
+import { DECORATORS } from "@nestjs/swagger/dist/constants";
+
+export function getApiPropertyMetadata(target: any, key: string) {
+  return Reflect.getMetadata(
+    DECORATORS.API_MODEL_PROPERTIES,
+    target.prototype,
+    key
+  );
+}
 
 export function getAllSources(target: Constructor<any>) {
   let current = target;
@@ -9,7 +18,7 @@ export function getAllSources(target: Constructor<any>) {
   while (current && current !== Object.prototype) {
     const meta = getSourceFields(current);
     result.push(...meta);
-    
+
     current = Object.getPrototypeOf(current);
   }
 
@@ -24,27 +33,27 @@ export function isClassType(dto: any, key: string) {
   return !primitives.includes(type);
 }
 
-export function collectDataForDTO(DtoClass: Constructor<any>, request: AuthRequest) {
-  console.log(DtoClass);
-  
+function extractKey(key: string, object: any) {
+  const keys = key.split(".");
+  if (keys.length === 1) return object[keys[0]];
+  return extractKey(keys.slice(1).join("."), object[keys[0]]);
+}
+
+export function collectDataForDTO(DtoClass: Constructor<any>, request: AuthRequest, parent: string = "") {
   const sources = getAllSources(DtoClass);
-  console.log(sources);
-  
   const instanceData: Record<string, any> = {};
 
   for (const { key, source } of sources) {
-
-    if (Reflect.getMetadata("design:type", DtoClass.prototype, key)?.prototype) {
+    if (isClassType(DtoClass, key)) {
       const fieldType = Reflect.getMetadata("design:type", DtoClass.prototype, key);
-
-      instanceData[key] = collectDataForDTO(fieldType, request);
+      instanceData[key] = collectDataForDTO(fieldType, request, `${key}.`);
       continue;
     }
 
-    if (source === "body") instanceData[key] = request.body?.[key];
-    if (source === "query") instanceData[key] = request.query?.[key];
-    if (source === "params") instanceData[key] = request.params?.[key];
-    if (source === "apiKey") instanceData[key] = request.apiKey?.[key];
+    if (source === "body") instanceData[key] = extractKey(parent + key, request.body);
+    if (source === "query") instanceData[key] = extractKey(parent + key, request.query);
+    if (source === "params") instanceData[key] = extractKey(parent + key, request.params);
+    if (source === "apiKey") instanceData[key] = extractKey(parent + key, request.apiKey);
   }
 
   return instanceData;

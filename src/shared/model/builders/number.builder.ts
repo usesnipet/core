@@ -11,9 +11,9 @@ export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorat
   const isFromBody = !opts.source || opts.source === "body"
 
   // Swagger
-  if (isFromBody) decorators.push(buildApiProperty(opts));
+  decorators.push(buildApiProperty(opts));
   if (opts.required === false) decorators.push(IsOptional());
-  
+
 
   decorators.push(Transform(({ value }) => Number(value)));
   if (opts.debug) console.log("added number transformer");

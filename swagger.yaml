@@ -382,12 +382,16 @@ components:
           description: The integration id
           format: uuid
           type: string
+        knowledgeId:
+          format: uuid
+          type: string
         name:
           description: The name of the connector
           type: string
       required:
         - integrationId
         - name
+        - knowledgeId
       type: object
     CreateIntegrationDto:
       properties:
@@ -448,15 +452,19 @@ components:
       type: object
     CreateOrUpdateSnipetDto:
       properties:
+        knowledgeId:
+          format: uuid
+          type: string
         metadata:
           additionalProperties: true
           default: null
           description: Metadata of the snipet
-          nullable: true
           type: object
         name:
           nullable: true
           type: string
+      required:
+        - knowledgeId
       type: object
     ErrorResponse:
       properties:
@@ -548,16 +556,24 @@ components:
             - summarize
             - expand
           type: string
+        knowledgeId:
+          format: uuid
+          type: string
         options:
           $ref: "#/components/schemas/ExecuteSnipetOptions"
         query:
           description: The query to execute
+          type: string
+        snipetId:
+          format: uuid
           type: string
         stream:
           description: Enable streaming response for the output
           nullable: true
           type: boolean
       required:
+        - knowledgeId
+        - snipetId
         - query
         - intent
       type: object
@@ -598,18 +614,6 @@ components:
           type: string
       required:
         - type
-      type: object
-    FileIngestDto:
-      properties:
-        externalId:
-          type: string
-        file:
-          format: binary
-          type: string
-        metadata:
-          type: string
-      required:
-        - file
       type: object
     FileIngestResponseDto:
       properties:
@@ -971,35 +975,24 @@ components:
         - items
       type: object
     ReadMemoryAsDto:
-      properties: {}
-      type: object
-    SettingsDto:
       properties:
-        active:
-          type: boolean
-        fontColor:
-          type: string
-        fontFamily:
-          type: string
-        fontSize:
-          type: number
-        language:
-          type: string
-        other:
-          additionalProperties: true
-          type: object
-        theme:
+        as:
           enum:
-            - light
-            - dark
+            - chat
+          type: string
+        knowledgeId:
+          format: uuid
+          type: string
+        snipetId:
+          format: uuid
           type: string
       required:
-        - active
-        - language
-        - theme
-        - fontSize
-        - fontFamily
-        - fontColor
+        - knowledgeId
+        - snipetId
+        - as
+      type: object
+    Set:
+      properties: {}
       type: object
     SnipetEntity:
       properties:
@@ -1086,7 +1079,12 @@ components:
         - payload
       type: object
     StreamDto:
-      properties: {}
+      properties:
+        executionId:
+          format: uuid
+          type: string
+      required:
+        - executionId
       type: object
     StringFieldSchema:
       properties:
@@ -1127,35 +1125,17 @@ components:
     SummaryDto:
       properties: {}
       type: object
-    TestDto:
-      properties:
-        age:
-          type: number
-        email:
-          type: string
-        name:
-          type: string
-        settings:
-          $ref: "#/components/schemas/SettingsDto"
-        sex:
-          enum:
-            - male
-            - female
-          type: string
-      required:
-        - name
-        - age
-        - sex
-        - email
-        - settings
-      type: object
     UpdateConnectorDto:
       properties:
+        knowledgeId:
+          format: uuid
+          type: string
         name:
           description: The name of the connector
           type: string
       required:
         - name
+        - knowledgeId
       type: object
     UpdateIntegrationDto:
       properties:
@@ -2157,12 +2137,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/FileIngestDto"
-        required: true
       responses:
         "201":
           content:
@@ -2289,42 +2263,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Snipet
-  /api/knowledge/{knowledgeId}/snipet/test/{id}:
-    post:
-      operationId: SnipetController_test
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: {}
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                age:
-                  $ref: "#/components/schemas/TestDto#/properties/age"
-                email:
-                  $ref: "#/components/schemas/TestDto#/properties/email"
-                name:
-                  $ref: "#/components/schemas/TestDto#/properties/name"
-                sex:
-                  $ref: "#/components/schemas/TestDto#/properties/sex"
-              type: object
-        required: true
-      responses:
-        "201":
-          description: ""
       security:
         - x-api-key: []
         - access-token: []
@@ -2470,21 +2408,35 @@ paths:
     post:
       operationId: SnipetController_execute
       parameters:
-        - description: The id of the snipet to execute
-          in: path
-          name: snipetId
-          required: true
-          schema: {}
         - in: path
           name: knowledgeId
           required: true
           schema:
+            format: uuid
+            isArray: false
+            type: string
+        - in: path
+          name: snipetId
+          required: true
+          schema:
+            format: uuid
+            isArray: false
             type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ExecuteSnipetDto"
+              properties:
+                searchTypes:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/se\
+                    archTypes"
+                topK:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/to\
+                    pK"
+                use:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/us\
+                    e"
+              type: object
         required: true
       responses:
         "201":
@@ -2520,15 +2472,9 @@ paths:
     get:
       operationId: SnipetController_readMemoryAs
       parameters:
-        - description: The id of the snipet to read
-          in: path
-          name: snipetId
-          required: true
-          schema: {}
-        - description: The role to read the snipet as
-          in: query
+        - in: query
           name: as
-          required: true
+          required: false
           schema:
             enum:
               - chat
@@ -2537,13 +2483,16 @@ paths:
           name: knowledgeId
           required: true
           schema:
+            format: uuid
+            isArray: false
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReadMemoryAsDto"
-        required: true
+        - in: path
+          name: snipetId
+          required: true
+          schema:
+            format: uuid
+            isArray: false
+            type: string
       responses:
         "200":
           content:
@@ -2574,8 +2523,7 @@ paths:
     get:
       operationId: SnipetController_stream
       parameters:
-        - description: Execution ID
-          in: path
+        - in: path
           name: id
           required: true
           schema: {}
@@ -2589,12 +2537,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/StreamDto"
-        required: true
       responses:
         "200":
           description: ""

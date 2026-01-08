@@ -1,15 +1,11 @@
 import { IntegrationEntity, ManualIntegrationManifest, MCPIntegrationManifest } from "@/entities";
-import { FromParams } from "@/shared/controller/decorators";
 import { Field } from "@/shared/model";
 import { PickType } from "@nestjs/swagger";
 
 export class UpdateIntegrationDto extends PickType(IntegrationEntity, ["name", "type", "authMethods"]) {
-  @FromParams("id")
-  id: string;
-
   @Field({
-    type: "class", 
-    class: () => ManualIntegrationManifest, 
+    type: "class",
+    class: () => ManualIntegrationManifest,
     required: false,
     description: "Manual integration configuration"
   })
@@ -17,7 +13,7 @@ export class UpdateIntegrationDto extends PickType(IntegrationEntity, ["name", "
 
   @Field({
     type: "class",
-    class: () => MCPIntegrationManifest, 
+    class: () => MCPIntegrationManifest,
     required: false,
     description: "MCP integration configuration"
   })

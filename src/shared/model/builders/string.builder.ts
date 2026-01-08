@@ -10,8 +10,8 @@ export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorat
   const isFromBody = !opts.source || opts.source === "body";
 
   // Swagger
-  if (isFromBody) decorators.push(buildApiProperty(opts));
-  
+  decorators.push(buildApiProperty(opts));
+
   decorators.push(IsString());
 
   if (opts.required === false) decorators.push(IsOptional());

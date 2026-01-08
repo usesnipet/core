@@ -1,4 +1,3 @@
-import { FromQuery, KnowledgeId, SnipetId } from "@/shared/controller/decorators";
 import { Field } from "@/shared/model";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { ApiExtraModels } from "@nestjs/swagger";
@@ -32,7 +31,7 @@ export class ExecuteSnipetContextKnowledgeOptions {
     required: false
   })
   metadata?: Record<string, any>;
-  
+
   @Field({
     type: "enum",
     enum: ["force", "ignore", "auto"],
@@ -84,7 +83,7 @@ export class ExecuteSnipetContextOptions {
   @Field({ type: "class", class: () => ExecuteSnipetContextSnipetOptions, nullable: true, required: false })
   snipetOptions?: ExecuteSnipetContextSnipetOptions;
 }
- 
+
 export enum MemoryMode {
   STATELESS = "stateless",
   CONVERSATION = "conversation"
@@ -110,7 +109,7 @@ export class ExecuteSnipetOptions {
 
   @Field({ type: "class", class: () => MemoryOptions, nullable: true, required: false })
   memory?: MemoryOptions;
-  
+
   @Field({ type: "class", class: () => OutputOptions, nullable: true, required: false })
   output?: OutputOptions;
 }

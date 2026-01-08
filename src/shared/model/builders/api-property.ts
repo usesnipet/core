@@ -19,7 +19,7 @@ export const buildApiProperty = (opts: FieldOptions): PropertyDecorator => {
 
   switch (opts.type) {
     case "string":
-      baseConfig.type = String;
+      baseConfig.type = "string";
       let format: string | undefined;
       if (opts.uuid) format = "uuid";
       if (opts.url) format = "uri";
@@ -28,10 +28,10 @@ export const buildApiProperty = (opts: FieldOptions): PropertyDecorator => {
       if (format) baseConfig.format = format;
       break;
     case "number":
-      baseConfig.type = Number;
+      baseConfig.type = "number";
       break;
     case "boolean":
-      baseConfig.type = Boolean;
+      baseConfig.type = "boolean";
       break;
     case "date":
       baseConfig.type = Date;

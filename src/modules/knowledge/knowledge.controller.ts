@@ -6,13 +6,13 @@ import { KnowledgeService } from "./knowledge.service";
 import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
 import { Permission } from "@/lib/permissions";
 import { UpdateKnowledgeDto } from "./dto/update-knowledge.dto";
-import { HttpBody } from "@/shared/controller/decorators/body";
 import { getDefaultFindByIDResponses, getDefaultCreateResponses } from "@/shared/controller/default-response";
 import { Param, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiConsumes } from "@nestjs/swagger";
 import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
 import { IngestJobStateResponseDto } from "./dto/job-state.dto";
+import { HTTPData } from "@/shared/http-data/http-data.decorator";
 
 @Controller("knowledge")
 export class KnowledgeController extends BaseController({
@@ -44,7 +44,7 @@ export class KnowledgeController extends BaseController({
   })
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
-  async ingest(@UploadedFile() file: Express.Multer.File, @HttpBody(FileIngestDto) body: FileIngestDto) {
+  async ingest(@UploadedFile() file: Express.Multer.File, @HTTPData(FileIngestDto) body: FileIngestDto) {
     return this.service.ingest({ ...body, file });
   }
 }

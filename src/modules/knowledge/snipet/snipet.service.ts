@@ -11,7 +11,6 @@ import { randomUUID } from "crypto";
 import { SnipetMemoryService } from "./memory/snipet-memory.service";
 import { As, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
 import { FilterOptions } from "@/shared/filter-options";
-import { th } from "zod/v4/locales";
 
 @Injectable()
 export class SnipetService extends SubKnowledgeService<SnipetEntity> {
