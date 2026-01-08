@@ -218,6 +218,10 @@ components:
         id:
           format: uuid
           type: string
+        references:
+          items:
+            $ref: "#/components/schemas/Reference"
+          type: array
         role:
           enum:
             - user
@@ -382,16 +386,12 @@ components:
           description: The integration id
           format: uuid
           type: string
-        knowledgeId:
-          format: uuid
-          type: string
         name:
           description: The name of the connector
           type: string
       required:
         - integrationId
         - name
-        - knowledgeId
       type: object
     CreateIntegrationDto:
       properties:
@@ -452,9 +452,6 @@ components:
       type: object
     CreateOrUpdateSnipetDto:
       properties:
-        knowledgeId:
-          format: uuid
-          type: string
         metadata:
           additionalProperties: true
           default: null
@@ -463,8 +460,6 @@ components:
         name:
           nullable: true
           type: string
-      required:
-        - knowledgeId
       type: object
     ErrorResponse:
       properties:
@@ -556,24 +551,16 @@ components:
             - summarize
             - expand
           type: string
-        knowledgeId:
-          format: uuid
-          type: string
         options:
           $ref: "#/components/schemas/ExecuteSnipetOptions"
         query:
           description: The query to execute
-          type: string
-        snipetId:
-          format: uuid
           type: string
         stream:
           description: Enable streaming response for the output
           nullable: true
           type: boolean
       required:
-        - knowledgeId
-        - snipetId
         - query
         - intent
       type: object
@@ -980,19 +967,23 @@ components:
           enum:
             - chat
           type: string
-        knowledgeId:
-          format: uuid
-          type: string
-        snipetId:
-          format: uuid
-          type: string
       required:
-        - knowledgeId
-        - snipetId
         - as
       type: object
-    Set:
-      properties: {}
+    Reference:
+      properties:
+        data:
+          additionalProperties: true
+          type: object
+        referenceId:
+          format: uuid
+          type: string
+        referenceName:
+          type: string
+      required:
+        - referenceId
+        - referenceName
+        - data
       type: object
     SnipetEntity:
       properties:
@@ -1079,12 +1070,7 @@ components:
         - payload
       type: object
     StreamDto:
-      properties:
-        executionId:
-          format: uuid
-          type: string
-      required:
-        - executionId
+      properties: {}
       type: object
     StringFieldSchema:
       properties:
@@ -1127,15 +1113,11 @@ components:
       type: object
     UpdateConnectorDto:
       properties:
-        knowledgeId:
-          format: uuid
-          type: string
         name:
           description: The name of the connector
           type: string
       required:
         - name
-        - knowledgeId
       type: object
     UpdateIntegrationDto:
       properties:
@@ -2411,31 +2393,22 @@ paths:
         - in: path
           name: knowledgeId
           required: true
-          schema:
-            format: uuid
-            isArray: false
-            type: string
+          schema: {}
         - in: path
           name: snipetId
           required: true
-          schema:
-            format: uuid
-            isArray: false
-            type: string
+          schema: {}
       requestBody:
         content:
           application/json:
             schema:
               properties:
-                searchTypes:
-                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/se\
-                    archTypes"
-                topK:
-                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/to\
-                    pK"
-                use:
-                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/us\
-                    e"
+                intent:
+                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/intent"
+                options:
+                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/options"
+                query:
+                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/query"
               type: object
         required: true
       responses:
@@ -2482,25 +2455,17 @@ paths:
         - in: path
           name: knowledgeId
           required: true
-          schema:
-            format: uuid
-            isArray: false
-            type: string
+          schema: {}
         - in: path
           name: snipetId
           required: true
-          schema:
-            format: uuid
-            isArray: false
-            type: string
+          schema: {}
       responses:
         "200":
           content:
             application/json:
               schema:
-                items:
-                  $ref: "#/components/schemas/ReadMemoryAsChatDto"
-                type: array
+                $ref: "#/components/schemas/ReadMemoryAsChatDto"
           description: Records found successfully
         "400":
           content:
@@ -2524,19 +2489,17 @@ paths:
       operationId: SnipetController_stream
       parameters:
         - in: path
-          name: id
+          name: knowledgeId
           required: true
           schema: {}
-        - description: The id of the snipet to stream
-          in: path
+        - in: path
           name: snipetId
           required: true
           schema: {}
         - in: path
-          name: knowledgeId
+          name: id
           required: true
-          schema:
-            type: string
+          schema: {}
       responses:
         "200":
           description: ""

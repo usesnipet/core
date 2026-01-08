@@ -28,13 +28,13 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
   ): Promise<AnswerOutput> {
     const textProvider = await this.llmManager.getTextProvider();
     if (!textProvider) throw new Error('No text provider available for answer generation');
-    
+
     const prompt = this.promptService.getTemplate("AnswerQuestion").build({
       question: executeSnipet.query,
       knowledgeMemories: context.knowledge.map(k => k.content),
       snipetMemories: context.snipet.map(s => ({ content: s.content, role: s.metadata.role ?? "assistant" }))
     });
-  
+
     if (executeSnipet.stream) {
       const stream = await textProvider.observableStream({
         prompt,

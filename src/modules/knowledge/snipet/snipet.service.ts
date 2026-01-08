@@ -63,6 +63,8 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
           await this.memoryService.save(execution, MemoryType.TEXT_ASSISTANT_OUTPUT, result);
           subscriber.complete();
         } catch (error) {
+          console.error(error);
+
           subscriber.error(error);
         }
       })();

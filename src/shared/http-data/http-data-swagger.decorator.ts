@@ -9,7 +9,6 @@ import { applyDecorators } from "@nestjs/common";
 import { getAllSources, getApiPropertyMetadata, isClassType } from "./utils";
 import { Constructor } from "@/types/constructor";
 
-
 function generateSwaggerDecoratorsFor(DtoClass: new () => any) {
   const sources = getAllSources(DtoClass);
 

@@ -7,7 +7,7 @@ import crypto from "crypto";
 
 @Entity("api_keys")
 export class ApiKeyEntity extends BaseEntity {
-  @Field({ type: "string", description: "The key of the api key", hidden: true })
+  @Field({ type: "string", description: "The key of the api key", max: 64, hidden: true })
   @Index({ unique: true })
   @Column({ length: 64 })
   keyHash: string;

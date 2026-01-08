@@ -35,26 +35,25 @@ export function isClassType(dto: any, key: string) {
 
 function extractKey(key: string, object: any) {
   const keys = key.split(".");
-  if (keys.length === 1) return object[keys[0]];
-  return extractKey(keys.slice(1).join("."), object[keys[0]]);
+  if (keys.length === 1) return object?.[keys[0]];
+  return extractKey(keys.slice(1).join("."), object?.[keys[0]]);
 }
 
 export function collectDataForDTO(DtoClass: Constructor<any>, request: AuthRequest, parent: string = "") {
   const sources = getAllSources(DtoClass);
   const instanceData: Record<string, any> = {};
 
-  for (const { key, source } of sources) {
+  for (const { key, source, as } of sources) {
     if (isClassType(DtoClass, key)) {
       const fieldType = Reflect.getMetadata("design:type", DtoClass.prototype, key);
       instanceData[key] = collectDataForDTO(fieldType, request, `${key}.`);
       continue;
     }
 
-    if (source === "body") instanceData[key] = extractKey(parent + key, request.body);
-    if (source === "query") instanceData[key] = extractKey(parent + key, request.query);
-    if (source === "params") instanceData[key] = extractKey(parent + key, request.params);
-    if (source === "apiKey") instanceData[key] = extractKey(parent + key, request.apiKey);
+    if (source === "body") instanceData[as] = extractKey(parent + key, request.body);
+    if (source === "query") instanceData[as] = extractKey(parent + key, request.query);
+    if (source === "params") instanceData[as] = extractKey(parent + key, request.params);
+    if (source === "apiKey") instanceData[as] = extractKey(parent + key, request.apiKey);
   }
-
   return instanceData;
 }

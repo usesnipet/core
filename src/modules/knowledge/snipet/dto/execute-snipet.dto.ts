@@ -139,7 +139,7 @@ export class ExecuteSnipetDto {
   stream?: boolean;
 
   @Field({ type: "class", class: () => ExecuteSnipetOptions, nullable: true, required: false })
-  options?: ExecuteSnipetOptions;
+  options?: ExecuteSnipetOptions | null;
 }
 
 export class ExecuteSnipetResponseDto {

@@ -1,4 +1,4 @@
-import { Transform } from "class-transformer";
+import { Exclude, Transform } from "class-transformer";
 import { IsEmail, IsOptional, IsString, IsUrl, IsUUID, Matches, MaxLength, MinLength } from "class-validator";
 
 import { FieldStringOptions } from "../types";
@@ -10,8 +10,7 @@ export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorat
   const isFromBody = !opts.source || opts.source === "body";
 
   // Swagger
-  decorators.push(buildApiProperty(opts));
-
+  decorators.push(buildApiProperty({...opts, hidden: opts.hidden || !isFromBody }));
   decorators.push(IsString());
 
   if (opts.required === false) decorators.push(IsOptional());

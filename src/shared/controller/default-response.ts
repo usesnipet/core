@@ -8,8 +8,8 @@ export const getDefaultCreateResponses = (entity: Constructor<any>) => [
   { status: 500, description: "Internal server error", type: ErrorResponse }
 ];
 
-export const getDefaultFindResponses = (entity: Constructor<any>) => [
-  { status: 200, description: "Records found successfully", type: entity, isArray: true },
+export const getDefaultFindResponses = (entity: Constructor<any>, array = true) => [
+  { status: 200, description: "Records found successfully", type: entity, isArray: array },
   { status: 400, description: "Bad request", type: ErrorResponse },
   { status: 500, description: "Internal server error", type: ErrorResponse }
 ];

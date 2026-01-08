@@ -34,7 +34,8 @@ export class SnipetMemoryService extends GenericService {
     knowledgeId: string,
     memory: SnipetMemoryEntity,
     embedding: number[],
-    content: string
+    content: string,
+    role: string
   ): SnipetVectorStorePayload {
     return new SnipetVectorStorePayload({
       dense: embedding,
@@ -48,6 +49,7 @@ export class SnipetMemoryService extends GenericService {
       knowledgeId,
       createdAt: memory.createdAt,
       updatedAt: memory.updatedAt,
+      role
     })
   }
 
@@ -64,20 +66,20 @@ export class SnipetMemoryService extends GenericService {
     manager?: EntityManager
   ): Promise<SnipetMemoryEntity>
   async save(
-    { knowledgeId, snipetId }: ExecuteSnipetDto,
+    { knowledgeId, snipetId, intent }: ExecuteSnipetDto,
     type: MemoryType,
     payload: any,
     manager?: EntityManager
   ): Promise<SnipetMemoryEntity> {
     return this.transaction(async (manager) => {
-      const memory = new SnipetMemoryEntity({ knowledgeId, snipetId, type, payload });
+      const memory = new SnipetMemoryEntity({ knowledgeId, snipetId, type, payload, intent });
 
       await this.repository(manager).save(memory);
       const policy = MEMORY_POLICIES[type];
       if (policy.embed) {
         const content = policy.extractText(payload);
         if (!content) throw new BadRequestException("Content is required");
-        await this.embed(knowledgeId, memory, content);
+        await this.embed(knowledgeId, memory, content, type === MemoryType.USER_INPUT ? "user" : "assistant");
       }
       return memory;
     }, manager);
@@ -86,11 +88,12 @@ export class SnipetMemoryService extends GenericService {
   private async embed(
     knowledgeId: string,
     memory: SnipetMemoryEntity,
-    content: string
+    content: string,
+    role: string
   ): Promise<SnipetVectorStorePayload> {
     const embedding = await this.embeddingService.getOrCreateEmbedding(content);
     return await this.snipetVectorStore.add(
-      this.memoryToPayload(knowledgeId, memory, embedding.embeddings, content)
+      this.memoryToPayload(knowledgeId, memory, embedding.embeddings, content, role)
     );
   }
 

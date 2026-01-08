@@ -16,7 +16,7 @@ export class MilvusSnipetVectorStoreService extends MilvusService<SnipetVectorSt
     super(llmManager, "snipet", SnipetVectorStorePayload, snipetFields, snipetFunctions, snipetIndexSchema)
   }
 
-  payloadToChunk(c: SnipetVectorStorePayload): RowData 
+  payloadToChunk(c: SnipetVectorStorePayload): RowData
   payloadToChunk(c: SnipetVectorStorePayload[]): RowData[]
   payloadToChunk(c: SnipetVectorStorePayload | SnipetVectorStorePayload[]): RowData | RowData[] {
     const mapper = (payload: SnipetVectorStorePayload): RowData => ({
@@ -29,8 +29,9 @@ export class MilvusSnipetVectorStoreService extends MilvusService<SnipetVectorSt
       metadata: payload.metadata,
       snipetId: payload.snipetId,
       knowledgeId: payload.knowledgeId,
+      role: payload.role
     });
-    
+
     if (Array.isArray(c)) return c.map(mapper);
     return mapper(c);
   }
@@ -40,6 +41,7 @@ export class MilvusSnipetVectorStoreService extends MilvusService<SnipetVectorSt
   chunkToPayload(data: RowData | RowData[]): SnipetVectorStorePayload | SnipetVectorStorePayload[] {
     const mapper = (chunk: RowData): SnipetVectorStorePayload => new SnipetVectorStorePayload({
       id: chunk.id as string,
+      role: chunk.role as string,
       content: chunk.content as string,
       fullContent: chunk.fullContent as string,
       dense: chunk.dense as number[],

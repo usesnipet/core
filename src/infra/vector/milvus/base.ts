@@ -101,7 +101,7 @@ export abstract class MilvusService<T extends VectorStorePayload>
       fields_data: Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)]
     });
 
-    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collection_name, res);
+    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments to " + collection_name, res);
     return c;
   }
 

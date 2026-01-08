@@ -32,18 +32,13 @@ export class SnipetController extends BaseController({
     super(service);
   }
 
-  @HttpPost(":snipetId/execute", {
-    params: [ { name: "snipetId", description: "The id of the snipet to execute", required: true } ],
-    responses: getDefaultCreateResponses(ExecuteSnipetResponseDto)
-  })
+  @HttpPost(":snipetId/execute", { responses: getDefaultCreateResponses(ExecuteSnipetResponseDto) })
   @HTTPDataSwagger(ExecuteSnipetDto)
   execute(@HTTPData(ExecuteSnipetDto) data: ExecuteSnipetDto): ExecuteSnipetResponseDto {
     return this.service.execute(data);
   }
 
   @ApiProduces("text/event-stream")
-  @ApiParam({ name: "snipetId", description: "The id of the snipet to stream", required: true })
-  @ApiParam({ name: "id", description: "Execution ID", required: true })
   @Sse(":snipetId/stream/:id")
   @HTTPDataSwagger(StreamDto)
   async stream(@HTTPData(StreamDto) data: StreamDto): Promise<Observable<any>> {
@@ -51,7 +46,7 @@ export class SnipetController extends BaseController({
     return stream.pipe(map(v => ({ data: v })));
   }
 
-  @HttpGet(":snipetId/read-as", { responses: getDefaultFindResponses(ReadMemoryAsChatDto) })
+  @HttpGet(":snipetId/read-as", { responses: getDefaultFindResponses(ReadMemoryAsChatDto, false) })
   @HTTPDataSwagger(ReadMemoryAsDto)
   async readMemoryAs(
     @HTTPData(ReadMemoryAsDto) data: ReadMemoryAsDto, @Filter() filterOpts: FilterOptions<SnipetMemoryEntity>
