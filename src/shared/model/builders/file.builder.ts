@@ -1,15 +1,9 @@
-
-
-import { IsOptional } from "class-validator";
 import { FieldFileOptions } from "../types";
-import { buildApiProperty } from "./api-property";
+import { Exclude } from "class-transformer";
 
 export const buildFileDecorators = (opts: FieldFileOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
-  decorators.push(buildApiProperty(opts));
-
-  if (opts.required === false) decorators.push(IsOptional());
-  
+  decorators.push(Exclude());
 
   return decorators;
 };

@@ -13,6 +13,7 @@ import { ApiConsumes } from "@nestjs/swagger";
 import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
 import { IngestJobStateResponseDto } from "./dto/job-state.dto";
 import { HTTPData } from "@/shared/http-data/http-data.decorator";
+import { HTTPDataSwagger } from "@/shared/http-data/http-data-swagger.decorator";
 
 @Controller("knowledge")
 export class KnowledgeController extends BaseController({
@@ -36,15 +37,11 @@ export class KnowledgeController extends BaseController({
     return this.service.getStatus(id);
   }
 
-  @HttpPost(":knowledgeId/ingest", {
-    responses: getDefaultCreateResponses(FileIngestResponseDto),
-    params: [
-      { name: "knowledgeId", type: String, required: true }
-    ]
-  })
+  @HttpPost(":knowledgeId/ingest", { responses: getDefaultCreateResponses(FileIngestResponseDto) })
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
+  @HTTPDataSwagger(FileIngestDto)
   async ingest(@UploadedFile() file: Express.Multer.File, @HTTPData(FileIngestDto) body: FileIngestDto) {
-    return this.service.ingest({ ...body, file });
+    return this.service.ingest(file, body);
   }
 }

@@ -41,7 +41,7 @@ import { env } from "@/env";
     })
   ],
   controllers: [KnowledgeController],
-  providers: [KnowledgeService],
+  providers: [KnowledgeService, FileIngestJob],
   exports: [KnowledgeService]
 })
 export class KnowledgeModule {}

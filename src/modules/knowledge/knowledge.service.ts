@@ -55,15 +55,15 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     return Array.isArray(knowledge) ? knowledge.map(toApiConfig) : [toApiConfig(knowledge)];
   }
 
-  async ingest(data: FileIngestDto): Promise<FileIngestResponseDto> {
-    const ext = data.file.originalname.split('.').pop();
+  async ingest(file: Express.Multer.File, data: FileIngestDto): Promise<FileIngestResponseDto> {
+    const ext = file.originalname.split('.').pop();
     if (!ext) throw new BadRequestException("Failed to ingest content");
     const job = await this.ingestQueue.add("", {
       knowledgeId: data.knowledgeId,
       metadata: data.metadata,
-      path: data.file.path,
-      mimetype: data.file.mimetype,
-      originalname: data.file.originalname,
+      path: file.path,
+      mimetype: file.mimetype,
+      originalname: file.originalname,
       extension: ext,
       externalId: data.externalId,
     }, { jobId: randomUUID() });
@@ -105,7 +105,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
         input.map(i => new KnowledgeEntity({
           name: i.name,
           namespace: i.namespace
-        })) : 
+        })) :
         new KnowledgeEntity({
           name: input.name,
           namespace: input.namespace

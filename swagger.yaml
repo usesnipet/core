@@ -537,6 +537,13 @@ components:
       required:
         - executionId
       type: object
+    FileIngestDto:
+      properties:
+        externalId:
+          type: string
+        metadata:
+          type: string
+      type: object
     FileIngestResponseDto:
       properties:
         id:
@@ -1969,8 +1976,18 @@ paths:
         - in: path
           name: knowledgeId
           required: true
-          schema:
-            type: string
+          schema: {}
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                externalId:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
+                metadata:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
+              type: object
+        required: true
       responses:
         "201":
           content:

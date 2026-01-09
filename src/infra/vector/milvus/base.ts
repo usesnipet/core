@@ -95,10 +95,14 @@ export abstract class MilvusService<T extends VectorStorePayload>
   async add(c: T, opts?: VectorStoreAddOptions): Promise<T>
   async add(c: T[] | T, opts?: VectorStoreAddOptions): Promise<T | T[]> {
     const collection_name = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
+    console.log(collection_name);
+
+    const data = Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)];
+    console.log(data[0]);
 
     const res = await this.client.insert({
       collection_name,
-      fields_data: Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)]
+      fields_data: data
     });
 
     if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments to " + collection_name, res);

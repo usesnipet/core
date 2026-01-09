@@ -1,9 +1,6 @@
 import { Field } from "@/shared/model";
 
 export class FileIngestDto {
-  @Field({ type: "file", required: true })
-  file: Express.Multer.File;
-
   @Field({ type: "string", required: false, transform: (v) => JSON.parse(v) })
   metadata: Record<string, any>;
 
