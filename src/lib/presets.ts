@@ -6,6 +6,9 @@ import { LLMPreset } from "@/types/llm-preset";
 
 let presetsCache: LLMPreset[] | undefined = undefined;
 
+export const _resetCache = () => {
+  presetsCache = undefined;
+};
 
 export const getPresets = async () => {
   if (presetsCache) return presetsCache;
