@@ -34,11 +34,16 @@ export class FileIngestJob extends WorkerHost {
     const payloads = await this.fileIndexer.process(
       await streamToBlob(Readable.from(buffer)),
       {
+        type: "file",
+        size: buffer.byteLength,
         extension: data.extension,
-        mimetype: data.mimetype,
-        originalname: data.originalname,
-        ...data.metadata,
-      }
+        mimeType: data.mimetype,
+        originalName: data.originalname,
+        fileMetadata: data.metadata,
+      },
+      data.knowledgeId,
+      data.connectorId,
+      data.externalId
     );
 
     if (payloads.length > 0) await this.vectorStore.add(payloads);

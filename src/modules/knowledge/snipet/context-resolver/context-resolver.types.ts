@@ -1,6 +1,7 @@
 import { SnipetEntity } from "@/entities";
 import { ExecuteSnipetContextOptions } from "../dto/execute-snipet.dto";
 import { SnipetIntent } from "@/types/snipet-intent";
+import { VectorStorePayload } from "@/infra/vector/payload/vector-store-payload";
 
 export type SnipetContextRequest = {
   snipet: SnipetEntity;
@@ -22,7 +23,7 @@ export type Memory<T = any> = {
   content: T;
   createdAt: Date;
   updatedAt: Date;
-  metadata: any;
+  metadata: VectorStorePayload["metadata"];
 }
 
 export type SnipetResolvedContext = {

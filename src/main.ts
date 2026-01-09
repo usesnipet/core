@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ValidationPipe } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
@@ -16,6 +16,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: env.FILE_LOGGER_ENABLED ? new FileLogger() : undefined
   });
+
   app.useGlobalInterceptors(new ErrorsInterceptor());
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: false }));
 
@@ -43,6 +44,8 @@ async function bootstrap(): Promise<void> {
 
   await generateApi(document);
   await app.listen(env.APP_PORT);
+  const logger = new Logger("Bootstrap");
+  logger.log(`Server running on [${await app.getUrl()}]`);
 }
 
 bootstrap();

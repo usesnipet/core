@@ -43,9 +43,7 @@ export class SnipetMemoryService extends GenericService {
       snipetId: memory.snipetId,
       content: content,
       fullContent: content,
-      metadata: {
-        payload: memory.payload,
-      },
+      metadata: { type: "text" },
       knowledgeId,
       createdAt: memory.createdAt,
       updatedAt: memory.updatedAt,

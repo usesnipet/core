@@ -5,8 +5,7 @@ import { ExtractionService } from "./extraction/extraction.service";
 import { SourceVectorStorePayload } from "../vector/payload/source-vector-store-payload";
 import { EmbeddingService } from "../embedding/embedding.service";
 import { canonicalize } from "@/lib/canonicalize";
-
-type FileIndexerMetadata = { [key: string]: any };
+import { FileMetadata } from "../vector/payload/vector-store-payload";
 
 @Injectable()
 export class FileProcessorService {
@@ -16,7 +15,10 @@ export class FileProcessorService {
 
   async process(
     blob: Blob,
-    { connectorId, externalId, knowledgeId, ...metadata}: FileIndexerMetadata
+    metadata: FileMetadata,
+    knowledgeId: string,
+    connectorId?: string,
+    externalId?: string
   ): Promise<SourceVectorStorePayload[]> {
     const genericDocument = await this.extractorService.extract(
       env.DEFAULT_EXTRACTOR,

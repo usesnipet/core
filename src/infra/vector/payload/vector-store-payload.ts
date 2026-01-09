@@ -1,5 +1,20 @@
 import { randomUUID } from "crypto";
 
+export type FileMetadata = {
+  type: "file";
+  originalName: string;
+  extension: string;
+  size: number;
+  mimeType: string;
+  lastModified?: number;
+  fileMetadata: Record<string, any>;
+  [key: string]: any
+}
+export type TextMetadata = {
+  type: "text";
+  [key: string]: any
+}
+
 export class VectorStorePayload {
   id: string;
   content: string;
@@ -7,7 +22,7 @@ export class VectorStorePayload {
   dense: number[];
   createdAt: Date;
   updatedAt: Date;
-  metadata: any;
+  metadata: FileMetadata | TextMetadata;
 
   constructor(
     payload: Omit<VectorStorePayload, 'id' | 'createdAt' | 'updatedAt'> & {
