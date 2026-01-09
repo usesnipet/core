@@ -163,51 +163,6 @@ components:
         - rateLimit
         - expiresAt
       type: object
-    ArrayFieldSchema:
-      properties:
-        description:
-          description: the description of the field
-          type: string
-        schema:
-          allOf:
-            - $ref: "#/components/schemas/FieldSchema"
-          description: the schema of the array
-          oneOf:
-            - $ref: "#/components/schemas/StringFieldSchema"
-            - $ref: "#/components/schemas/NumberFieldSchema"
-            - $ref: "#/components/schemas/BooleanFieldSchema"
-            - $ref: "#/components/schemas/ArrayFieldSchema"
-            - $ref: "#/components/schemas/ObjectFieldSchema"
-        type:
-          description: the type of the field
-          enum:
-            - object
-            - array
-            - string
-            - number
-            - boolean
-          type: string
-      required:
-        - type
-        - schema
-      type: object
-    BooleanFieldSchema:
-      properties:
-        description:
-          description: the description of the field
-          type: string
-        type:
-          description: the type of the field
-          enum:
-            - object
-            - array
-            - string
-            - number
-            - boolean
-          type: string
-      required:
-        - type
-      type: object
     ChatDto:
       properties:
         content:
@@ -582,26 +537,6 @@ components:
       required:
         - executionId
       type: object
-    ExpandDto:
-      properties: {}
-      type: object
-    FieldSchema:
-      properties:
-        description:
-          description: the description of the field
-          type: string
-        type:
-          description: the type of the field
-          enum:
-            - object
-            - array
-            - string
-            - number
-            - boolean
-          type: string
-      required:
-        - type
-      type: object
     FileIngestResponseDto:
       properties:
         id:
@@ -898,50 +833,6 @@ components:
       required:
         - mode
       type: object
-    NumberFieldSchema:
-      properties:
-        description:
-          description: the description of the field
-          type: string
-        type:
-          description: the type of the field
-          enum:
-            - object
-            - array
-            - string
-            - number
-            - boolean
-          type: string
-      required:
-        - type
-      type: object
-    ObjectFieldSchema:
-      properties:
-        description:
-          description: the description of the field
-          type: string
-        schema:
-          allOf:
-            - $ref: "#/components/schemas/FieldSchema"
-          description: the schema of the object
-          oneOf:
-            - $ref: "#/components/schemas/StringFieldSchema"
-            - $ref: "#/components/schemas/NumberFieldSchema"
-            - $ref: "#/components/schemas/BooleanFieldSchema"
-            - $ref: "#/components/schemas/ObjectFieldSchema"
-        type:
-          description: the type of the field
-          enum:
-            - object
-            - array
-            - string
-            - number
-            - boolean
-          type: string
-      required:
-        - type
-        - schema
-      type: object
     OutputOptions:
       properties:
         maxTokens:
@@ -1070,45 +961,6 @@ components:
         - payload
       type: object
     StreamDto:
-      properties: {}
-      type: object
-    StringFieldSchema:
-      properties:
-        description:
-          description: the description of the field
-          type: string
-        type:
-          description: the type of the field
-          enum:
-            - object
-            - array
-            - string
-            - number
-            - boolean
-          type: string
-      required:
-        - type
-      type: object
-    StructuredOutputDto:
-      properties:
-        schema:
-          allOf:
-            - $ref: "#/components/schemas/FieldSchema"
-          description: the schema of the object
-          oneOf:
-            - $ref: "#/components/schemas/StringFieldSchema"
-            - $ref: "#/components/schemas/NumberFieldSchema"
-            - $ref: "#/components/schemas/BooleanFieldSchema"
-            - $ref: "#/components/schemas/ArrayFieldSchema"
-            - $ref: "#/components/schemas/ObjectFieldSchema"
-        text:
-          description: The text to be processed
-          type: string
-      required:
-        - text
-        - schema
-      type: object
-    SummaryDto:
       properties: {}
       type: object
     UpdateConnectorDto:
@@ -2508,59 +2360,5 @@ paths:
         - access-token: []
       tags:
         - Snipet
-  /api/utilities/expand:
-    post:
-      operationId: UtilitiesController_expand
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ExpandDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Utilities
-  /api/utilities/structured-output:
-    post:
-      operationId: UtilitiesController_structuredOutput
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/StructuredOutputDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Utilities
-  /api/utilities/summary:
-    post:
-      operationId: UtilitiesController_summary
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SummaryDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Utilities
 servers: []
 tags: []

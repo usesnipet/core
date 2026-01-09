@@ -17,7 +17,6 @@ import { ConnectorModule } from "./modules/knowledge/connector/connector.module"
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
-import { UtilitiesModule } from "./modules/utilities/utilities.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
 
@@ -57,7 +56,6 @@ import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
     KnowledgeModule,
     ApiKeyModule,
     SnipetModule,
-    UtilitiesModule,
     PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,
       templatesDir: env.PROMPT_TEMPLATES_DIR,
