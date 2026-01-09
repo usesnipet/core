@@ -17,15 +17,12 @@ export class ApiKeyGuard implements CanActivate {
       context.getHandler(),
       context.getClass()
     ]);
-    const apiKeyHeader = request.headers["x-api-key"] || request.headers["authorization"];
-    if (!apiKeyHeader || Array.isArray(apiKeyHeader)) throw new UnauthorizedException();
-    const apiKey = await this.apiKeyService.getByKey(apiKeyHeader);
-    if (isPublic) return true;
-    if (!apiKey) throw new UnauthorizedException();
+    const apiKeyHeader = request.headers["x-api-key"];
+    if ((!apiKeyHeader || Array.isArray(apiKeyHeader)) && !isPublic) throw new UnauthorizedException();
 
-    request.apiKey = apiKey;
-
+    const apiKey = await this.apiKeyService.getByKey(apiKeyHeader as string);
+    if (apiKey) request.apiKey = apiKey;
+    if (!apiKey && !isPublic) throw new UnauthorizedException();
     return true;
   }
-
 }

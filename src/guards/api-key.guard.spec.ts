@@ -93,17 +93,6 @@ describe('ApiKeyGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('should validate API key from authorization header', async () => {
-      const { context, request } = mockContext({ authorization: mockApiKey });
-      apiKeyService.getByKey.mockResolvedValue(mockApiKeyEntity);
-
-      const result = await guard.canActivate(context);
-
-      expect(apiKeyService.getByKey).toHaveBeenCalledWith(mockApiKey);
-      expect(request['apiKey']).toEqual(mockApiKeyEntity);
-      expect(result).toBe(true);
-    });
-
     it('should throw UnauthorizedException for invalid API key', async () => {
       const { context } = mockContext({ 'x-api-key': 'invalid-key' });
       apiKeyService.getByKey.mockResolvedValue(null);
