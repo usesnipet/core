@@ -70,13 +70,13 @@ describe("Service", () => {
     expect(result.length).toBe(1);
   });
 
-  test("findUnique() should call findOneOrFail()", async () => {
+  test("findUnique() should call findOne()", async () => {
     const filter = new FilterOptions<TestEntity>({});
-    repositoryMock.findOneOrFail.mockResolvedValue({ id: "1", name: "John" });
+    repositoryMock.findOne.mockResolvedValue({ id: "1", name: "John" });
 
     const result = await service.findUnique(filter);
 
-    expect(repositoryMock.findOneOrFail).toHaveBeenCalledWith(filter);
+    expect(repositoryMock.findOne).toHaveBeenCalledWith(filter);
     expect(result!.id).toBe("1");
   });
 

@@ -322,12 +322,12 @@ describe('ApiKeyService', () => {
       const keyHash = 'hashed-key-value';
 
       jest.spyOn(ApiKeyEntity, 'toHash').mockReturnValue(keyHash);
-      apiKeyRepository.findOneOrFail.mockResolvedValue(apiKey);
+      apiKeyRepository.findOne.mockResolvedValue(apiKey);
 
       const result = await service.getByKey('test-key');
 
       expect(result).toBe(apiKey);
-      expect(apiKeyRepository.findOneOrFail).toHaveBeenCalledWith({
+      expect(apiKeyRepository.findOne).toHaveBeenCalledWith({
         where: { keyHash, revoked: false },
         relations: ['apiKeyAssignments.connectorPermissions'],
       });

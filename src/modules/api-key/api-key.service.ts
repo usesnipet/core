@@ -161,7 +161,7 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
   }
 
   async getByKey(apiKeyHeader: string) {
-    return this.findFirst({
+    return this.findUnique({
       where: { keyHash: ApiKeyEntity.toHash(apiKeyHeader), revoked: false },
       relations: ["apiKeyAssignments.connectorPermissions"]
     });
