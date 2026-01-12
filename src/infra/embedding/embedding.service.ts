@@ -23,7 +23,7 @@ export class EmbeddingService {
   get(fingerprint: string): Promise<EmbeddingCache | null> {
     return this.cacheService.get<EmbeddingCache>(fingerprint);
   }
-  
+
   set(fingerprint: string, cache: EmbeddingCache): Promise<void> {
     return this.cacheService.set<EmbeddingCache>(fingerprint, cache);
   }
@@ -42,10 +42,10 @@ export class EmbeddingService {
       }
       const hash = fingerprint(content);
       const embeddings = await embeddingProvider.embed(content);
-      const cacheEntry = { 
-        hash, 
-        content, 
-        embeddings 
+      const cacheEntry = {
+        hash,
+        content,
+        embeddings
       };
       await this.set(hash, cacheEntry);
       embeddingCache = cacheEntry;

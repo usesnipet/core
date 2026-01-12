@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { output, ZodObject } from "zod";
 
-import { ProviderHealth } from "../types";
+import { ProviderHealth, ProviderInfo } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
 import { Observable } from "rxjs";
 import { MessageEvent } from "@nestjs/common";
@@ -18,6 +18,10 @@ export class OpenAITextAdapter extends TextProvider {
   constructor(private opts: OpenAIOptions) {
     super();
     this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
+  }
+
+  async info(): Promise<ProviderInfo> {
+    return { name: this.opts.model }
   }
 
   async generate(params: GenerateParams): Promise<GenerateResult> {

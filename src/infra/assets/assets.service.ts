@@ -1,4 +1,5 @@
 import { AssetDomain, AssetEntity } from "@/entities/asset.entity";
+import { fingerprint } from "@/lib/fingerprint";
 import { FilterOptions } from "@/shared/filter-options";
 import { GenericService } from "@/shared/generic-service";
 import { FindOneOptions, EntityManager, Repository, FindOptionsWhere } from "typeorm";
@@ -19,6 +20,10 @@ export abstract class AssetService<AssetType> extends GenericService {
   abstract fromEntity(entity: AssetEntity): AssetType;
   abstract toEntity(asset: AssetType): AssetEntity;
 
+  hash(text: string): string {
+    return fingerprint(text);
+  }
+
   async find(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType[]> {
     const res = await this.repository(manager).find(filterOptions);
     return res.map(this.fromEntity);
@@ -33,7 +38,7 @@ export abstract class AssetService<AssetType> extends GenericService {
     const res = await this.repository(opts?.manager)
       .findOne({ ...opts as any, where: { id, ...opts?.where, ...this.domainFilter } });
 
-    return res ? this.fromEntity(res) : null;  
+    return res ? this.fromEntity(res) : null;
   }
 
   async findFirst(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType | null> {

@@ -3,3 +3,8 @@ export interface ProviderHealth {
   latencyMs?: number;
   error?: string;
 }
+
+export interface ProviderInfo {
+  name: string;
+  version?: string;
+}

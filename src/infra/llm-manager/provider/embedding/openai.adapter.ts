@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 
 
-import { ProviderHealth } from "../types";
+import { ProviderHealth, ProviderInfo } from "../types";
 import { EmbeddingProvider } from "./base";
 
 type OpenAIOptions = {
@@ -17,6 +17,9 @@ export class OpenAIEmbeddingAdapter extends EmbeddingProvider {
   constructor(private opts: OpenAIOptions) {
     super();
     this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
+  }
+  async info(): Promise<ProviderInfo> {
+    return { name: this.opts.model }
   }
 
   embed(text: string): Promise<number[]>;

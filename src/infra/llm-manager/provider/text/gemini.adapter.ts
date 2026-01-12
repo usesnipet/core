@@ -5,7 +5,7 @@ import { output, ZodObject } from "zod";
 import { GoogleGenAI } from "@google/genai";
 import { MessageEvent } from "@nestjs/common";
 
-import { ProviderHealth } from "../types";
+import { ProviderHealth, ProviderInfo } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
 
 type GeminiAdapterOptions = {
@@ -18,6 +18,10 @@ export class GeminiTextAdapter extends TextProvider {
     super();
 
     this.client = new GoogleGenAI({ apiKey: opts.apiKey });
+  }
+
+  async info(): Promise<ProviderInfo> {
+    return { name: this.opts.model }
   }
 
   async generate(params: GenerateParams): Promise<GenerateResult> {

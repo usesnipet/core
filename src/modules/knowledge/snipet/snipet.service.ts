@@ -11,6 +11,8 @@ import { randomUUID } from "crypto";
 import { SnipetMemoryService } from "./memory/snipet-memory.service";
 import { As, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
 import { FilterOptions } from "@/shared/filter-options";
+import { ExecutionService } from "./execution.service";
+import { ExecutionState, PersistenceType } from "@/entities/execution.entity";
 
 @Injectable()
 export class SnipetService extends SubKnowledgeService<SnipetEntity> {
@@ -20,6 +22,7 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
   @Inject() private readonly contextResolver: ContextResolver;
   @Inject() private readonly outputParser: OutputParserService;
   @Inject() private readonly memoryService: SnipetMemoryService;
+  @Inject() private readonly executionService: ExecutionService;
 
   private readonly executionStore = new Map<string, ExecuteSnipetDto>();
 
@@ -30,13 +33,14 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
   }
 
   async stream(executionId: string) {
-    const execution = this.executionStore.get(executionId);
+    const execution = await this.executionService.findByID(executionId);
     if (!execution) throw new NotFoundException("Execution not found");
      return new Observable<ExecutionEvent>((subscriber) => {
       (async () => {
         try {
-          const { intent, knowledgeId, query, snipetId, options } = execution;
+          const { knowledgeId, snipetId, options } = execution;
           subscriber.next({ event: "start" });
+          this.executionService.updateState(executionId, ExecutionState.RUNNING);
 
           const snipet = await this.findUnique({ where: { id: snipetId, knowledgeId } });
           if (!snipet) {
@@ -44,14 +48,14 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
             return;
           }
 
-          if (options?.memory?.mode === MemoryMode.CONVERSATION) {
-            await this.memoryService.save(execution, MemoryType.USER_INPUT, query);
-          }
+          // if (options?.persistenceType !== PersistenceType.CONVERSATION |) {
+          //   await this.memoryService.save(execution, MemoryType.USER_INPUT, query);
+          // }
 
           // run context resolver
           const context = await this.contextResolver.resolve({
-            intent,
-            query,
+            intent: options.intent,
+            query: options.query,
             snipet,
             executeSnipetOptions: options?.contextOptions
           }, subscriber);
@@ -62,9 +66,10 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
           const result = await this.outputParser.execute(execution, context, subscriber);
           await this.memoryService.save(execution, MemoryType.TEXT_ASSISTANT_OUTPUT, result);
           subscriber.complete();
-        } catch (error) {
-          console.error(error);
 
+          await this.executionService.updateState(executionId, ExecutionState.FINISHED);
+        } catch (error) {
+          await this.executionService.updateState(executionId, ExecutionState.ERROR, error.message);
           subscriber.error(error);
         }
       })();

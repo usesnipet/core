@@ -1,7 +1,11 @@
 import { AssetService } from "@/infra/assets/assets.service";
 import { Logger } from "@nestjs/common";
-import { AssetEntity, AssetType } from "@/entities/asset.entity";
-import { SnipetAssetDto, SnipetAssetType } from "./dto/snipet-asset.dto";
+import { AssetEntity, AssetSource, AssetType } from "@/entities/asset.entity";
+import { SnipetAssetDto, SnipetAssetType } from "../dto/snipet-asset.dto";
+import { ExecutionEntity } from "@/entities/execution.entity";
+import { EntityManager } from "typeorm";
+import { OutputParserResult } from "../output-parser/output-parser.types";
+import { ASSET_POLICIES } from "./assets.policy";
 
 export class SnipetAssetService extends AssetService<SnipetAssetDto> {
   logger = new Logger(SnipetAssetService.name);
@@ -39,7 +43,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
         throw new Error("Invalid asset type");
     }
   }
-  
+
   fromEntity(entity: AssetEntity): SnipetAssetDto {
     return new SnipetAssetDto({
       id: entity.id,
@@ -84,5 +88,13 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
     });
   }
 
-  
+  save(
+    asset: SnipetAssetDto,
+    manager?: EntityManager,
+  ) {
+    return this.transaction(async (manager) => {
+      const created = await super.create(asset, manager);
+      return this.fromEntity(created);
+    }, manager);
+  }
 }

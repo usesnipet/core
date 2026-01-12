@@ -1,6 +1,5 @@
-import { map, Subscriber } from "rxjs";
+import { Subscriber } from "rxjs";
 import { SnipetResolvedContext } from "../context-resolver/context-resolver.types";
-import { ExecuteSnipetDto } from "../dto/execute-snipet.dto";
 import { ExecutionEvent } from "../types/execution-event";
 import { OutputParserStrategy } from "./output-parser.types";
 import { Inject, Injectable } from "@nestjs/common";
@@ -8,8 +7,10 @@ import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { PromptService } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { SnipetIntent } from "@/types/snipet-intent";
+import { BaseOutputResult } from "./types";
+import { ExecutionEntity } from "@/entities/execution.entity";
 
-export type AnswerOutput = {
+export type AnswerOutput = BaseOutputResult & {
   intent: SnipetIntent.ANSWER;
   answer: string;
 }
@@ -22,60 +23,75 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
   @Inject() private readonly llmManager: LLMManagerService;
 
   async execute(
-    executeSnipet: ExecuteSnipetDto,
+    execution: ExecutionEntity,
     context: SnipetResolvedContext,
     subscriber: Subscriber<ExecutionEvent>,
   ): Promise<AnswerOutput> {
+    const startDate = new Date();
     const textProvider = await this.llmManager.getTextProvider();
     if (!textProvider) throw new Error('No text provider available for answer generation');
 
+    const info = await textProvider.info();
+
     const prompt = this.promptService.getTemplate("AnswerQuestion").build({
-      question: executeSnipet.query,
+      question: execution.options.query,
       knowledgeMemories: context.knowledge.map(k => k.content),
       snipetMemories: context.snipet.map(s => ({ content: s.content, role: s.metadata.role ?? "assistant" }))
     });
 
-    if (executeSnipet.stream) {
-      const stream = await textProvider.observableStream({
+    let res: AnswerOutput = {
+      intent: SnipetIntent.ANSWER,
+      modelInfo: info,
+    } as AnswerOutput;
+
+    if (execution.options.stream) {
+      const stream = await textProvider.stream({
         prompt,
-        maxTokens: executeSnipet.options?.output?.maxTokens,
-        temperature: executeSnipet.options?.output?.temperature,
+        maxTokens: execution.options?.output?.maxTokens,
+        temperature: execution.options?.output?.temperature,
       });
 
-      let answer = "";
+      const chunks: string[] = [];
 
-      return await new Promise<AnswerOutput>((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         const subscription = stream.subscribe({
           next: chunk => {
-            answer += chunk.data;
+            chunks.push(chunk.data as string);
             subscriber.next({ event: "output.streaming", payload: { chunk: chunk.data } });
           },
-          error: err => {
-            subscriber.error(err);
-            subscription.unsubscribe();
-            reject(err);
-          },
+          error: reject,
           complete: () => {
-            const res: AnswerOutput = { intent: SnipetIntent.ANSWER, answer };
-            subscriber.next({ event: "output.data", payload: res });
-            subscriber.next({ event: "output.finish" });
-            subscriber.complete();
-            resolve(res);
+            res.answer = chunks.join("");
+            res.tokens = {
+              input: textProvider.countTokens(execution.options.query),
+              prompt: textProvider.countTokens(prompt),
+              output: textProvider.countTokens(res.answer)
+            }
+
+            resolve();
           }
         });
-
         subscriber.add(() => subscription.unsubscribe());
       });
     } else {
       const generateResponse = await textProvider.generate({
         prompt,
-        maxTokens: executeSnipet.options?.output?.maxTokens,
-        temperature: executeSnipet.options?.output?.temperature,
+        maxTokens: execution.options?.output?.maxTokens,
+        temperature: execution.options?.output?.temperature,
       });
-      const res: AnswerOutput = { intent: SnipetIntent.ANSWER, answer: generateResponse.output };
-      subscriber.next({ event: "output.data", payload: res });
-      subscriber.next({ event: "output.finish" });
-      return res;
+      res.tokens = {
+        input: textProvider.countTokens(execution.options.query),
+        prompt: generateResponse.tokensIn,
+        output: generateResponse.tokensOut
+      }
+      res.answer = generateResponse.output;
     }
+
+    res.time = { start: startDate, end: new Date() };
+
+    subscriber.next({ event: "output.data", payload: res });
+    subscriber.next({ event: "output.finish" });
+
+    return res;
   }
 }

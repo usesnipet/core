@@ -1,7 +1,7 @@
 import { VoyageAIClient } from "voyageai";
 
 import { EmbedError } from "../../errors/embed.error";
-import { ProviderHealth } from "../types";
+import { ProviderHealth, ProviderInfo } from "../types";
 import { EmbeddingProvider } from "./base";
 
 type VoyageOptions = {
@@ -15,6 +15,10 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
   constructor(private opts: VoyageOptions) {
     super();
     this.client = new VoyageAIClient({ apiKey: opts.apiKey });
+  }
+
+  async info(): Promise<ProviderInfo> {
+    return { name: this.opts.model }
   }
 
   embed(text: string): Promise<number[]>;

@@ -5,25 +5,22 @@ import { ExecutionEvent } from "../types/execution-event";
 import { Inject, Injectable } from "@nestjs/common";
 import { AnswerOutputStrategy } from "./answer.parser";
 import { SnipetIntent } from "@/types/snipet-intent";
-import { SummarizeOutputStrategy } from "./summarize.parser";
-import { ExpandOutputStrategy } from "./expand.parser";
+import { ExecutionEntity } from "@/entities/execution.entity";
 
 @Injectable()
 export class OutputParserService {
   @Inject() private readonly answerParser: AnswerOutputStrategy;
-  @Inject() private readonly summarizeParser: SummarizeOutputStrategy;
-  @Inject() private readonly expandParser: ExpandOutputStrategy;
 
-  execute(executeSnipet: ExecuteSnipetDto, context: SnipetResolvedContext, subscriber: Subscriber<ExecutionEvent>) {
-    switch(executeSnipet.intent) {
+  execute(
+    execution: ExecutionEntity,
+    context: SnipetResolvedContext,
+    subscriber: Subscriber<ExecutionEvent>
+  ) {
+    switch(execution.options.intent) {
       case SnipetIntent.ANSWER:
-        return this.answerParser.execute(executeSnipet, context, subscriber);
-      case SnipetIntent.SUMMARIZE:
-        return this.summarizeParser.execute(executeSnipet, context, subscriber);
-      case SnipetIntent.EXPAND:
-        return this.expandParser.execute(executeSnipet, context, subscriber);
+        return this.answerParser.execute(execution, context, subscriber);
       default:
-        throw new Error(`Output parser not implemented for intent: ${executeSnipet.intent}`);
+        throw new Error(`Output parser not implemented for intent: ${execution.options.intent}`);
     }
   }
 }
