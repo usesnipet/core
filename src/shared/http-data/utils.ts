@@ -49,7 +49,6 @@ export function collectDataForDTO(DtoClass: Constructor<any>, request: AuthReque
       instanceData[key] = collectDataForDTO(fieldType, request, `${key}.`);
       continue;
     }
-
     if (source === "body") instanceData[as] = extractKey(parent + key, request.body);
     if (source === "query") instanceData[as] = extractKey(parent + key, request.query);
     if (source === "params") instanceData[as] = extractKey(parent + key, request.params);

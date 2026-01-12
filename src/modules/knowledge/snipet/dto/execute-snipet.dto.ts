@@ -135,9 +135,9 @@ export class ExecuteSnipetDto {
   @Field({ type: "enum", enum: SnipetIntent, description: "The intent of the query" })
   intent: SnipetIntent;
 
-  @Field({ type: "boolean", required: false, nullable: true, description: "Enable streaming response for the output" })
+  @Field({ type: "boolean", required: false, description: "Enable streaming response for the output" })
   stream?: boolean;
-
+  
   @Field({ type: "class", class: () => ExecuteSnipetOptions, nullable: true, required: false })
   options?: ExecuteSnipetOptions | null;
 }

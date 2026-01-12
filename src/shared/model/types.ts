@@ -62,6 +62,8 @@ export type FieldEnumOptions = BaseFieldOptions & {
 
 export type FieldBooleanOptions = BaseFieldOptions & {
   type: "boolean";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
 };
 
 export type FieldDateOptions = BaseFieldOptions & {

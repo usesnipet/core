@@ -52,9 +52,11 @@ export class ExpandOutputStrategy implements OutputParserStrategy<ExpandOutput> 
             reject(err);
           },
           complete: () => {
+            const res: ExpandOutput = { intent: SnipetIntent.EXPAND, expandedText };
+            subscriber.next({ event: "output.data", payload: res });
             subscriber.next({ event: "output.finish" });
             subscriber.complete();
-            resolve({ intent: SnipetIntent.EXPAND, expandedText });
+            resolve(res);
           }
         });
 

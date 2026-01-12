@@ -56,9 +56,11 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
             reject(err);
           },
           complete: () => {
+            const res: AnswerOutput = { intent: SnipetIntent.ANSWER, answer };
+            subscriber.next({ event: "output.data", payload: res });
             subscriber.next({ event: "output.finish" });
             subscriber.complete();
-            resolve({ intent: SnipetIntent.ANSWER, answer });
+            resolve(res);
           }
         });
 

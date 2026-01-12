@@ -4,6 +4,7 @@ import { Field } from "../shared/model";
 import { BaseEntity } from "./entity";
 import { ApiKeyAssignmentEntity } from "./api-key-assignment.entity";
 import crypto from "crypto";
+import { AssetEntity } from "./asset.entity";
 
 @Entity("api_keys")
 export class ApiKeyEntity extends BaseEntity {
@@ -38,6 +39,10 @@ export class ApiKeyEntity extends BaseEntity {
   @Field({ type: "date", nullable: true, description: "The expires at of the api key" })
   @Column({ type: "timestamptz", nullable: true })
   expiresAt: Date | null;
+
+  @Field({ type: "class", class: () => AssetEntity, isArray: true, required: false })
+  @OneToMany(() => AssetEntity, (asset) => asset.createdBy)
+  assets?: AssetEntity[];
 
   @Field({ type: "class", class: () => ApiKeyAssignmentEntity, isArray: true, required: false })
   @OneToMany(() => ApiKeyAssignmentEntity, (r) => r.apiKey, { cascade: [ "insert", "update" ], eager: true })

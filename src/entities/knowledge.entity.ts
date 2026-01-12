@@ -4,6 +4,7 @@ import { Field } from "../shared/model";
 import { ConnectorEntity } from "./connector.entity";
 import { BaseEntity } from "./entity";
 import { ApiKeyAssignmentEntity } from "./api-key-assignment.entity";
+import { AssetEntity } from "./asset.entity";
 
 @Entity("knowledge_bases")
 @Index("knowledge_base_namespace_unique", ["namespace"])
@@ -23,6 +24,10 @@ export class KnowledgeEntity extends BaseEntity {
   @Field({ type: "string", description: "The namespace of the knowledge base", nullable: true, required: false })
   @Column({ type: "varchar", length: 255, nullable: true })
   namespace?: string | null;
+
+  @Field({ type: "class", class: () => AssetEntity, isArray: true, description: "The assets of the knowledge base" })
+  @OneToMany(() => AssetEntity, (asset) => asset.knowledge)
+  assets?: AssetEntity[];
 
   constructor(data: Partial<KnowledgeEntity>) {
     super(data);

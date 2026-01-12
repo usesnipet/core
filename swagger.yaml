@@ -175,7 +175,7 @@ components:
           type: string
         references:
           items:
-            $ref: "#/components/schemas/Reference"
+            $ref: "#/components/schemas/ReferenceDto"
           type: array
         role:
           enum:
@@ -513,7 +513,6 @@ components:
           type: string
         stream:
           description: Enable streaming response for the output
-          nullable: true
           type: boolean
       required:
         - query
@@ -868,7 +867,7 @@ components:
       required:
         - as
       type: object
-    Reference:
+    ReferenceDto:
       properties:
         data:
           additionalProperties: true
@@ -2278,6 +2277,8 @@ paths:
                   $ref: "#/components/schemas/ExecuteSnipetDto#/properties/options"
                 query:
                   $ref: "#/components/schemas/ExecuteSnipetDto#/properties/query"
+                stream:
+                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/stream"
               type: object
         required: true
       responses:

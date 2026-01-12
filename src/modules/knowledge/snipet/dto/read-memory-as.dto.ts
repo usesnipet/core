@@ -1,4 +1,5 @@
 import { Field } from "@/shared/model";
+import { ReferenceDto } from "./reference.dto";
 
 export enum As {
   CHAT = "chat"
@@ -23,17 +24,6 @@ export enum ChatRole {
   ASSISTANT = "assistant"
 }
 
-export class Reference {
-  @Field({ type: "string", required: true, uuid: true })
-  referenceId: string;
-
-  @Field({ type: "string", required: true })
-  referenceName: string;
-
-  @Field({ type: "object", additionalProperties: true })
-  data: any;
-}
-
 export class ChatDto {
   @Field({ type: "string", uuid: true, required: true })
   id: string;
@@ -50,8 +40,8 @@ export class ChatDto {
   @Field({ type: "date", required: false })
   updatedAt?: Date;
 
-  @Field({ type: "class", class: () => Reference, isArray: true, required: false })
-  references?: Reference[];
+  @Field({ type: "class", class: () => ReferenceDto, isArray: true, required: false })
+  references?: ReferenceDto[];
 
   constructor(partial: ChatDto) {
     Object.assign(this, partial);

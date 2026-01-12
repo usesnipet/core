@@ -42,7 +42,8 @@ export const sourceFields = (_: string, dim: number): FieldType[] => [
   {
     name: "connectorId",
     data_type: DataType.VarChar,
-    max_length: 36
+    max_length: 36,
+    nullable: true
   },
   {
     name: "externalId",

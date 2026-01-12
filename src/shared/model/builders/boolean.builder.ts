@@ -3,9 +3,11 @@ import { IsBoolean, IsOptional } from "class-validator";
 
 import { FieldBooleanOptions } from "../types";
 import { buildApiProperty } from "./api-property";
+import { FromBody, FromParams, FromQuery } from "./source";
 
 export const buildBooleanDecorators = (opts: FieldBooleanOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
+  const isFromBody = !opts.source || opts.source === "body";
 
   // Swagger
   decorators.push(buildApiProperty(opts));
@@ -21,10 +23,14 @@ export const buildBooleanDecorators = (opts: FieldBooleanOptions): PropertyDecor
       return Boolean(value);
     })
   );
-  if (opts.debug) console.log("added boolean transformer");
+
   // VALIDATION
   decorators.push(IsBoolean());
-  if (opts.debug) console.log("added boolean validator");
+  decorators.push(FromBody());
+
+  if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
+  if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
 
   return decorators;
 };

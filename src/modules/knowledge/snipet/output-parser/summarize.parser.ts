@@ -54,9 +54,11 @@ export class SummarizeOutputStrategy implements OutputParserStrategy<SummarizeOu
             reject(err);
           },
           complete: () => {
+            const res: SummarizeOutput = { intent: SnipetIntent.SUMMARIZE, summary };
+            subscriber.next({ event: "output.data", payload: res });
             subscriber.next({ event: "output.finish" });
             subscriber.complete();
-            resolve({ intent: SnipetIntent.SUMMARIZE, summary });
+            resolve(res);
           }
         });
 
