@@ -4,6 +4,7 @@ import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
 import { ApiKeyEntity } from "./api-key.entity";
 import { Field } from "../shared/model";
+import { ExecutionEntity } from "./execution.entity";
 
 export enum AssetDomain {
   SNIPET = "SNIPET",
@@ -15,14 +16,8 @@ export enum AssetType {
   TEXT = "TEXT",
   USER_QUESTION = "USER_QUESTION",
   AI_RESPONSE = "AI_RESPONSE",
-  PROMPT = "PROMPT",
-  CHUNK = "CHUNK",
-  SEARCH_QUERY = "SEARCH_QUERY",
-  SEARCH_RESULT = "SEARCH_RESULT",
-  EMBEDDING = "EMBEDDING",
-  TOOL_INPUT = "TOOL_INPUT",
-  TOOL_OUTPUT = "TOOL_OUTPUT",
-  FEEDBACK = "FEEDBACK",
+  CONTEXT = "CONTEXT",
+  ACTION = "ACTION",
 }
 
 export enum AssetSource {
@@ -32,17 +27,7 @@ export enum AssetSource {
   INTEGRATION = "INTEGRATION",
 }
 
-export enum AssetLifecycle {
-  EPHEMERAL = "EPHEMERAL",
-  PERSISTENT = "PERSISTENT",
-  ARCHIVED = "ARCHIVED",
-  DELETED = "DELETED",
-}
-
-
-
 export class ModelInfo {
-
   @Field({ type: "string", nullable: true, description: "The name of the model (LLM)" })
   @Column({ nullable: true })
   name?: string;
@@ -50,10 +35,6 @@ export class ModelInfo {
   @Field({ type: "string", nullable: true, description: "The version of the model (LLM)" })
   @Column({ nullable: true })
   version?: string;
-
-  @Field({ type: "number", nullable: true, description: "The cost in dollars of the model (LLM)" })
-  @Column({ type: "float", nullable: true })
-  cost?: number;
 }
 
 export class StorageInfo {
@@ -90,10 +71,6 @@ export class ContentInfo {
   @Field({ type: "string", nullable: true, description: "The language of the content" })
   @Column({ nullable: true })
   language?: string;
-
-  @Field({ type: "number", nullable: true, description: "The number of tokens estimated in the content" })
-  @Column({ type: "int", nullable: true })
-  tokensEstimate?: number;
 }
 
 @Entity("assets")
@@ -111,10 +88,6 @@ export class AssetEntity extends BaseEntity {
   @Column({ type: "enum", enum: AssetSource })
   source: AssetSource;
 
-  @Field({ type: "enum", enum: AssetLifecycle, description: "The lifecycle of the asset (EPHEMERAL, PERSISTENT, ARCHIVED, DELETED)" })
-  @Column({ type: "enum", enum: AssetLifecycle })
-  lifecycle: AssetLifecycle;
-
   @Field({ type: "string", uuid: true, description: "The unique identifier for the knowledge asset" })
   @Column({ name: "knowledge_id"})
   knowledgeId: string;
@@ -127,11 +100,20 @@ export class AssetEntity extends BaseEntity {
   @Field({ type: "string", uuid: true, description: "The unique identifier for the snipet asset" })
   @Column({ name: "snipet_id",  nullable: true })
   snipetId?: string | null;
-  
+
   @Field({ type: "class", class: () => SnipetEntity, required: false })
   @ManyToOne(() => SnipetEntity, kn => kn.assets, { onDelete: "CASCADE" })
   @JoinColumn({ name: "snipet_id" })
   snipet?: SnipetEntity;
+
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the execution asset" })
+  @Column({ name: "execution_id",  nullable: true })
+  executionId?: string | null;
+
+  @Field({ type: "class", class: () => ExecutionEntity, required: false })
+  @ManyToOne(() => ExecutionEntity, kn => kn.assets, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "execution_id" })
+  execution?: ExecutionEntity;
 
   @Field({ type: "string", uuid: true, description: "The unique identifier for the api key who created the asset" })
   @Column({ name: "created_by_id", nullable: true })
@@ -145,7 +127,7 @@ export class AssetEntity extends BaseEntity {
   @Field({ type: "class", class: () => ContentInfo, required: false })
   @Column(() => ContentInfo, { prefix: "content" })
   content?: ContentInfo;
-  
+
   @Field({ type: "class", class: () => StorageInfo, required: false })
   @Column(() => StorageInfo, { prefix: "storage" })
   storage?: StorageInfo;

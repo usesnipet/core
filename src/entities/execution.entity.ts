@@ -1,9 +1,11 @@
 import { Field } from "@/shared/model";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { ApiExtraModels } from "@nestjs/swagger";
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
+import { BaseEntity } from "./entity";
+import { AssetEntity } from "./asset.entity";
 
 export enum SearchType {
   DENSE = "dense",
@@ -176,4 +178,13 @@ export class ExecutionEntity extends BaseEntity {
   @Field({ type: "enum", enum: ExecutionState, required: false, default: ExecutionState.PENDING })
   @Column({ type: "enum", enum: ExecutionState, default: ExecutionState.PENDING })
   state: ExecutionState;
+
+  @Field({ type: "class", class: () => AssetEntity, isArray: true, required: false })
+  @OneToMany(() => AssetEntity, asset => asset.execution, { onDelete: "CASCADE" })
+  assets?: AssetEntity[];
+
+  constructor(data: Partial<ExecutionEntity>) {
+    super(data);
+    Object.assign(this, data);
+  }
 }

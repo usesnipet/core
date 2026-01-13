@@ -17,8 +17,6 @@ import { env } from "@/env";
 import { VectorStoreModule } from "@/infra/vector/vector.module";
 import { OutputParserService } from "./output-parser/output-parser.service";
 import { AnswerOutputStrategy } from "./output-parser/answer.parser";
-import { SummarizeOutputStrategy } from "./output-parser/summarize.parser";
-import { ExpandOutputStrategy } from "./output-parser/expand.parser";
 
 @Module({
   imports: [
@@ -50,8 +48,6 @@ import { ExpandOutputStrategy } from "./output-parser/expand.parser";
     // #region Output Parsers
     OutputParserService,
     AnswerOutputStrategy,
-    ExpandOutputStrategy,
-    SummarizeOutputStrategy,
     // #endregion
   ],
   exports: [ SnipetService ],

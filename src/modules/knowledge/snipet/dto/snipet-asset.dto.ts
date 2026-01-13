@@ -5,9 +5,8 @@ import { PickType } from "@nestjs/swagger";
 export enum SnipetAssetType {
   USER_QUESTION = "USER_QUESTION",
   AI_RESPONSE = "AI_RESPONSE",
-  PROMPT = "PROMPT",
-  SEARCH_QUERY = "SEARCH_QUERY",
-  SEARCH_RESULT = "SEARCH_RESULT",
+  CONTEXT = "CONTEXT",
+  ACTION = "ACTION",
 }
 
 export class SnipetAssetDto extends PickType(AssetEntity, [
@@ -15,13 +14,16 @@ export class SnipetAssetDto extends PickType(AssetEntity, [
   "createdAt", "updatedAt", "deletedAt",
   "metadata",
   "createdBy", "createdById",
-  "lifecycle",
   "knowledgeId", "knowledge",
-  "snipetId", "snipet",
+  "snipet",
+  "execution", "executionId",
   "model", "storage", "content", "source"
 ]) {
   @Field({ type: "enum", enum: SnipetAssetType })
   type: SnipetAssetType;
+
+  @Field({ type: "string", uuid: true })
+  snipetId: string;
 
   constructor(partial: Partial<SnipetAssetDto>) {
     super(partial);

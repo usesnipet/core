@@ -5,7 +5,7 @@ import { ExecutionEvent } from "../types/execution-event";
 import { AnswerOutput } from "./answer.parser";
 import { ExecutionEntity } from "@/entities/execution.entity";
 
-export type OutputParserResult = AnswerOutput;
+export type OutputParserResult = AnswerOutput | {};
 
 export interface OutputParserStrategy<T = OutputParserResult> {
   intent: SnipetIntent;

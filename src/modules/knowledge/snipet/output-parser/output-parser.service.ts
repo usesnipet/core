@@ -6,6 +6,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { AnswerOutputStrategy } from "./answer.parser";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { ExecutionEntity } from "@/entities/execution.entity";
+import { OutputParserResult } from "./output-parser.types";
 
 @Injectable()
 export class OutputParserService {
@@ -15,7 +16,7 @@ export class OutputParserService {
     execution: ExecutionEntity,
     context: SnipetResolvedContext,
     subscriber: Subscriber<ExecutionEvent>
-  ) {
+  ): Promise<OutputParserResult> {
     switch(execution.options.intent) {
       case SnipetIntent.ANSWER:
         return this.answerParser.execute(execution, context, subscriber);

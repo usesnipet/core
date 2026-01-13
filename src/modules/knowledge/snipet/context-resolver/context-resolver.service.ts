@@ -21,7 +21,7 @@ export class ContextResolver {
       knowledge: [],
       snipet: [],
       lastNMemories: []
-    }    
+    }
     if (useKnowledge !== "ignore") {
       subscriber.next({ event: "context.read-knowledge" });
       const knowledgeContext = await this.knowledgeContextResolver.resolve(
@@ -46,7 +46,7 @@ export class ContextResolver {
       } as Memory)))
       subscriber.next({ event: "context.retrieved-knowledge", payload: res.knowledge });
     }
-    
+
     if (useSnipet !== "ignore") {
       subscriber.next({ event: "context.read-snipet" });
       const snipetContext = await this.snipetContextResolver.resolve(
@@ -69,7 +69,7 @@ export class ContextResolver {
           knowledgeId: v.knowledgeId
         }
       } as Memory)));
-      
+
       res.lastNMemories.push(...snipetContext.lastNMemories.map(v => ({
         id: v.id,
         content: v.payload,
@@ -83,7 +83,7 @@ export class ContextResolver {
       } as Memory)));
       subscriber.next({ event: "context.retrieved-snipet", payload: [...res.snipet, ...res.lastNMemories] });
     }
-    
+
     return res;
   }
 }

@@ -1,41 +1,29 @@
-import { SnipetAssetType } from "../dto/snipet-asset.dto";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { OutputParserResult } from "../output-parser/output-parser.types";
+import { AnswerOutput } from "../output-parser/answer.parser";
 
-export const ASSET_POLICIES: Record<SnipetAssetType, { persistText: boolean; embed: boolean; extractText: (input: string | OutputParserResult) => string; role: string }> = {
-  [SnipetAssetType.USER_QUESTION]: {
+export type AssetPolicy = {
+  persistText: boolean;
+  embed: boolean;
+  extractText: (input: OutputParserResult) => string;
+}
+
+export const ASSET_POLICIES: Record<SnipetIntent, AssetPolicy> = {
+  [SnipetIntent.ANSWER]: {
     persistText: true,
     embed: true,
-    extractText: (input: string) => input,
-    role: "user"
+    extractText: (input: AnswerOutput) => input.answer,
   },
-  [SnipetAssetType.AI_RESPONSE]: {
+  [SnipetIntent.SUMMARIZE]: {
     persistText: true,
     embed: true,
-    extractText: (payload: OutputParserResult) => {
-      switch (payload.intent) {
-        case SnipetIntent.ANSWER:
-          return payload.answer;
-      }
+    extractText: (payload: AnswerOutput) => {
+      return payload.answer;
     },
-    role: "assistant"
   },
-  [SnipetAssetType.PROMPT]: {
+  [SnipetIntent.EXPAND]: {
     persistText: true,
     embed: false,
-    extractText: (input: string) => input,
-    role: "system"
-  },
-  [SnipetAssetType.SEARCH_QUERY]: {
-    persistText: true,
-    embed: false,
-    extractText: (input: string) => input,
-    role: "system"
-  },
-  [SnipetAssetType.SEARCH_RESULT]: {
-    persistText: true,
-    embed: false,
-    extractText: (input: string) => input,
-    role: "system"
+    extractText: (payload: AnswerOutput) => payload.answer,
   }
 } as const;
