@@ -7,8 +7,6 @@ import { ContextResolver } from "./context-resolver/context-resolver.service";
 import { Observable } from "rxjs";
 import { ExecutionEvent } from "./types/execution-event";
 import { OutputParserService } from "./output-parser/output-parser.service";
-import { As, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
-import { FilterOptions } from "@/shared/filter-options";
 import { ExecutionService } from "./execution.service";
 import { ExecutionEntity, ExecutionState } from "@/entities/execution.entity";
 import { SnipetAssetService } from "./assets/snipet-asset.service";
@@ -74,14 +72,5 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
       })();
       return () => {};
     });
-  }
-
-  readMemoryAs(filter: FilterOptions<SnipetMemoryEntity>, data: ReadMemoryAsDto) {
-    switch (data.as) {
-      case As.CHAT:
-
-      default:
-        throw new Error("Invalid read memory as");
-    }
   }
 }

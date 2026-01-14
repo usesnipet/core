@@ -19,6 +19,7 @@ import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
+import { ViewModule } from "./modules/knowledge/snipet/view/view.module";
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
     KnowledgeModule,
     ApiKeyModule,
     SnipetModule,
+    ViewModule,
     PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,
       templatesDir: env.PROMPT_TEMPLATES_DIR,

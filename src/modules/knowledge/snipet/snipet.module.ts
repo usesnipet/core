@@ -54,6 +54,6 @@ import { ExecutionService } from "./execution.service";
 
     ExecutionService
   ],
-  exports: [ SnipetService ],
+  exports: [ SnipetService, SnipetAssetService ],
 })
 export class SnipetModule {}

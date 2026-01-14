@@ -267,10 +267,6 @@ components:
         id:
           format: uuid
           type: string
-        references:
-          items:
-            $ref: "#/components/schemas/ReferenceDto"
-          type: array
         role:
           enum:
             - user
@@ -538,9 +534,6 @@ components:
           nullable: true
           type: string
       type: object
-    Date:
-      properties: {}
-      type: object
     ErrorResponse:
       properties:
         code:
@@ -621,6 +614,13 @@ components:
       required:
         - searchTypes
         - use
+      type: object
+    ExecuteSnipetDto:
+      properties:
+        options:
+          $ref: "#/components/schemas/ExecuteSnipetOptions"
+      required:
+        - options
       type: object
     ExecuteSnipetOptions:
       properties:
@@ -1026,39 +1026,6 @@ components:
           description: Temperature for text generation (0.0 to 1.0)
           type: number
       type: object
-    ReadMemoryAsChatDto:
-      properties:
-        items:
-          items:
-            $ref: "#/components/schemas/ChatDto"
-          type: array
-      required:
-        - items
-      type: object
-    ReadMemoryAsDto:
-      properties:
-        as:
-          enum:
-            - chat
-          type: string
-      required:
-        - as
-      type: object
-    ReferenceDto:
-      properties:
-        data:
-          additionalProperties: true
-          type: object
-        referenceId:
-          format: uuid
-          type: string
-        referenceName:
-          type: string
-      required:
-        - referenceId
-        - referenceName
-        - data
-      type: object
     Set:
       properties: {}
       type: object
@@ -1221,6 +1188,24 @@ components:
           type: string
       required:
         - name
+      type: object
+    ViewChatDto:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/ChatDto"
+          type: array
+      required:
+        - items
+      type: object
+    ViewDto:
+      properties:
+        view:
+          enum:
+            - chat
+          type: string
+      required:
+        - view
       type: object
     Webhook:
       properties:
@@ -2465,10 +2450,7 @@ paths:
         - in: path
           name: knowledgeId
           required: true
-          schema:
-            format: uuid
-            isArray: false
-            type: string
+          schema: {}
         - in: path
           name: snipetId
           required: true
@@ -2478,130 +2460,15 @@ paths:
           application/json:
             schema:
               properties:
-                apiKey:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKey"
-                apiKeyAssignment:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyAssignment"
-                apiKeyAssignmentId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyAssignmentId"
-                apiKeyAssignments:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyAssignments"
-                apiKeyConnectorPermissions:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyConnectorPermissions"
-                apiKeyId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyId"
-                assets:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/assets"
-                auth:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/auth"
-                authMethods:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/authMethods"
-                capabilities:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/capabilities"
-                connector:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/connector"
-                connectorId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/connectorId"
-                connectorPermissions:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/connectorPermissions"
-                connectorState:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/connectorState"
-                connectors:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/connectors"
-                content:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/content"
-                createdBy:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/createdBy"
-                createdById:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/createdById"
-                deletedAt:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/deletedAt"
-                domain:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/domain"
-                errorCount:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/errorCount"
-                execution:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/execution"
-                executionId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/executionId"
-                expiresAt:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/expiresAt"
-                id:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/id"
-                integration:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/integration"
-                integrationId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/integrationId"
-                intent:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/intent"
-                kbPermissions:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/kbPermissions"
-                key:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/key"
-                keyHash:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/keyHash"
-                knowledge:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/knowledge"
-                knowledgeId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/knowledgeId"
-                lastErrorDetails:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/lastErrorDetails"
-                lastErrorMessage:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/lastErrorMessage"
-                lastHeartbeatAt:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/lastHeartbeatAt"
-                lastSyncAt:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/lastSyncAt"
-                manifestVersion:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/manifestVersion"
-                memory:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/memory"
-                metrics:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/metrics"
-                model:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/model"
-                name:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/name"
-                namespace:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/namespace"
-                options:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/options"
-                permissions:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/permissions"
-                policyMode:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/policyMode"
-                rateLimit:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/rateLimit"
-                resources:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/resources"
-                result:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/result"
-                revoked:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/revoked"
-                root:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/root"
-                snipet:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/snipet"
-                snipetId:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/snipetId"
-                source:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/source"
-                state:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/state"
-                status:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/status"
-                storage:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/storage"
-                syncCursor:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/syncCursor"
-                throttleStatus:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/throttleStatus"
-                tools:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/tools"
-                type:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/type"
-                webhookEvents:
-                  $ref: "#/components/schemas/SnipetEntity#/properties/webhookEvents"
+                searchTypes:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/se\
+                    archTypes"
+                topK:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/to\
+                    pK"
+                use:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/us\
+                    e"
               type: object
         required: true
       responses:
@@ -2623,49 +2490,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Conflict - duplicate record
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Snipet
-  /api/knowledge/{knowledgeId}/snipet/{snipetId}/read-as:
-    get:
-      operationId: SnipetController_readMemoryAs
-      parameters:
-        - in: query
-          name: as
-          required: false
-          schema:
-            enum:
-              - chat
-            type: string
-        - in: path
-          name: knowledgeId
-          required: true
-          schema: {}
-        - in: path
-          name: snipetId
-          required: true
-          schema: {}
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReadMemoryAsChatDto"
-          description: Records found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
         "500":
           content:
             application/json:
@@ -2701,5 +2525,48 @@ paths:
         - access-token: []
       tags:
         - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{snipetId}/view:
+    get:
+      operationId: ViewController_view
+      parameters:
+        - in: query
+          name: view
+          required: false
+          schema:
+            enum:
+              - chat
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
+        - in: path
+          name: snipetId
+          required: true
+          schema: {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViewChatDto"
+          description: Records found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - View
 servers: []
 tags: []

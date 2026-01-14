@@ -1,8 +1,9 @@
 import { ExecutionEntity, ExecutionState } from "@/entities/execution.entity";
 import { Service } from "@/shared/service";
-import { Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { EntityManager, UpdateResult } from "typeorm";
 
+@Injectable()
 export class ExecutionService extends Service<ExecutionEntity> {
   entity = ExecutionEntity;
   logger = new Logger(ExecutionService.name);

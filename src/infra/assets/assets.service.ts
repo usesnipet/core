@@ -26,7 +26,7 @@ export abstract class AssetService<AssetType> extends GenericService {
 
   async find(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType[]> {
     const res = await this.repository(manager).find(filterOptions);
-    return res.map(this.fromEntity);
+    return res.map((entity) => this.fromEntity(entity));
   }
 
   async findUnique(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType | null> {

@@ -1,24 +1,6 @@
 import { Field } from "@/shared/model";
 import { ReferenceDto } from "./reference.dto";
 
-export enum As {
-  CHAT = "chat"
-}
-
-export class ReadMemoryAsDto {
-  @Field({ type: "string", required: true, uuid: true, source: "params" })
-  knowledgeId: string;
-
-  @Field({ type: "string", required: true, uuid: true, source: "params" })
-  snipetId: string;
-
-  @Field({ type: "enum", enum: As, source: "query" })
-  as: As;
-}
-
-export interface ReadMemoryAs<T> {
-  items: T[];
-}
 export enum ChatRole {
   USER = "user",
   ASSISTANT = "assistant"
@@ -40,7 +22,6 @@ export class ChatDto {
   @Field({ type: "date", required: false })
   updatedAt?: Date;
 
-  @Field({ type: "class", class: () => ReferenceDto, isArray: true, required: false })
   references?: ReferenceDto[];
 
   constructor(partial: ChatDto) {
@@ -48,7 +29,7 @@ export class ChatDto {
   }
 }
 
-export class ReadMemoryAsChatDto implements ReadMemoryAs<ChatDto> {
+export class ViewChatDto {
   @Field({ type: "class", class: () => ChatDto, isArray: true })
   items: ChatDto[];
 
