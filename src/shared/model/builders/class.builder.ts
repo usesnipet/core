@@ -15,7 +15,6 @@ export const buildClassDecorators = (opts: FieldClassOptions): PropertyDecorator
     required: isRequired,
     description: opts.description,
     example: opts.example,
-    default: opts.default,
     isArray: opts.isArray
   };
 

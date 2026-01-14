@@ -66,6 +66,8 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
 
           await this.executionService.updateState(executionId, ExecutionState.FINISHED);
         } catch (error) {
+          console.error(error);
+
           await this.executionService.updateState(executionId, ExecutionState.ERROR, error.message);
           subscriber.error(error);
         }

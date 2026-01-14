@@ -14,7 +14,7 @@ export enum AssetDomain {
 export enum AssetType {
   FILE = "FILE",
   TEXT = "TEXT",
-  USER_QUESTION = "USER_QUESTION",
+  USER_INPUT = "USER_INPUT",
   AI_RESPONSE = "AI_RESPONSE",
   CONTEXT = "CONTEXT",
   ACTION = "ACTION",

@@ -1,29 +1,14 @@
 import { SnipetIntent } from "@/types/snipet-intent";
-import { OutputParserResult } from "../output-parser/output-parser.types";
 import { AnswerOutput } from "../output-parser/answer.parser";
+import { SnipetAssetDto } from "../dto/snipet-asset.dto";
+import { OutputParserResult } from "../output-parser/types";
 
 export type AssetPolicy = {
-  persistText: boolean;
-  embed: boolean;
-  extractText: (input: OutputParserResult) => string;
+  extractText: (asset: SnipetAssetDto) => string;
 }
 
-export const ASSET_POLICIES: Record<SnipetIntent, AssetPolicy> = {
-  [SnipetIntent.ANSWER]: {
-    persistText: true,
-    embed: true,
-    extractText: (input: AnswerOutput) => input.answer,
-  },
-  [SnipetIntent.SUMMARIZE]: {
-    persistText: true,
-    embed: true,
-    extractText: (payload: AnswerOutput) => {
-      return payload.answer;
-    },
-  },
-  [SnipetIntent.EXPAND]: {
-    persistText: true,
-    embed: false,
-    extractText: (payload: AnswerOutput) => payload.answer,
-  }
+export const ASSET_POLICIES: Record<SnipetIntent, (asset: OutputParserResult) => string> = {
+  [SnipetIntent.ANSWER]: (input: AnswerOutput) => input.answer,
+  [SnipetIntent.SUMMARIZE]: (payload: AnswerOutput) => payload.answer,
+  [SnipetIntent.EXPAND]: (payload: AnswerOutput) => payload.answer,
 } as const;

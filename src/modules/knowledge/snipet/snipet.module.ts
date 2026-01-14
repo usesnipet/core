@@ -9,7 +9,6 @@ import { EmbeddingModule } from "@/infra/embedding/embedding.module";
 import { ContextResolver } from "./context-resolver/context-resolver.service";
 import { KnowledgeContextResolver } from "./context-resolver/knowledge.resolver";
 import { SnipetContextResolver } from "./context-resolver/snipet.resolver";
-import { SnipetMemoryService } from "./memory/snipet-memory.service";
 import { LLMManagerModule } from "@/infra/llm-manager/llm-manager.module";
 import { PromptModule } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
@@ -17,6 +16,8 @@ import { env } from "@/env";
 import { VectorStoreModule } from "@/infra/vector/vector.module";
 import { OutputParserService } from "./output-parser/output-parser.service";
 import { AnswerOutputStrategy } from "./output-parser/answer.parser";
+import { SnipetAssetService } from "./assets/snipet-asset.service";
+import { ExecutionService } from "./execution.service";
 
 @Module({
   imports: [
@@ -36,7 +37,6 @@ import { AnswerOutputStrategy } from "./output-parser/answer.parser";
   providers: [
     // #region Services
     SnipetService,
-    SnipetMemoryService,
     // #endregion
 
     // #region Context Resolvers
@@ -49,6 +49,10 @@ import { AnswerOutputStrategy } from "./output-parser/answer.parser";
     OutputParserService,
     AnswerOutputStrategy,
     // #endregion
+
+    SnipetAssetService,
+
+    ExecutionService
   ],
   exports: [ SnipetService ],
 })

@@ -5,6 +5,7 @@ import { ProviderHealth, ProviderInfo } from "../types";
 import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
 import { Observable } from "rxjs";
 import { MessageEvent } from "@nestjs/common";
+import { getUniversalEncoding } from "../../utils";
 
 type OpenAIOptions = {
   baseURL: string;
@@ -14,6 +15,10 @@ type OpenAIOptions = {
 
 export class OpenAITextAdapter extends TextProvider {
   client: OpenAI;
+
+  countTokens(text: string): number {
+    return getUniversalEncoding(this.opts.model).encode(text).length
+  }
 
   constructor(private opts: OpenAIOptions) {
     super();
@@ -49,28 +54,7 @@ export class OpenAITextAdapter extends TextProvider {
     };
   }
 
-  async stream(params: GenerateParams, onChunk: (chunk: StreamChunk) => void): Promise<void> {
-    const { prompt, maxTokens, temperature } = params;
-    const stream = await this.client.chat.completions.create({
-      model: this.opts.model,
-      messages: [ { role: "user", content: prompt } ],
-      max_tokens: maxTokens,
-      temperature,
-      stream: true
-    });
-
-    for await (const part of stream) {
-      const delta = part.choices[0]?.delta?.content;
-      if (delta) {
-        onChunk({ delta });
-      }
-      if (part.choices[0]?.finish_reason) {
-        onChunk({ delta: "", finishReason: part.choices[0].finish_reason });
-      }
-    }
-  }
-
-  async observableStream(params: GenerateParams): Promise<Observable<MessageEvent>> {
+  async stream(params: GenerateParams): Promise<Observable<MessageEvent>> {
     const { prompt, maxTokens, temperature } = params;
 
     const stream = await this.client.chat.completions.create({

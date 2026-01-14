@@ -18,10 +18,9 @@ export class SnipetEntity extends BaseEntity {
     required: false,
     nullable: true,
     description: "Metadata of the snipet",
-    default: null
   })
   @Column({ type: "jsonb", nullable: true })
-  metadata: Record<string, any> | null;
+  metadata: Record<string, any> | null = null;
 
   @Field({ type: "string", uuid: true, required: true })
   @Column({ type: "uuid", name: "knowledge_id" })

@@ -15,7 +15,6 @@ export const buildObjectDecorators = (opts: FieldObjectOptions): PropertyDecorat
     required: isRequired,
     description: opts.description,
     example: opts.example,
-    default: opts.default,
     isArray: opts.isArray,
     additionalProperties: opts.additionalProperties
   };

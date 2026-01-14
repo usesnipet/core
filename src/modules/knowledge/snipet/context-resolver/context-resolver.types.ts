@@ -1,7 +1,7 @@
 import { SnipetEntity } from "@/entities";
-import { ExecuteSnipetContextOptions } from "../dto/execute-snipet.dto";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { VectorStorePayload } from "@/infra/vector/payload/vector-store-payload";
+import { ExecuteSnipetContextOptions } from "@/entities/execution.entity";
 
 export type SnipetContextRequest = {
   snipet: SnipetEntity;

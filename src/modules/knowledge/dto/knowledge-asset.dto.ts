@@ -12,7 +12,6 @@ export class KnowledgeAssetDto extends PickType(AssetEntity, [
   "createdAt", "updatedAt", "deletedAt",
   "metadata",
   "createdBy", "createdById",
-  "lifecycle",
   "knowledgeId", "knowledge",
   "model", "storage", "content"
 ]) {

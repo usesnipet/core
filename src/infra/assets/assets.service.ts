@@ -8,8 +8,8 @@ export abstract class AssetService<AssetType> extends GenericService {
   repository(manager?: EntityManager): Repository<AssetEntity> {
     return manager ? manager.getRepository(AssetEntity) : this.dataSource.getRepository(AssetEntity);
   }
-
-  constructor(protected domain: AssetDomain) {
+  public abstract domain: AssetDomain;
+  constructor() {
     super();
   }
 
@@ -51,7 +51,8 @@ export abstract class AssetService<AssetType> extends GenericService {
   }
 
   async create(input: AssetType, manager?: EntityManager): Promise<AssetType> {
-    return this.fromEntity(await this.repository(manager).save(this.toEntity(input)));
+    const entity = this.toEntity(input);
+    return this.fromEntity(await this.repository(manager).save(entity));
   }
 
   async update(

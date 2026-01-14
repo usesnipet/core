@@ -12,7 +12,6 @@ export const buildApiProperty = (opts: FieldOptions): PropertyDecorator => {
   const baseConfig: ApiPropertyOptions = {
     description: opts.description,
     example: opts.example,
-    default: opts.default,
     isArray: opts.isArray,
     nullable: opts.nullable,
   };

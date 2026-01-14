@@ -8,9 +8,10 @@ import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 import { collectDataForDTO } from "./utils";
 import { AuthRequest } from "@/types/request";
+import { Constructor } from "@/types/constructor";
 
 
-export const HTTPData = (DtoClass: new () => any) =>
+export const HTTPData = (DtoClass: Constructor<any>) =>
   createParamDecorator((_: unknown, ctx: ExecutionContext) => {
     const request: AuthRequest = ctx.switchToHttp().getRequest();
     const collected = collectDataForDTO(DtoClass, request);

@@ -14,6 +14,7 @@ import { ReadMemoryAsChatDto, ReadMemoryAsDto } from "./dto/read-memory-as.dto";
 import { FilterOptions } from "@/shared/filter-options";
 import { HTTPData } from "@/shared/http-data/http-data.decorator";
 import { HTTPDataSwagger } from "@/shared/http-data/http-data-swagger.decorator";
+import { ExecutionEntity } from "@/entities/execution.entity";
 
 @Controller("knowledge/:knowledgeId/snipet")
 export class SnipetController extends BaseController({
@@ -33,8 +34,8 @@ export class SnipetController extends BaseController({
   }
 
   @HttpPost(":snipetId/execute", { responses: getDefaultCreateResponses(ExecuteSnipetResponseDto) })
-  @HTTPDataSwagger(ExecuteSnipetDto)
-  execute(@HTTPData(ExecuteSnipetDto) data: ExecuteSnipetDto): ExecuteSnipetResponseDto {
+  @HTTPDataSwagger(ExecutionEntity)
+  execute(@HTTPData(ExecuteSnipetDto) data: ExecuteSnipetDto): Promise<ExecuteSnipetResponseDto> {
     return this.service.execute(data);
   }
 

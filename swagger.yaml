@@ -16,7 +16,7 @@ components:
             $ref: "#/components/schemas/ApiKeyConnectorPermissionEntity"
           type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -39,7 +39,7 @@ components:
           format: uuid
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -69,7 +69,7 @@ components:
           format: uuid
           type: string
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -104,7 +104,7 @@ components:
           nullable: true
           type: array
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
         webhookEvents:
@@ -132,8 +132,12 @@ components:
           items:
             $ref: "#/components/schemas/ApiKeyAssignmentEntity"
           type: array
+        assets:
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         expiresAt:
@@ -152,7 +156,7 @@ components:
           description: The rate limit of the api key
           type: number
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -162,6 +166,96 @@ components:
         - name
         - rateLimit
         - expiresAt
+      type: object
+    AssetEntity:
+      properties:
+        content:
+          $ref: "#/components/schemas/ContentInfo"
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/ApiKeyEntity"
+        createdById:
+          description: The unique identifier for the api key who created the asset
+          format: uuid
+          type: string
+        deletedAt:
+          description: The timestamp of the deletion
+          format: date-time
+          type: string
+        domain:
+          description: The domain of the asset (Knowledge or Snipet)
+          enum:
+            - SNIPET
+            - KNOWLEDGE
+          type: string
+        execution:
+          $ref: "#/components/schemas/ExecutionEntity"
+        executionId:
+          description: The unique identifier for the execution asset
+          format: uuid
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        knowledgeId:
+          description: The unique identifier for the knowledge asset
+          format: uuid
+          type: string
+        metadata:
+          additionalProperties: true
+          description: The metadata of the asset
+          type: object
+        model:
+          $ref: "#/components/schemas/ModelInfo"
+        snipet:
+          $ref: "#/components/schemas/SnipetEntity"
+        snipetId:
+          description: The unique identifier for the snipet asset
+          format: uuid
+          type: string
+        source:
+          description: The source of the asset (USER, AI, SYSTEM, INTEGRATION)
+          enum:
+            - USER
+            - AI
+            - SYSTEM
+            - INTEGRATION
+          type: string
+        storage:
+          $ref: "#/components/schemas/StorageInfo"
+        type:
+          description: Indicates the type of the asset, if it is a file, text, user
+            question, ai response...
+          enum:
+            - FILE
+            - TEXT
+            - USER_INPUT
+            - AI_RESPONSE
+            - CONTEXT
+            - ACTION
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - domain
+        - type
+        - source
+        - knowledgeId
+        - snipetId
+        - executionId
+        - createdById
+        - deletedAt
       type: object
     ChatDto:
       properties:
@@ -218,7 +312,7 @@ components:
         connectorState:
           $ref: "#/components/schemas/ConnectorStateEntity"
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -247,7 +341,7 @@ components:
             - MCP
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -273,7 +367,7 @@ components:
           format: uuid
           type: string
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         errorCount:
@@ -314,7 +408,7 @@ components:
         throttleStatus:
           $ref: "#/components/schemas/ConnectorThrottleStatus"
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -334,6 +428,35 @@ components:
       type: object
     ConnectorThrottleStatus:
       properties: {}
+      type: object
+    ContentInfo:
+      properties:
+        hash:
+          description: The hash of the content
+          nullable: true
+          type: string
+        language:
+          description: The language of the content
+          nullable: true
+          type: string
+        mimeType:
+          description: The mime type of the content
+          nullable: true
+          type: string
+        sizeBytes:
+          description: The size in bytes of the content
+          nullable: true
+          type: number
+        text:
+          description: The text of the content
+          nullable: true
+          type: string
+      required:
+        - text
+        - hash
+        - sizeBytes
+        - mimeType
+        - language
       type: object
     CreateConnectorDto:
       properties:
@@ -409,12 +532,14 @@ components:
       properties:
         metadata:
           additionalProperties: true
-          default: null
           description: Metadata of the snipet
           type: object
         name:
           nullable: true
           type: string
+      type: object
+    Date:
+      properties: {}
       type: object
     ErrorResponse:
       properties:
@@ -497,8 +622,10 @@ components:
         - searchTypes
         - use
       type: object
-    ExecuteSnipetDto:
+    ExecuteSnipetOptions:
       properties:
+        contextOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextOptions"
         intent:
           description: The intent of the query
           enum:
@@ -506,8 +633,13 @@ components:
             - summarize
             - expand
           type: string
-        options:
-          $ref: "#/components/schemas/ExecuteSnipetOptions"
+        output:
+          $ref: "#/components/schemas/OutputOptions"
+        persistenceType:
+          enum:
+            - stateless
+            - full
+          type: string
         query:
           description: The query to execute
           type: string
@@ -518,23 +650,60 @@ components:
         - query
         - intent
       type: object
-    ExecuteSnipetOptions:
-      properties:
-        contextOptions:
-          $ref: "#/components/schemas/ExecuteSnipetContextOptions"
-        memory:
-          $ref: "#/components/schemas/MemoryOptions"
-        output:
-          $ref: "#/components/schemas/OutputOptions"
-      type: object
     ExecuteSnipetResponseDto:
       properties:
         executionId:
-          description: Execution identifier for tracking the snipet execution
           format: uuid
           type: string
       required:
         - executionId
+      type: object
+    ExecutionEntity:
+      properties:
+        assets:
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        options:
+          $ref: "#/components/schemas/ExecuteSnipetOptions"
+        result:
+          $ref: "#/components/schemas/ExecutionResult"
+        snipet:
+          $ref: "#/components/schemas/SnipetEntity"
+        state:
+          enum:
+            - pending
+            - running
+            - finished
+            - error
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - knowledge
+        - options
+      type: object
+    ExecutionResult:
+      properties:
+        error:
+          type: string
+        estimatedCost:
+          type: number
       type: object
     FileIngestDto:
       properties:
@@ -580,7 +749,7 @@ components:
             $ref: "#/components/schemas/ConnectorEntity"
           type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -602,7 +771,7 @@ components:
             - MCP
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -670,13 +839,18 @@ components:
           items:
             $ref: "#/components/schemas/ApiKeyAssignmentEntity"
           type: array
+        assets:
+          description: The assets of the knowledge base
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
         connectors:
           description: The connectors of the knowledge base
           items:
             $ref: "#/components/schemas/ConnectorEntity"
           type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -691,7 +865,7 @@ components:
           nullable: true
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -701,6 +875,7 @@ components:
         - name
         - connectors
         - apiKeyAssignments
+        - assets
       type: object
     MCPIntegrationManifest:
       properties:
@@ -828,16 +1003,19 @@ components:
         - capabilities
         - features
       type: object
-    MemoryOptions:
+    ModelInfo:
       properties:
-        mode:
-          default: stateless
-          enum:
-            - stateless
-            - conversation
+        name:
+          description: The name of the model (LLM)
+          nullable: true
+          type: string
+        version:
+          description: The version of the model (LLM)
+          nullable: true
           type: string
       required:
-        - mode
+        - name
+        - version
       type: object
     OutputOptions:
       properties:
@@ -845,7 +1023,6 @@ components:
           description: Maximum number of tokens to generate
           type: number
         temperature:
-          default: 0.7
           description: Temperature for text generation (0.0 to 1.0)
           type: number
       type: object
@@ -882,16 +1059,25 @@ components:
         - referenceName
         - data
       type: object
+    Set:
+      properties: {}
+      type: object
     SnipetEntity:
       properties:
+        assets:
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
           description: The unique identifier for the entity
           format: uuid
           type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
         knowledgeId:
           format: uuid
           type: string
@@ -901,14 +1087,13 @@ components:
           type: array
         metadata:
           additionalProperties: true
-          default: null
           description: Metadata of the snipet
           type: object
         name:
           nullable: true
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -916,12 +1101,13 @@ components:
         - createdAt
         - updatedAt
         - knowledgeId
+        - assets
         - memory
       type: object
     SnipetMemoryEntity:
       properties:
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -953,7 +1139,7 @@ components:
             - text_assistant_output
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -965,6 +1151,24 @@ components:
         - type
         - intent
         - payload
+      type: object
+    StorageInfo:
+      properties:
+        key:
+          description: The key of the storage, where the asset is stored
+          nullable: true
+          type: string
+        persisted:
+          description: Indicates if the asset is persisted
+          type: boolean
+        provider:
+          description: The provider of the storage, where the asset is stored
+          nullable: true
+          type: string
+      required:
+        - provider
+        - key
+        - persisted
       type: object
     StreamDto:
       properties: {}
@@ -2261,7 +2465,10 @@ paths:
         - in: path
           name: knowledgeId
           required: true
-          schema: {}
+          schema:
+            format: uuid
+            isArray: false
+            type: string
         - in: path
           name: snipetId
           required: true
@@ -2271,14 +2478,130 @@ paths:
           application/json:
             schema:
               properties:
+                apiKey:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKey"
+                apiKeyAssignment:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyAssignment"
+                apiKeyAssignmentId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyAssignmentId"
+                apiKeyAssignments:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyAssignments"
+                apiKeyConnectorPermissions:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyConnectorPermissions"
+                apiKeyId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/apiKeyId"
+                assets:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/assets"
+                auth:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/auth"
+                authMethods:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/authMethods"
+                capabilities:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/capabilities"
+                connector:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/connector"
+                connectorId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/connectorId"
+                connectorPermissions:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/connectorPermissions"
+                connectorState:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/connectorState"
+                connectors:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/connectors"
+                content:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/content"
+                createdBy:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/createdBy"
+                createdById:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/createdById"
+                deletedAt:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/deletedAt"
+                domain:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/domain"
+                errorCount:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/errorCount"
+                execution:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/execution"
+                executionId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/executionId"
+                expiresAt:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/expiresAt"
+                id:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/id"
+                integration:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/integration"
+                integrationId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/integrationId"
                 intent:
-                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/intent"
+                  $ref: "#/components/schemas/SnipetEntity#/properties/intent"
+                kbPermissions:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/kbPermissions"
+                key:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/key"
+                keyHash:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/keyHash"
+                knowledge:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/knowledge"
+                knowledgeId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/knowledgeId"
+                lastErrorDetails:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/lastErrorDetails"
+                lastErrorMessage:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/lastErrorMessage"
+                lastHeartbeatAt:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/lastHeartbeatAt"
+                lastSyncAt:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/lastSyncAt"
+                manifestVersion:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/manifestVersion"
+                memory:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/memory"
+                metrics:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/metrics"
+                model:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/model"
+                name:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/name"
+                namespace:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/namespace"
                 options:
-                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/options"
-                query:
-                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/query"
-                stream:
-                  $ref: "#/components/schemas/ExecuteSnipetDto#/properties/stream"
+                  $ref: "#/components/schemas/SnipetEntity#/properties/options"
+                permissions:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/permissions"
+                policyMode:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/policyMode"
+                rateLimit:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/rateLimit"
+                resources:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/resources"
+                result:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/result"
+                revoked:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/revoked"
+                root:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/root"
+                snipet:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/snipet"
+                snipetId:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/snipetId"
+                source:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/source"
+                state:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/state"
+                status:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/status"
+                storage:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/storage"
+                syncCursor:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/syncCursor"
+                throttleStatus:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/throttleStatus"
+                tools:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/tools"
+                type:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/type"
+                webhookEvents:
+                  $ref: "#/components/schemas/SnipetEntity#/properties/webhookEvents"
               type: object
         required: true
       responses:

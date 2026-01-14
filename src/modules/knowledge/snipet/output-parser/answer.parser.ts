@@ -1,13 +1,12 @@
 import { Subscriber } from "rxjs";
 import { SnipetResolvedContext } from "../context-resolver/context-resolver.types";
 import { ExecutionEvent } from "../types/execution-event";
-import { OutputParserStrategy } from "./output-parser.types";
 import { Inject, Injectable } from "@nestjs/common";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { PromptService } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { SnipetIntent } from "@/types/snipet-intent";
-import { BaseOutputResult } from "./types";
+import { BaseOutputResult, OutputParserStrategy } from "./types";
 import { ExecutionEntity } from "@/entities/execution.entity";
 
 export type AnswerOutput = BaseOutputResult & {

@@ -72,7 +72,7 @@ export class ContextResolver {
 
       res.lastNMemories.push(...snipetContext.lastNMemories.map(v => ({
         id: v.id,
-        content: v.payload,
+        content: v.content?.text,
         createdAt: v.createdAt,
         updatedAt: v.updatedAt,
         source: {

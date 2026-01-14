@@ -20,7 +20,9 @@ export class ExecutionService extends Service<ExecutionEntity> {
 
     return this.repository(manager).update(executionId, {
       state,
-      ...(error ? { error } : {})
+      result: {
+        ...(error ? { error } : {})
+      }
     });
   }
 }

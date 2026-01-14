@@ -1,10 +1,12 @@
 import { AssetService } from "@/infra/assets/assets.service";
 import { KnowledgeAssetDto, KnowledgeAssetType } from "./dto/knowledge-asset.dto";
 import { Logger } from "@nestjs/common";
-import { AssetEntity, AssetType } from "@/entities/asset.entity";
+import { AssetDomain, AssetEntity, AssetType } from "@/entities/asset.entity";
 
 export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
   logger = new Logger(KnowledgeAssetService.name);
+
+  domain = AssetDomain.SNIPET;
 
   private knowledgeAssetTypeToAssetType(type: KnowledgeAssetType): AssetType {
     switch (type) {
@@ -26,7 +28,7 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
         return KnowledgeAssetType.TEXT;
     }
   }
-  
+
   fromEntity(entity: AssetEntity): KnowledgeAssetDto {
     return new KnowledgeAssetDto({
       id: entity.id,
@@ -38,7 +40,6 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
       createdById: entity.createdById,
       knowledge: entity.knowledge,
       knowledgeId: entity.knowledgeId,
-      lifecycle: entity.lifecycle,
       metadata: entity.metadata,
       model: entity.model,
       storage: entity.storage,
@@ -60,7 +61,6 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
       deletedAt: asset.deletedAt,
       knowledge: asset.knowledge,
       knowledgeId: asset.knowledgeId,
-      lifecycle: asset.lifecycle,
       model: asset.model,
       storage: asset.storage,
     });

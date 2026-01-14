@@ -16,7 +16,6 @@ export type BaseFieldOptions = {
   isArray?: boolean;
   description?: string;
   example?: any;
-  default?: any;
   hidden?: boolean;
   nullable?: boolean;
 

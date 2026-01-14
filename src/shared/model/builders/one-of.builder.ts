@@ -19,7 +19,6 @@ export const buildOneOfDecorators = (opts: FieldOneOfOptions): PropertyDecorator
     required: isRequired,
     description: opts.description,
     example: opts.example,
-    default: opts.default,
     isArray: opts.isArray,
     oneOf: resolved.map(model => ({
       $ref: getSchemaPath(model)

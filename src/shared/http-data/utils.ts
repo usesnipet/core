@@ -46,7 +46,8 @@ export function collectDataForDTO(DtoClass: Constructor<any>, request: AuthReque
   for (const { key, source, as } of sources) {
     if (isClassType(DtoClass, key)) {
       const fieldType = Reflect.getMetadata("design:type", DtoClass.prototype, key);
-      instanceData[key] = collectDataForDTO(fieldType, request, `${key}.`);
+      const nested = collectDataForDTO(fieldType, request, `${key}.`);
+      if (Object.values(nested).some(v => v !== undefined)) instanceData[key] = nested;
       continue;
     }
     if (source === "body") instanceData[as] = extractKey(parent + key, request.body);

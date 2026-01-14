@@ -3,7 +3,7 @@ import { Field } from "@/shared/model";
 import { PickType } from "@nestjs/swagger";
 
 export enum SnipetAssetType {
-  USER_QUESTION = "USER_QUESTION",
+  USER_INPUT = "USER_INPUT",
   AI_RESPONSE = "AI_RESPONSE",
   CONTEXT = "CONTEXT",
   ACTION = "ACTION",

@@ -53,10 +53,9 @@ export class LLMPreset {
 
   @Field({
     type: "boolean",
-    default: false,
     description: "Indicates if should ignore received fields in the request."
   })
-  ignoreFields: boolean;
+  ignoreFields: boolean = false
 
   @Field({
     type: "object",

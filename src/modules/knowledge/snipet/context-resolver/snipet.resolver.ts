@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
-import { SnipetMemoryService } from "../memory/snipet-memory.service";
+import { SnipetAssetService } from "../assets/snipet-asset.service";
 
 export type SnipetContextResolverOptions = {
   filters?: Record<string, string | number | boolean>;
@@ -9,20 +9,20 @@ export type SnipetContextResolverOptions = {
 
 @Injectable()
 export class SnipetContextResolver {
-  @Inject() private readonly snipetMemoryService: SnipetMemoryService;
+  @Inject() private readonly snipetMemoryService: SnipetAssetService;
 
   resolve(
     knowledgeId: string,
     opts?: SnipetContextResolverOptions
-  ): ReturnType<SnipetMemoryService['search']> {
+  ): ReturnType<SnipetAssetService['search']> {
     const query = typeof opts?.query === "string" ? opts.query : opts?.query?.query;
     if (!query) throw new BadRequestException("Query not found");
     return this.snipetMemoryService.search(
       knowledgeId,
       query,
-      SnipetMemoryService.withFilters(opts?.filters),
-      SnipetMemoryService.withLastNMemories(opts?.lastNMemories),
-      SnipetMemoryService.withQuery(opts?.query)
+      SnipetAssetService.withFilters(opts?.filters),
+      SnipetAssetService.withLastNMemories(opts?.lastNMemories),
+      SnipetAssetService.withQuery(opts?.query)
     );
   }
 }

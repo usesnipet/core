@@ -9,28 +9,25 @@ export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorat
   const decorators: PropertyDecorator[] = [];
 
   const isFromBody = !opts.source || opts.source === "body"
+  const isOptional = opts.required === false;
 
   // Swagger
   decorators.push(buildApiProperty(opts));
-  if (opts.required === false) decorators.push(IsOptional());
+  if (isOptional) decorators.push(IsOptional());
 
 
   decorators.push(Transform(({ value }) => Number(value)));
-  if (opts.debug) console.log("added number transformer");
 
   decorators.push(IsNumber());
-  if (opts.debug) console.log("added number validator");
 
   if (opts.min) {
     if (typeof opts.min === "object") decorators.push(Min(opts.min.min, opts.min as any));
     else decorators.push(Min(opts.min));
-    if (opts.debug) console.log("added min validator");
   }
 
   if (opts.max) {
     if (typeof opts.max === "object") decorators.push(Max(opts.max.max, opts.max as any));
     else decorators.push(Max(opts.max));
-    if (opts.debug) console.log("added max validator");
   }
 
   if (opts.integer) decorators.push(IsInt());

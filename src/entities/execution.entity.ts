@@ -1,5 +1,5 @@
-import { Field } from "@/shared/model";
-import { SnipetIntent } from "@/types/snipet-intent";
+import { Field } from "../shared/model";
+import { SnipetIntent } from "../types/snipet-intent";
 import { ApiExtraModels } from "@nestjs/swagger";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { KnowledgeEntity } from "./knowledge.entity";
@@ -91,27 +91,37 @@ export class ExecuteSnipetContextOptions {
 
 export enum PersistenceType {
   STATELESS = "stateless",
-  CONVERSATION = "conversation",
   FULL = "full"
 }
 
 
 export class OutputOptions {
-  @Field({ type: "number", min: 0, required: false, description: "Maximum number of tokens to generate" })
+  @Field({
+    type: "number",
+    min: 0,
+    required: false,
+    description: "Maximum number of tokens to generate"
+  })
   maxTokens?: number;
 
-  @Field({ type: "number", min: 0, max: 1, default: 0.7, required: false, description: "Temperature for text generation (0.0 to 1.0)"})
-  temperature?: number;
+  @Field({
+    type: "number",
+    min: 0,
+    max: 1,
+    required: false,
+    description: "Temperature for text generation (0.0 to 1.0)"
+  })
+  temperature: number = 0.7;
 }
 
 export class ExecuteSnipetOptions {
-  @Field({ type: "class", class: () => ExecuteSnipetContextOptions, nullable: true, required: false })
+  @Field({ type: "class", class: () => ExecuteSnipetContextOptions, required: false })
   contextOptions?: ExecuteSnipetContextOptions;
 
   @Field({ type: "enum", enum: PersistenceType, required: false })
-  persistenceType: PersistenceType;
+  persistenceType: PersistenceType = PersistenceType.FULL;
 
-  @Field({ type: "class", class: () => OutputOptions, nullable: true, required: false })
+  @Field({ type: "class", class: () => OutputOptions, required: false })
   output?: OutputOptions;
 
   @Field({ type: "string", description: "The query to execute", required: true, min: 1 })
@@ -162,7 +172,7 @@ export class ExecutionEntity extends BaseEntity {
   @Column({ name: "snipet_id", type: "uuid" })
   snipetId: string;
 
-  @Field({ type: "class", class: () => SnipetEntity })
+  @Field({ type: "class", class: () => SnipetEntity, required: false })
   @ManyToOne(() => SnipetEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "snipet_id" })
   snipet?: SnipetEntity;
@@ -175,9 +185,9 @@ export class ExecutionEntity extends BaseEntity {
   @Column({ type: "jsonb", nullable: true })
   result?: ExecutionResult | null;
 
-  @Field({ type: "enum", enum: ExecutionState, required: false, default: ExecutionState.PENDING })
+  @Field({ type: "enum", enum: ExecutionState, required: false })
   @Column({ type: "enum", enum: ExecutionState, default: ExecutionState.PENDING })
-  state: ExecutionState;
+  state: ExecutionState = ExecutionState.PENDING;
 
   @Field({ type: "class", class: () => AssetEntity, isArray: true, required: false })
   @OneToMany(() => AssetEntity, asset => asset.execution, { onDelete: "CASCADE" })
