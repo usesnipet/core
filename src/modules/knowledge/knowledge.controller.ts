@@ -37,11 +37,11 @@ export class KnowledgeController extends BaseController({
     return this.service.getStatus(id);
   }
 
-  @HttpPost(":knowledgeId/ingest", { responses: getDefaultCreateResponses(FileIngestResponseDto) })
+  @HttpPost(":knowledgeId/ingest-file", { responses: getDefaultCreateResponses(FileIngestResponseDto) })
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
   @HTTPDataSwagger(FileIngestDto)
-  async ingest(@UploadedFile() file: Express.Multer.File, @HTTPData(FileIngestDto) body: FileIngestDto) {
-    return this.service.ingest(file, body);
+  async ingestFile(@UploadedFile() file: Express.Multer.File, @HTTPData(FileIngestDto) body: FileIngestDto) {
+    return this.service.ingestFile(file, body);
   }
 }

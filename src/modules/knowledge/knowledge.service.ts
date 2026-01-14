@@ -16,6 +16,8 @@ import { Queue } from "bullmq";
 import { IngestJobState, IngestJobStateResponseDto } from "./dto/job-state.dto";
 import { randomUUID } from "crypto";
 import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
+import { StorageService } from "@/infra/storage/storage.service";
+import { KnowledgeAssetDto } from "./dto/knowledge-asset.dto";
 
 export type SearchOptions = {
   knowledgeId: string;
@@ -38,12 +40,14 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly vectorStore:      SourceVectorStoreService;
   @Inject() private readonly apiKeyService:    ApiKeyService;
+  @Inject() private readonly storageService:   StorageService;
 
   private getApiKey() {
     const apiKey = this.context.apiKey;
     if (!apiKey) throw new UnauthorizedException();
     return apiKey;
   }
+
   private knowledgeToApiConfig(knowledge: KnowledgeEntity | KnowledgeEntity[]): KnowledgeBaseApiKeyConfig[] {
     const toApiConfig = (kn: KnowledgeEntity): KnowledgeBaseApiKeyConfig => {
       return {
@@ -55,17 +59,24 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     return Array.isArray(knowledge) ? knowledge.map(toApiConfig) : [toApiConfig(knowledge)];
   }
 
-  async ingest(file: Express.Multer.File, data: FileIngestDto): Promise<FileIngestResponseDto> {
-    const ext = file.originalname.split('.').pop();
-    if (!ext) throw new BadRequestException("Failed to ingest content");
+  async ingestFile(
+    { buffer, originalname, mimetype }: Express.Multer.File,
+    { knowledgeId, metadata, saveFile, externalId }: FileIngestDto
+  ): Promise<FileIngestResponseDto> {
+    const extension = originalname.split('.').pop();
+    if (!extension) throw new BadRequestException("Failed to ingest content");
+    const path = `temp/${knowledgeId}/${randomUUID()}.${extension}`;
+    await this.storageService.putObject(path, buffer, mimetype);
     const job = await this.ingestQueue.add("", {
-      knowledgeId: data.knowledgeId,
-      metadata: data.metadata,
-      path: file.path,
-      mimetype: file.mimetype,
-      originalname: file.originalname,
-      extension: ext,
-      externalId: data.externalId,
+      path,
+      extension,
+      knowledgeId,
+      metadata,
+      mimetype,
+      originalname,
+      externalId,
+      saveFile,
+      size: buffer.byteLength
     }, { jobId: randomUUID() });
     if (!job.id) throw new BadRequestException("Failed to ingest content");
     return new FileIngestResponseDto(job.id);

@@ -1,4 +1,5 @@
 import { FileProcessorService } from "@/infra/file-processor/file-processor.service";
+import { StorageService } from "@/infra/storage/storage.service";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject, Logger } from "@nestjs/common";
@@ -6,6 +7,7 @@ import { Job } from "bullmq";
 import * as fs from "fs/promises";
 import { Readable } from "stream";
 import streamToBlob from "stream-to-blob";
+import { KnowledgeAssetService } from "./knowledge-asset.service";
 
 export type FileIngestJobData = {
   metadata: Record<string, any>;
@@ -16,6 +18,8 @@ export type FileIngestJobData = {
   extension: string;
   mimetype: string;
   originalname: string;
+  saveFile: boolean;
+  size: number;
 };
 
 @Processor(FileIngestJob.INGEST_KEY, { concurrency: 1 })
@@ -23,19 +27,22 @@ export class FileIngestJob extends WorkerHost {
   static INGEST_KEY = "file-ingest";
   private readonly logger = new Logger(FileIngestJob.name);
 
-  @Inject() private readonly fileIndexer: FileProcessorService;
-  @Inject() private readonly vectorStore: SourceVectorStoreService;
+  @Inject() private readonly fileIndexer:           FileProcessorService;
+  @Inject() private readonly vectorStore:           SourceVectorStoreService;
+  @Inject() private readonly storageService:        StorageService;
+  @Inject() private readonly knowledgeAssetService: KnowledgeAssetService;
 
   async process(job: Job<FileIngestJobData>): Promise<any> {
     const { data } = job;
     this.logger.debug(`Processing file "${data.path}"`);
-    const buffer = await fs.readFile(data.path);
+    const readableStream = await this.storageService.getObject(data.path);
+    if (!readableStream) return;
 
     const payloads = await this.fileIndexer.process(
-      await streamToBlob(Readable.from(buffer)),
+      await streamToBlob(readableStream),
       {
         type: "file",
-        size: buffer.byteLength,
+        size: data.size,
         extension: data.extension,
         mimeType: data.mimetype,
         originalName: data.originalname,
@@ -47,8 +54,10 @@ export class FileIngestJob extends WorkerHost {
     );
 
     if (payloads.length > 0) await this.vectorStore.add(payloads);
+    const path = await this.storageService.confirmTempUpload(data.path);
+    data.path = path;
 
-    await fs.unlink(data.path);
+    await this.knowledgeAssetService.saveFile(data);
     this.logger.log(`File "${data.path}" processed`);
   }
 

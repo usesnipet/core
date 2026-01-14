@@ -1,6 +1,4 @@
-import { randomUUID } from "crypto";
-import { diskStorage } from "multer";
-import path from "path";
+import { memoryStorage } from "multer";
 
 import { DatabaseModule } from "@/infra/database/database.module";
 import { HTTPContextModule } from "@/shared/http-context/http-context.module";
@@ -17,7 +15,8 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { FileIngestJob } from "./file-ingest.job";
 import { FileProcessorModule } from "@/infra/file-processor/file-processor.module";
 import { MulterModule } from "@nestjs/platform-express";
-import { env } from "@/env";
+import { StorageModule } from "@/infra/storage/storage.module";
+import { KnowledgeAssetService } from "./knowledge-asset.service";
 
 @Module({
   imports: [
@@ -29,19 +28,11 @@ import { env } from "@/env";
     ApiKeyModule,
     BullModule.registerQueue({ name: FileIngestJob.INGEST_KEY }),
     BullBoardModule.forFeature({ name: FileIngestJob.INGEST_KEY, adapter: BullMQAdapter }),
-    MulterModule.register({
-      storage: diskStorage({
-        destination: env.FILE_UPLOAD_PATH,
-        filename: (req, file, cb) => {
-          const ext = path.extname(file.originalname);
-          const id = randomUUID();
-          cb(null, id + ext);
-        }
-      })
-    })
+    MulterModule.register({ storage: memoryStorage() }),
+    StorageModule.register()
   ],
   controllers: [KnowledgeController],
-  providers: [KnowledgeService, FileIngestJob],
+  providers: [KnowledgeService, FileIngestJob, KnowledgeAssetService],
   exports: [KnowledgeService]
 })
 export class KnowledgeModule {}

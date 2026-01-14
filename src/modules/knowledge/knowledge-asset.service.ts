@@ -2,6 +2,9 @@ import { AssetService } from "@/infra/assets/assets.service";
 import { KnowledgeAssetDto, KnowledgeAssetType } from "./dto/knowledge-asset.dto";
 import { Logger } from "@nestjs/common";
 import { AssetDomain, AssetEntity, AssetType } from "@/entities/asset.entity";
+import { EntityManager } from "typeorm";
+import { FileIngestDto } from "./dto/ingest.dto";
+import { FileIngestJobData } from "./file-ingest.job";
 
 export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
   logger = new Logger(KnowledgeAssetService.name);
@@ -64,5 +67,38 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
       model: asset.model,
       storage: asset.storage,
     });
+  }
+
+  // private save(asset: KnowledgeAssetDto, manager?: EntityManager) {
+  //   return this.transaction(async (manager) => {
+  //     if (opts.persistText) {
+  //       const text = opts.extractText(asset);
+  //       if (!asset.content) asset.content = {};
+  //       asset.content.text = text;
+  //       asset.content.hash = this.hash(text);
+  //       asset.content.sizeBytes = Buffer.byteLength(text);
+  //       asset = await super.create(asset, manager);
+  //     }
+  //     if (opts.embed) await this.embed(asset, opts.extractText);
+
+  //     return asset;
+  //   }, opts.manager);
+  // }
+
+  async saveFile(data: FileIngestJobData, manager?: EntityManager) {
+    const asset = new KnowledgeAssetDto({
+      knowledgeId: data.knowledgeId,
+      type: KnowledgeAssetType.FILE,
+      metadata: {
+        ...data.metadata,
+        externalId: data.externalId,
+        connectorId: data.connectorId,
+      },
+      storage: {
+        provider: "s3",
+        key: data.path,
+        persisted: true
+      },
+    })
   }
 }

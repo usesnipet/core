@@ -711,6 +711,9 @@ components:
           type: string
         metadata:
           type: string
+        saveFile:
+          description: Indicates if the file should be saved in the storage
+          type: boolean
       type: object
     FileIngestResponseDto:
       properties:
@@ -2157,9 +2160,9 @@ paths:
         - access-token: []
       tags:
         - Connector
-  /api/knowledge/{knowledgeId}/ingest:
+  /api/knowledge/{knowledgeId}/ingest-file:
     post:
-      operationId: KnowledgeController_ingest
+      operationId: KnowledgeController_ingestFile
       parameters:
         - in: path
           name: knowledgeId
@@ -2174,6 +2177,8 @@ paths:
                   $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
                 metadata:
                   $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
+                saveFile:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/saveFile"
               type: object
         required: true
       responses:
