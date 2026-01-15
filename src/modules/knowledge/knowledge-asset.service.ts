@@ -1,15 +1,14 @@
 import { AssetService } from "@/infra/assets/assets.service";
 import { KnowledgeAssetDto, KnowledgeAssetType } from "./dto/knowledge-asset.dto";
 import { Logger } from "@nestjs/common";
-import { AssetDomain, AssetEntity, AssetType } from "@/entities/asset.entity";
+import { AssetDomain, AssetEntity, AssetSource, AssetType } from "@/entities/asset.entity";
 import { EntityManager } from "typeorm";
-import { FileIngestDto } from "./dto/ingest.dto";
 import { FileIngestJobData } from "./file-ingest.job";
 
 export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
   logger = new Logger(KnowledgeAssetService.name);
 
-  domain = AssetDomain.SNIPET;
+  domain = AssetDomain.KNOWLEDGE;
 
   private knowledgeAssetTypeToAssetType(type: KnowledgeAssetType): AssetType {
     switch (type) {
@@ -66,6 +65,7 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
       knowledgeId: asset.knowledgeId,
       model: asset.model,
       storage: asset.storage,
+      source: AssetSource.SYSTEM
     });
   }
 
