@@ -58,7 +58,6 @@ import { StorageModule } from "./infra/storage/storage.module";
     KnowledgeModule,
     ApiKeyModule,
     SnipetModule,
-    StorageModule,
     ViewModule,
     PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,

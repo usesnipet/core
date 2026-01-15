@@ -5,32 +5,41 @@ import {
   PutObjectCommand, S3Client
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { StorageDeleteError } from '../errors';
 import { GetPreSignedUploadUrlOptions, StorageService } from '../storage.service';
 
 @Injectable()
 export class S3Service extends StorageService {
-
+  private readonly logger = new Logger(S3Service.name);
   private readonly s3: S3Client;
   private readonly defaultBucket?: string;
   private readonly publicBaseURL?: string;
 
   constructor() {
     super();
-    if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) return;
+    if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+      this.logger.warn("AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY not set, skipping S3");
+      return;
+    }
     this.defaultBucket = env.AWS_BUCKET;
     this.publicBaseURL = env.AWS_PUBLIC_BUCKET_BASE_URL;
     this.s3 = new S3Client({
-      region: env.AWS_REGION ?? "auto",
+      region: env.AWS_REGION,
       endpoint: env.AWS_ENDPOINT,
       forcePathStyle: env.AWS_FORCE_PATH_STYLE,
+
       credentials: {
         accessKeyId: env.AWS_ACCESS_KEY_ID,
         secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
       },
     });
+    this.logger.log(`S3 initialized with bucket ${this.defaultBucket}`);
+  }
+
+  private buildKey(key: string, opts?: { temp?: boolean }): string {
+    return opts?.temp ? key.startsWith("temp/") ? key : `temp/${key}` : key;
   }
 
   async getUploadUrl(
@@ -41,9 +50,7 @@ export class S3Service extends StorageService {
       temp: false
     }
   ): Promise<{ url: string, key: string }> {
-    if (temp) {
-      key = `temp/${key}`
-    }
+    if (temp) key =  key.startsWith("temp/") ? key : `temp/${key}`
 
     const command = new PutObjectCommand({
       Bucket: this.defaultBucket,
@@ -64,8 +71,8 @@ export class S3Service extends StorageService {
   }
 
   async confirmTempUpload(key: string, bucket = this.defaultBucket): Promise<string> {
-    const targetKey = key.replace("temp/", "");
-    const sourceKey = key.startsWith("temp/") ? key : `temp/${key}`
+    const sourceKey = this.buildKey(key, { temp: true });
+    const targetKey = sourceKey.replace("temp/", "");
 
     const command = new CopyObjectCommand({
       Bucket: bucket,
@@ -90,20 +97,27 @@ export class S3Service extends StorageService {
     return getSignedUrl(this.s3, command, { expiresIn: 300 });
   }
 
-  async getObject(key: string, bucket = this.defaultBucket): Promise<NodeJS.ReadableStream | null> {
+  async getObject(key: string, opts?: { temp?: boolean }, bucket = this.defaultBucket): Promise<NodeJS.ReadableStream | null> {
     const command = new GetObjectCommand({
       Bucket: bucket,
-      Key: key,
+      Key: this.buildKey(key, opts),
     });
 
     const result = await this.s3.send(command);
     return result.Body as NodeJS.ReadableStream | null;
   }
 
-  async putObject(key: string, body: Buffer, contentType: string, opts: { bucket?: string } = { bucket: this.defaultBucket } ): Promise<void> {
+  async putObject(
+    key: string,
+    body: Buffer,
+    contentType: string,
+    opts: { bucket?: string, temp?: boolean } = { temp: false, bucket: this.defaultBucket }
+  ): Promise<void> {
+    if (!opts.bucket) opts.bucket = this.defaultBucket;
+
     const command = new PutObjectCommand({
       Bucket: opts.bucket,
-      Key: key,
+      Key: this.buildKey(key, opts),
       Body: body,
       ContentType: contentType,
     });

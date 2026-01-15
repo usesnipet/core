@@ -35,7 +35,7 @@ export class FileIngestJob extends WorkerHost {
   async process(job: Job<FileIngestJobData>): Promise<any> {
     const { data } = job;
     this.logger.debug(`Processing file "${data.path}"`);
-    const readableStream = await this.storageService.getObject(data.path);
+    const readableStream = await this.storageService.getObject(data.path, { temp: true });
     if (!readableStream) return;
 
     const payloads = await this.fileIndexer.process(

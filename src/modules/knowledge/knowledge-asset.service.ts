@@ -69,21 +69,9 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
     });
   }
 
-  // private save(asset: KnowledgeAssetDto, manager?: EntityManager) {
-  //   return this.transaction(async (manager) => {
-  //     if (opts.persistText) {
-  //       const text = opts.extractText(asset);
-  //       if (!asset.content) asset.content = {};
-  //       asset.content.text = text;
-  //       asset.content.hash = this.hash(text);
-  //       asset.content.sizeBytes = Buffer.byteLength(text);
-  //       asset = await super.create(asset, manager);
-  //     }
-  //     if (opts.embed) await this.embed(asset, opts.extractText);
-
-  //     return asset;
-  //   }, opts.manager);
-  // }
+  private save(asset: KnowledgeAssetDto, manager?: EntityManager) {
+    return super.create(asset, manager);
+  }
 
   async saveFile(data: FileIngestJobData, manager?: EntityManager) {
     const asset = new KnowledgeAssetDto({
@@ -94,11 +82,18 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetDto> {
         externalId: data.externalId,
         connectorId: data.connectorId,
       },
+      content: {
+        hash: this.hash(`${data.originalname}-${data.size}-${data.extension}-${data.mimetype}`),
+        text: data.originalname,
+        mimeType: data.mimetype,
+        sizeBytes: data.size
+      },
       storage: {
         provider: "s3",
         key: data.path,
         persisted: true
       },
-    })
+    });
+    return this.save(asset, manager);
   }
 }

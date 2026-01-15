@@ -65,8 +65,8 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   ): Promise<FileIngestResponseDto> {
     const extension = originalname.split('.').pop();
     if (!extension) throw new BadRequestException("Failed to ingest content");
-    const path = `temp/${knowledgeId}/${randomUUID()}.${extension}`;
-    await this.storageService.putObject(path, buffer, mimetype);
+    const path = `source/${knowledgeId}/${randomUUID()}.${extension}`;
+    await this.storageService.putObject(path, buffer, mimetype, { temp: true });
     const job = await this.ingestQueue.add("", {
       path,
       extension,

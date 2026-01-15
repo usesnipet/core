@@ -120,8 +120,8 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
         asset.content.text = text;
         asset.content.hash = fingerprint(text);
         asset.content.sizeBytes = Buffer.byteLength(text);
-        asset = await super.create(asset, manager);
       }
+      asset = await super.create(asset, manager);
       if (opts.embed) await this.embed(asset, opts.extractText);
 
       return asset;

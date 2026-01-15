@@ -43,13 +43,13 @@ const envSchema = z.object({
   // STORAGE
   STORAGE_TYPE: z.enum(['s3']).default('s3'),
   // S3
-  AWS_ACCESS_KEY_ID: z.string().optional(),
-  AWS_SECRET_ACCESS_KEY: z.string().optional(),
-  AWS_REGION: z.string().optional(),
-  AWS_ENDPOINT: z.string().optional(),
-  AWS_PUBLIC_BUCKET_BASE_URL: z.string().optional(),
-  AWS_BUCKET: z.string().optional(),
-  AWS_FORCE_PATH_STYLE: z.coerce.boolean().optional().default(false),
+  AWS_ACCESS_KEY_ID: z.string().optional().default("minio"),
+  AWS_SECRET_ACCESS_KEY: z.string().optional().default("adminadmin"),
+  AWS_REGION: z.string().optional().default("us-east-1"),
+  AWS_ENDPOINT: z.string().optional().default("http://localhost:9000"),
+  AWS_PUBLIC_BUCKET_BASE_URL: z.string().optional().default("http://localhost:9000"),
+  AWS_BUCKET: z.string().optional().default("snipet-files"),
+  AWS_FORCE_PATH_STYLE: z.coerce.boolean().optional().default(true),
 
 
   // DATABASE
