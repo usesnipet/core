@@ -1,7 +1,7 @@
 import { Constructor } from "@/types/constructor";
 import { Param, ParseUUIDPipe } from "@nestjs/common";
 import { ApiBody, ApiSecurity } from "@nestjs/swagger";
-import { ObjectLiteral } from "typeorm";
+import { ObjectLiteral } from "@/types/object-literal";
 
 import { FilterOptions } from "../filter-options";
 import { Service } from "../service";
