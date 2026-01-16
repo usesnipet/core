@@ -5,21 +5,25 @@ services:
       dockerfile: Dockerfile
       args:
         APP_PORT: ${APP_PORT:-3100}
-        DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db/postgres}
     container_name: app
     ports:
       - "${APP_PORT:-3100}:3100"
     environment:
       # App settings
       APP_PORT: ${APP_PORT:-3100}
-      TENANT_ID: ${TENANT_ID:-cab0b6a7-749f-4ea4-9f94-485acebe57ed}
-
       # Gemini API
       GEMINI_API_KEY: ${GEMINI_API_KEY}
 
       # Postgres
       CREATE_DATABASE: ${CREATE_DATABASE}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db/postgres}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@database/postgres}
+
+      # LLM
+      LLM_EMBEDDING_DEFAULT_PRESET_KEY: ${LLM_EMBEDDING_DEFAULT_PRESET_KEY}
+      LLM_EMBEDDING_DEFAULT_CONFIG: ${LLM_EMBEDDING_DEFAULT_CONFIG}
+      LLM_TEXT_DEFAULT_PRESET_KEY: ${LLM_TEXT_DEFAULT_PRESET_KEY}
+      LLM_TEXT_DEFAULT_CONFIG: ${LLM_TEXT_DEFAULT_CONFIG}
+
 
       # Storage
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-minio}
@@ -42,7 +46,7 @@ services:
       MILVUS_COLLECTION_PREFIX: ${MILVUS_COLLECTION_PREFIX:-snipet}
       MULVUS_RECREATE_COLLECTION: ${MULVUS_RECREATE_COLLECTION:-false}
     depends_on:
-      - db
+      - database
       - redis
       - minio
       - etcd
@@ -60,9 +64,9 @@ services:
     restart: unless-stopped
 
   # Postgres
-  db:
+  database:
     image: postgres:15-alpine
-    container_name: db
+    container_name: database
     environment:
       POSTGRES_USER: ${POSTGRES_USER-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-postgres}
