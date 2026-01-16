@@ -1,0 +1,151 @@
+import { env } from 'src/env';
+
+import {
+  CopyObjectCommand, Delete, DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command,
+  PutObjectCommand, S3Client
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Injectable, Logger } from '@nestjs/common';
+
+import { StorageDeleteError } from '../errors';
+import { GetPreSignedUploadUrlOptions, StorageService } from '../storage.service';
+
+@Injectable()
+export class S3Service extends StorageService {
+  private readonly logger = new Logger(S3Service.name);
+  private readonly s3: S3Client;
+  private readonly defaultBucket?: string;
+  private readonly publicBaseURL?: string;
+
+  constructor() {
+    super();
+    if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+      this.logger.warn("AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY not set, skipping S3");
+      return;
+    }
+    this.defaultBucket = env.AWS_BUCKET;
+    this.publicBaseURL = env.AWS_PUBLIC_BUCKET_BASE_URL;
+    this.s3 = new S3Client({
+      region: env.AWS_REGION,
+      endpoint: env.AWS_ENDPOINT,
+      forcePathStyle: env.AWS_FORCE_PATH_STYLE,
+
+      credentials: {
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+    this.logger.log(`S3 initialized with bucket ${this.defaultBucket}`);
+  }
+
+  private buildKey(key: string, opts?: { temp?: boolean }): string {
+    return opts?.temp ? key.startsWith("temp/") ? key : `temp/${key}` : key;
+  }
+
+  async getUploadUrl(
+    key: string,
+    contentType: string,
+    { publicAccess, temp }: GetPreSignedUploadUrlOptions = {
+      publicAccess: false,
+      temp: false
+    }
+  ): Promise<{ url: string, key: string }> {
+    if (temp) key =  key.startsWith("temp/") ? key : `temp/${key}`
+
+    const command = new PutObjectCommand({
+      Bucket: this.defaultBucket,
+      Key: key,
+      ContentType: contentType,
+      ACL: publicAccess ? "public-read" : "private",
+    });
+    return { url: await getSignedUrl(this.s3, command, { expiresIn: 300 }), key };
+  }
+
+  async getVisualizationUrl(key: string): Promise<{ url: string, key: string }> {
+    const command = new GetObjectCommand({
+      Bucket: this.defaultBucket,
+      Key: key,
+    });
+
+    return { url: await getSignedUrl(this.s3, command, { expiresIn: 300 }), key};
+  }
+
+  async confirmTempUpload(key: string, bucket = this.defaultBucket): Promise<string> {
+    const sourceKey = this.buildKey(key, { temp: true });
+    const targetKey = sourceKey.replace("temp/", "");
+
+    const command = new CopyObjectCommand({
+      Bucket: bucket,
+      CopySource: `/${bucket}/${sourceKey}`,
+      Key: targetKey,
+    });
+
+    const res = await this.s3.send(command);
+    if (!!res.$metadata.httpStatusCode && res.$metadata.httpStatusCode >= 200 && res.$metadata.httpStatusCode < 300) {
+      return targetKey;
+    }
+
+    throw new Error("Error copying object");
+  }
+
+  async getPreSignedDownloadUrl(key: string, bucket = this.defaultBucket): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    return getSignedUrl(this.s3, command, { expiresIn: 300 });
+  }
+
+  async getObject(key: string, opts?: { temp?: boolean }, bucket = this.defaultBucket): Promise<NodeJS.ReadableStream | null> {
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: this.buildKey(key, opts),
+    });
+
+    const result = await this.s3.send(command);
+    return result.Body as NodeJS.ReadableStream | null;
+  }
+
+  async putObject(
+    key: string,
+    body: Buffer,
+    contentType: string,
+    opts: { bucket?: string, temp?: boolean } = { temp: false, bucket: this.defaultBucket }
+  ): Promise<void> {
+    if (!opts.bucket) opts.bucket = this.defaultBucket;
+
+    const command = new PutObjectCommand({
+      Bucket: opts.bucket,
+      Key: this.buildKey(key, opts),
+      Body: body,
+      ContentType: contentType,
+    });
+
+    await this.s3.send(command);
+  }
+
+  buildPublicUrl(key: string, publicBaseURL = this.publicBaseURL): string {
+    return `${publicBaseURL}/${key}`;
+  }
+
+  async delete(key: string, isFolder?: boolean): Promise<void> {
+    const listOfObjects = await this.s3.send(new ListObjectsV2Command({
+      Bucket: this.defaultBucket,
+      Prefix: isFolder ? key.endsWith("/") ? key : `${key}/` : key
+    }));
+    if (!listOfObjects.Contents || listOfObjects.Contents.length === 0) return;
+
+    const objectsToDelete: Delete = { Objects: [] };
+    listOfObjects.Contents?.forEach((object) => objectsToDelete.Objects?.push({ Key: object.Key }));
+
+    const deleteResult = await this.s3.send(new DeleteObjectsCommand({
+      Bucket: this.defaultBucket,
+      Delete: objectsToDelete,
+    }));
+
+    if (deleteResult.Errors) {
+      throw new StorageDeleteError("Error deleting objects", deleteResult.Errors.map((err) => err.Key).filter(e => e !== undefined));
+    }
+  }
+}

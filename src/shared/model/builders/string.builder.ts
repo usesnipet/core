@@ -1,14 +1,19 @@
-import { Transform } from "class-transformer";
-import { IsEmail, IsUrl, IsUUID, Matches, MaxLength, MinLength } from "class-validator";
+import { Exclude, Transform } from "class-transformer";
+import { IsEmail, IsOptional, IsString, IsUrl, IsUUID, Matches, MaxLength, MinLength } from "class-validator";
 
 import { FieldStringOptions } from "../types";
 import { buildApiProperty } from "./api-property";
+import { FromBody, FromParams, FromQuery } from "./source";
 
 export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
+  const isFromBody = !opts.source || opts.source === "body";
 
   // Swagger
-  decorators.push(buildApiProperty(opts));
+  decorators.push(buildApiProperty({...opts, hidden: opts.hidden || !isFromBody }));
+  decorators.push(IsString());
+
+  if (opts.required === false) decorators.push(IsOptional());
 
   // TRANSFORMERS
   if (opts.trim) decorators.push(Transform(({ value }) => value?.trim(), (typeof opts.trim === "object") ? opts.trim : {}));
@@ -51,6 +56,10 @@ export const buildStringDecorators = (opts: FieldStringOptions): PropertyDecorat
     if (typeof opts.regex === "object") decorators.push(Matches(opts.regex.match, opts.regex));
     else decorators.push(Matches(opts.regex));
   }
+
+  if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
+  if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));
+  if (isFromBody) decorators.push(FromBody(opts.sourceKey));
 
   return decorators;
 };

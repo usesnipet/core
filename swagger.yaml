@@ -1,10 +1,295 @@
 components:
   schemas:
+    ApiKeyAssignmentEntity:
+      properties:
+        apiKey:
+          allOf:
+            - $ref: "#/components/schemas/ApiKeyEntity"
+          description: The api key of the api key assignment
+        apiKeyId:
+          description: The id of the api key
+          format: uuid
+          type: string
+        connectorPermissions:
+          description: The connector permissions of the api key assignment
+          items:
+            $ref: "#/components/schemas/ApiKeyConnectorPermissionEntity"
+          type: array
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        kbPermissions:
+          description: The permissions of the api key
+          enum:
+            - 1
+            - 2
+            - 4
+          type: number
+        knowledge:
+          allOf:
+            - $ref: "#/components/schemas/KnowledgeEntity"
+          description: The knowledge base of the api key assignment
+        knowledgeId:
+          description: The id of the knowledge base
+          format: uuid
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - apiKeyId
+        - kbPermissions
+        - knowledgeId
+      type: object
+    ApiKeyConnectorPermissionEntity:
+      properties:
+        apiKeyAssignment:
+          allOf:
+            - $ref: "#/components/schemas/ApiKeyAssignmentEntity"
+          description: The api key assignment of api key connector permission
+        apiKeyAssignmentId:
+          description: The id of api key connector permission
+          format: uuid
+          type: string
+        connector:
+          allOf:
+            - $ref: "#/components/schemas/ConnectorEntity"
+          description: The connector of api key connector permission
+        connectorId:
+          description: The id of api key connector permission
+          format: uuid
+          type: string
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        manifestSnapshot:
+          description: The manifest of api key connector permission
+          oneOf:
+            - $ref: "#/components/schemas/MCPIntegrationManifest"
+            - $ref: "#/components/schemas/ManualIntegrationManifest"
+        manifestVersion:
+          description: The manifest version of api key connector permission
+          nullable: true
+          type: string
+        policyMode:
+          description: The policy mode of api key connector permission
+          enum:
+            - ALLOWLIST
+            - DENYLIST
+          type: string
+        resources:
+          description: The resources of api key connector permission
+          items:
+            type: string
+          nullable: true
+          type: array
+        tools:
+          description: The tools of api key connector permission
+          items:
+            type: string
+          nullable: true
+          type: array
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+        webhookEvents:
+          description: The webhook events of api key connector permission
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - connectorId
+        - apiKeyAssignmentId
+        - policyMode
+        - tools
+        - resources
+        - webhookEvents
+        - manifestSnapshot
+        - manifestVersion
+      type: object
+    ApiKeyEntity:
+      properties:
+        apiKeyAssignments:
+          items:
+            $ref: "#/components/schemas/ApiKeyAssignmentEntity"
+          type: array
+        assets:
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        expiresAt:
+          description: The expires at of the api key
+          format: date-time
+          nullable: true
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        name:
+          description: The name of the api key
+          type: string
+        rateLimit:
+          description: The rate limit of the api key
+          type: number
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - name
+        - rateLimit
+        - expiresAt
+      type: object
+    AssetEntity:
+      properties:
+        content:
+          $ref: "#/components/schemas/ContentInfo"
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/ApiKeyEntity"
+        createdById:
+          description: The unique identifier for the api key who created the asset
+          format: uuid
+          type: string
+        deletedAt:
+          description: The timestamp of the deletion
+          format: date-time
+          type: string
+        domain:
+          description: The domain of the asset (Knowledge or Snipet)
+          enum:
+            - SNIPET
+            - KNOWLEDGE
+          type: string
+        execution:
+          $ref: "#/components/schemas/ExecutionEntity"
+        executionId:
+          description: The unique identifier for the execution asset
+          format: uuid
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        knowledgeId:
+          description: The unique identifier for the knowledge asset
+          format: uuid
+          type: string
+        metadata:
+          additionalProperties: true
+          description: The metadata of the asset
+          type: object
+        model:
+          $ref: "#/components/schemas/ModelInfo"
+        snipet:
+          $ref: "#/components/schemas/SnipetEntity"
+        snipetId:
+          description: The unique identifier for the snipet asset
+          format: uuid
+          type: string
+        source:
+          description: The source of the asset (USER, AI, SYSTEM, INTEGRATION)
+          enum:
+            - USER
+            - AI
+            - SYSTEM
+            - INTEGRATION
+          type: string
+        storage:
+          $ref: "#/components/schemas/StorageInfo"
+        type:
+          description: Indicates the type of the asset, if it is a file, text, user
+            question, ai response...
+          enum:
+            - FILE
+            - TEXT
+            - USER_INPUT
+            - AI_RESPONSE
+            - CONTEXT
+            - ACTION
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - domain
+        - type
+        - source
+        - knowledgeId
+        - snipetId
+        - executionId
+        - createdById
+        - deletedAt
+      type: object
+    ChatDto:
+      properties:
+        content:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        role:
+          enum:
+            - user
+            - assistant
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+      type: object
     ConnectorAuth:
       properties: {}
       type: object
     ConnectorEntity:
       properties:
+        apiKeyConnectorPermissions:
+          items:
+            $ref: "#/components/schemas/ApiKeyConnectorPermissionEntity"
+          type: array
         auth:
           $ref: "#/components/schemas/ConnectorAuth"
         capabilities:
@@ -23,7 +308,7 @@ components:
         connectorState:
           $ref: "#/components/schemas/ConnectorStateEntity"
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -45,10 +330,6 @@ components:
         name:
           description: The name of the connector
           type: string
-        roleConnectorPermissions:
-          items:
-            $ref: "#/components/schemas/RoleConnectorPermissionEntity"
-          type: array
         type:
           description: The type of the connector
           enum:
@@ -56,7 +337,7 @@ components:
             - MCP
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -82,7 +363,7 @@ components:
           format: uuid
           type: string
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         errorCount:
@@ -123,7 +404,7 @@ components:
         throttleStatus:
           $ref: "#/components/schemas/ConnectorThrottleStatus"
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -144,19 +425,80 @@ components:
     ConnectorThrottleStatus:
       properties: {}
       type: object
+    ContentInfo:
+      properties:
+        hash:
+          description: The hash of the content
+          nullable: true
+          type: string
+        language:
+          description: The language of the content
+          nullable: true
+          type: string
+        mimeType:
+          description: The mime type of the content
+          nullable: true
+          type: string
+        sizeBytes:
+          description: The size in bytes of the content
+          nullable: true
+          type: number
+        text:
+          description: The text of the content
+          nullable: true
+          type: string
+      required:
+        - text
+        - hash
+        - sizeBytes
+        - mimeType
+        - language
+      type: object
     CreateConnectorDto:
       properties:
         integrationId:
           description: The integration id
           format: uuid
           type: string
-        knowledgeId:
-          description: The knowledge base id
-          format: uuid
+        name:
+          description: The name of the connector
           type: string
       required:
-        - knowledgeId
         - integrationId
+        - name
+      type: object
+    CreateIntegrationDto:
+      properties:
+        authMethods:
+          description: The authentication methods of the integration
+          items:
+            enum:
+              - OAUTH
+              - API_KEY
+              - JWT
+            type: string
+          type: array
+        manual:
+          allOf:
+            - $ref: "#/components/schemas/ManualIntegrationManifest"
+          description: Manual integration configuration
+        mcp:
+          allOf:
+            - $ref: "#/components/schemas/MCPIntegrationManifest"
+          description: MCP integration configuration
+        name:
+          description: The name of the integration
+          type: string
+        type:
+          description: The type of the integration
+          enum:
+            - MANUAL
+            - MCP
+          type: string
+      required:
+        - name
+        - type
+        - authMethods
       type: object
     CreateKnowledgeDto:
       properties:
@@ -170,20 +512,27 @@ components:
       required:
         - name
       type: object
-    CreateSessionDto:
+    CreateOrUpdateApiKeyDto:
+      properties:
+        knowledgeBases:
+          items:
+            $ref: "#/components/schemas/KnowledgeBaseApiKeyConfig"
+          type: array
+        name:
+          description: The name of the api key
+          type: string
+      required:
+        - name
+      type: object
+    CreateOrUpdateSnipetDto:
       properties:
         metadata:
           additionalProperties: true
+          description: Metadata of the snipet
           type: object
         name:
           nullable: true
           type: string
-        type:
-          enum:
-            - CHAT
-          type: string
-      required:
-        - type
       type: object
     ErrorResponse:
       properties:
@@ -199,27 +548,192 @@ components:
         - code
         - timestamp
       type: object
-    IngestDto:
+    ExecuteSnipetContextKnowledgeOptions:
       properties:
-        connectorId:
-          format: uuid
-          type: string
-        externalId:
-          nullable: true
-          type: string
-        file:
-          format: binary
-          type: string
-        knowledgeId:
-          format: uuid
-          type: string
+        filters:
+          additionalProperties: true
+          type: object
         metadata:
-          nullable: true
+          additionalProperties: true
+          type: object
+        searchTypes:
+          items:
+            enum:
+              - dense
+              - sparse
+            type: string
+          type: array
+        topK:
+          type: number
+        use:
+          description: force/ignore/auto policy for knowledge, this indicates if should
+            filter the knowledge
+          enum:
+            - force
+            - ignore
+            - auto
           type: string
       required:
-        - file
-        - knowledgeId
-        - connectorId
+        - searchTypes
+        - use
+      type: object
+    ExecuteSnipetContextOptions:
+      properties:
+        knowledgeOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions"
+        snipetOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextSnipetOptions"
+      type: object
+    ExecuteSnipetContextSnipetOptions:
+      properties:
+        filters:
+          additionalProperties: true
+          type: object
+        lastNMemories:
+          type: number
+        metadata:
+          additionalProperties: true
+          type: object
+        searchTypes:
+          items:
+            enum:
+              - dense
+              - sparse
+            type: string
+          type: array
+        topK:
+          type: number
+        use:
+          description: force/ignore/auto policy for snipet memory, this indicates if
+            should filter the memories
+          enum:
+            - force
+            - ignore
+            - auto
+          type: string
+      required:
+        - searchTypes
+        - use
+      type: object
+    ExecuteSnipetDto:
+      properties:
+        options:
+          $ref: "#/components/schemas/ExecuteSnipetOptions"
+      required:
+        - options
+      type: object
+    ExecuteSnipetOptions:
+      properties:
+        contextOptions:
+          $ref: "#/components/schemas/ExecuteSnipetContextOptions"
+        intent:
+          description: The intent of the query
+          enum:
+            - answer
+            - summarize
+            - expand
+          type: string
+        output:
+          $ref: "#/components/schemas/OutputOptions"
+        persistenceType:
+          enum:
+            - stateless
+            - full
+          type: string
+        query:
+          description: The query to execute
+          type: string
+        stream:
+          description: Enable streaming response for the output
+          type: boolean
+      required:
+        - query
+        - intent
+      type: object
+    ExecuteSnipetResponseDto:
+      properties:
+        executionId:
+          format: uuid
+          type: string
+      required:
+        - executionId
+      type: object
+    ExecutionEntity:
+      properties:
+        assets:
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        options:
+          $ref: "#/components/schemas/ExecuteSnipetOptions"
+        result:
+          $ref: "#/components/schemas/ExecutionResult"
+        snipet:
+          $ref: "#/components/schemas/SnipetEntity"
+        state:
+          enum:
+            - pending
+            - running
+            - finished
+            - error
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - knowledge
+        - options
+      type: object
+    ExecutionResult:
+      properties:
+        error:
+          type: string
+        estimatedCost:
+          type: number
+      type: object
+    FileIngestDto:
+      properties:
+        externalId:
+          type: string
+        metadata:
+          type: string
+        saveFile:
+          description: Indicates if the file should be saved in the storage
+          type: boolean
+      type: object
+    FileIngestResponseDto:
+      properties:
+        id:
+          format: uuid
+          type: string
+      required:
+        - id
+      type: object
+    IngestJobStateResponseDto:
+      properties:
+        state:
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - COMPLETED
+            - FAILED
+          type: string
+      required:
+        - state
       type: object
     IntegrationEntity:
       properties:
@@ -238,7 +752,7 @@ components:
             $ref: "#/components/schemas/ConnectorEntity"
           type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -246,10 +760,13 @@ components:
           format: uuid
           type: string
         manifest:
-          description: The name of the integration
+          description: The manifest of the integration
           oneOf:
             - $ref: "#/components/schemas/MCPIntegrationManifest"
             - $ref: "#/components/schemas/ManualIntegrationManifest"
+        name:
+          description: The name of the integration
+          type: string
         type:
           description: The type of the integration
           enum:
@@ -257,30 +774,86 @@ components:
             - MCP
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
         - id
         - createdAt
         - updatedAt
+        - name
         - type
         - authMethods
         - manifest
         - connectors
       type: object
-    KbPermission:
-      properties: {}
+    KnowledgeBaseApiKeyConfig:
+      properties:
+        connectorPermissions:
+          items:
+            $ref: "#/components/schemas/KnowledgeBaseApiKeyConnectorConfig"
+          type: array
+        knowledgeId:
+          format: uuid
+          type: string
+        permissions:
+          enum:
+            - 1
+            - 2
+            - 4
+          type: number
+      required:
+        - knowledgeId
+        - permissions
+      type: object
+    KnowledgeBaseApiKeyConnectorConfig:
+      properties:
+        connectorId:
+          format: uuid
+          type: string
+        policyMode:
+          enum:
+            - ALLOWLIST
+            - DENYLIST
+          type: string
+        resources:
+          items:
+            type: string
+          nullable: true
+          type: array
+        tools:
+          items:
+            type: string
+          nullable: true
+          type: array
+        webhookEvents:
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+        - connectorId
+        - policyMode
       type: object
     KnowledgeEntity:
       properties:
+        apiKeyAssignments:
+          description: The api key assignments of the knowledge base
+          items:
+            $ref: "#/components/schemas/ApiKeyAssignmentEntity"
+          type: array
+        assets:
+          description: The assets of the knowledge base
+          items:
+            $ref: "#/components/schemas/AssetEntity"
+          type: array
         connectors:
           description: The connectors of the knowledge base
           items:
             $ref: "#/components/schemas/ConnectorEntity"
           type: array
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -294,13 +867,8 @@ components:
           description: The namespace of the knowledge base
           nullable: true
           type: string
-        roleAssignments:
-          description: The role assignments of the knowledge base
-          items:
-            $ref: "#/components/schemas/RoleAssignmentEntity"
-          type: array
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
@@ -309,7 +877,8 @@ components:
         - updatedAt
         - name
         - connectors
-        - roleAssignments
+        - apiKeyAssignments
+        - assets
       type: object
     MCPIntegrationManifest:
       properties:
@@ -437,240 +1006,40 @@ components:
         - capabilities
         - features
       type: object
-    RoleAssignmentEntity:
+    ModelInfo:
       properties:
-        connectorPermissions:
-          description: The connector permissions of the role assignment
-          items:
-            $ref: "#/components/schemas/RoleConnectorPermissionEntity"
-          type: array
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
-        kbPermissions:
-          allOf:
-            - $ref: "#/components/schemas/KbPermission"
-          description: The permissions of the role
-        knowledge:
-          allOf:
-            - $ref: "#/components/schemas/KnowledgeEntity"
-          description: The knowledge base of the role assignment
-        knowledgeId:
-          description: The id of the knowledge base
-          format: uuid
-          type: string
-        role:
-          allOf:
-            - $ref: "#/components/schemas/RoleEntity"
-          description: The role of the role assignment
-        roleId:
-          description: The id of the role
-          format: uuid
-          type: string
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
-          type: string
-      required:
-        - id
-        - createdAt
-        - updatedAt
-        - roleId
-        - kbPermissions
-        - knowledgeId
-      type: object
-    RoleConnectorPermissionEntity:
-      properties:
-        connector:
-          allOf:
-            - $ref: "#/components/schemas/ConnectorEntity"
-          description: The connector of role connector permission
-        connectorId:
-          description: The id of role connector permission
-          format: uuid
-          type: string
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
-        manifestSnapshot:
-          description: The manifest of role connector permission
-          oneOf:
-            - $ref: "#/components/schemas/MCPIntegrationManifest"
-            - $ref: "#/components/schemas/ManualIntegrationManifest"
-        manifestVersion:
-          description: The manifest version of role connector permission
-          nullable: true
-          type: string
-        policyMode:
-          description: The policy mode of role connector permission
-          enum:
-            - ALLOWLIST
-            - DENYLIST
-          type: string
-        resources:
-          description: The resources of role connector permission
-          items:
-            type: string
-          nullable: true
-          type: array
-        roleAssignment:
-          allOf:
-            - $ref: "#/components/schemas/RoleAssignmentEntity"
-          description: The role assignment of role connector permission
-        roleAssignmentId:
-          description: The id of role connector permission
-          format: uuid
-          type: string
-        tools:
-          description: The tools of role connector permission
-          items:
-            type: string
-          nullable: true
-          type: array
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
-          type: string
-        webhookEvents:
-          description: The webhook events of role connector permission
-          items:
-            type: string
-          nullable: true
-          type: array
-      required:
-        - id
-        - createdAt
-        - updatedAt
-        - connectorId
-        - roleAssignmentId
-        - policyMode
-        - tools
-        - resources
-        - webhookEvents
-        - manifestSnapshot
-        - manifestVersion
-      type: object
-    RoleEntity:
-      properties:
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
         name:
-          description: The name of the role
+          description: The name of the model (LLM)
+          nullable: true
           type: string
-        roleAssignments:
-          items:
-            $ref: "#/components/schemas/RoleAssignmentEntity"
-          type: array
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
+        version:
+          description: The version of the model (LLM)
+          nullable: true
           type: string
       required:
-        - id
-        - createdAt
-        - updatedAt
         - name
+        - version
       type: object
-    SendMessageDto:
+    OutputOptions:
       properties:
-        content:
-          description: The content of message to send
-          type: string
-      required:
-        - content
+        maxTokens:
+          description: Maximum number of tokens to generate
+          type: number
+        temperature:
+          description: Temperature for text generation (0.0 to 1.0)
+          type: number
       type: object
-    SessionContextEntity:
-      properties:
-        lastRun:
-          additionalProperties:
-            properties:
-              runId:
-                type: string
-              status:
-                type: string
-              stepIndex:
-                type: number
-            type: object
-          type: object
-        session:
-          $ref: "#/components/schemas/SessionEntity"
-        sessionId:
-          description: The unique identifier for the session context
-          format: uuid
-          type: string
-        state:
-          enum:
-            - GENERATING
-            - IDLE
-          nullable: true
-          type: string
-      required:
-        - sessionId
+    Set:
+      properties: {}
       type: object
-    SessionEntity:
+    SnipetEntity:
       properties:
-        context:
-          $ref: "#/components/schemas/SessionContextEntity"
-        createdAt:
-          description: The timestamp when the invite was created
-          format: date-time
-          type: string
-        id:
-          description: The unique identifier for the entity
-          format: uuid
-          type: string
-        knowledgeId:
-          format: uuid
-          type: string
-        messages:
+        assets:
           items:
-            $ref: "#/components/schemas/SessionMessageEntity"
+            $ref: "#/components/schemas/AssetEntity"
           type: array
-        metadata:
-          additionalProperties: true
-          type: object
-        name:
-          nullable: true
-          type: string
-        type:
-          enum:
-            - CHAT
-          type: string
-        updatedAt:
-          description: The timestamp when the invite was last updated
-          format: date-time
-          type: string
-      required:
-        - id
-        - createdAt
-        - updatedAt
-        - type
-        - knowledgeId
-        - context
-        - messages
-      type: object
-    SessionMessageEntity:
-      properties:
-        content:
-          type: string
         createdAt:
-          description: The timestamp when the invite was created
+          description: The timestamp when the entity was created
           format: date-time
           type: string
         id:
@@ -682,30 +1051,164 @@ components:
         knowledgeId:
           format: uuid
           type: string
-        role:
-          enum:
-            - USER
-            - ASSISTANT
-            - SYSTEM
-            - FUNCTION
-          type: string
-        session:
-          $ref: "#/components/schemas/SessionEntity"
-        sessionId:
-          format: uuid
+        memory:
+          items:
+            $ref: "#/components/schemas/SnipetMemoryEntity"
+          type: array
+        metadata:
+          additionalProperties: true
+          description: Metadata of the snipet
+          type: object
+        name:
+          nullable: true
           type: string
         updatedAt:
-          description: The timestamp when the invite was last updated
+          description: The timestamp when the entity was last updated
           format: date-time
           type: string
       required:
         - id
         - createdAt
         - updatedAt
-        - sessionId
         - knowledgeId
-        - content
-        - role
+        - assets
+        - memory
+      type: object
+    SnipetMemoryEntity:
+      properties:
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        intent:
+          enum:
+            - answer
+            - summarize
+            - expand
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        knowledgeId:
+          format: uuid
+          type: string
+        payload:
+          additionalProperties: true
+          type: object
+        snipet:
+          $ref: "#/components/schemas/SnipetEntity"
+        snipetId:
+          format: uuid
+          type: string
+        type:
+          enum:
+            - user_input
+            - text_assistant_output
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - snipetId
+        - knowledgeId
+        - type
+        - intent
+        - payload
+      type: object
+    StorageInfo:
+      properties:
+        key:
+          description: The key of the storage, where the asset is stored
+          nullable: true
+          type: string
+        persisted:
+          description: Indicates if the asset is persisted
+          type: boolean
+        provider:
+          description: The provider of the storage, where the asset is stored
+          nullable: true
+          type: string
+      required:
+        - provider
+        - key
+        - persisted
+      type: object
+    StreamDto:
+      properties: {}
+      type: object
+    UpdateConnectorDto:
+      properties:
+        name:
+          description: The name of the connector
+          type: string
+      required:
+        - name
+      type: object
+    UpdateIntegrationDto:
+      properties:
+        authMethods:
+          description: The authentication methods of the integration
+          items:
+            enum:
+              - OAUTH
+              - API_KEY
+              - JWT
+            type: string
+          type: array
+        manual:
+          allOf:
+            - $ref: "#/components/schemas/ManualIntegrationManifest"
+          description: Manual integration configuration
+        mcp:
+          allOf:
+            - $ref: "#/components/schemas/MCPIntegrationManifest"
+          description: MCP integration configuration
+        name:
+          description: The name of the integration
+          type: string
+        type:
+          description: The type of the integration
+          enum:
+            - MANUAL
+            - MCP
+          type: string
+      required:
+        - name
+        - type
+        - authMethods
+      type: object
+    UpdateKnowledgeDto:
+      properties:
+        name:
+          description: The name of the knowledge base
+          type: string
+      required:
+        - name
+      type: object
+    ViewChatDto:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/ChatDto"
+          type: array
+      required:
+        - items
+      type: object
+    ViewDto:
+      properties:
+        view:
+          enum:
+            - chat
+          type: string
+      required:
+        - view
       type: object
     Webhook:
       properties:
@@ -720,6 +1223,12 @@ components:
         - event
         - url
       type: object
+  securitySchemes:
+    x-api-key:
+      description: API Key
+      in: header
+      name: x-api-key
+      type: apiKey
 info:
   contact: {}
   description: The Snipet API description
@@ -727,9 +1236,9 @@ info:
   version: "1.0"
 openapi: 3.0.0
 paths:
-  /api/connector:
+  /api/api-key:
     get:
-      operationId: ConnectorController_findMany
+      operationId: ApiKeyController_findMany
       parameters:
         - description: Maximum number of records to return
           in: query
@@ -759,7 +1268,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/ConnectorEntity"
+                  $ref: "#/components/schemas/ApiKeyEntity"
                 type: array
           description: Records found successfully
         "400":
@@ -775,24 +1284,25 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Connector
+        - ApiKey
     post:
-      operationId: ConnectorController_create
+      operationId: ApiKeyController_create
       parameters: []
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateConnectorDto"
+              $ref: "#/components/schemas/CreateOrUpdateApiKeyDto"
         required: true
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConnectorEntity"
+                $ref: "#/components/schemas/ApiKeyEntity"
           description: Record created successfully
         "400":
           content:
@@ -813,45 +1323,25 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Connector
-  /api/connector/ingest:
-    post:
-      operationId: IngestController_ingest
-      parameters: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/IngestDto"
-        required: true
-      responses:
-        "201":
-          description: ""
-      security:
-        - access-token: []
-      tags:
-        - Ingest
-  /api/connector/ingest/status/{id}:
+        - ApiKey
+  /api/api-key/self:
     get:
-      operationId: IngestController_getStatus
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
+      operationId: ApiKeyController_self
+      parameters: []
       responses:
         "200":
           description: ""
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Ingest
-  /api/connector/{id}:
+        - ApiKey
+  /api/api-key/{id}:
     delete:
-      operationId: ConnectorController_delete
+      operationId: ApiKeyController_delete
       parameters:
         - in: path
           name: id
@@ -863,7 +1353,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConnectorEntity"
+                $ref: "#/components/schemas/ApiKeyEntity"
           description: Record deleted successfully
         "400":
           content:
@@ -884,11 +1374,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Connector
+        - ApiKey
     get:
-      operationId: ConnectorController_findByID
+      operationId: ApiKeyController_findByID
       parameters:
         - in: path
           name: id
@@ -900,7 +1391,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConnectorEntity"
+                $ref: "#/components/schemas/ApiKeyEntity"
           description: Record found successfully
         "400":
           content:
@@ -921,11 +1412,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Connector
+        - ApiKey
     put:
-      operationId: ConnectorController_update
+      operationId: ApiKeyController_update
       parameters:
         - in: path
           name: id
@@ -936,14 +1428,14 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateOrUpdateApiKeyDto"
         required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConnectorEntity"
+                $ref: "#/components/schemas/ApiKeyEntity"
           description: Record updated successfully
         "400":
           content:
@@ -964,9 +1456,10 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Connector
+        - ApiKey
   /api/integration:
     get:
       operationId: IntegrationController_findMany
@@ -1015,6 +1508,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1025,7 +1519,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/CreateIntegrationDto"
         required: true
       responses:
         "201":
@@ -1053,6 +1547,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1091,6 +1586,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1128,6 +1624,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1143,7 +1640,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/UpdateIntegrationDto"
         required: true
       responses:
         "200":
@@ -1171,6 +1668,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Integration
@@ -1222,6 +1720,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1260,6 +1759,46 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Knowledge
+  /api/knowledge/status/{id}:
+    get:
+      operationId: KnowledgeController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestJobStateResponseDto"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1298,6 +1837,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1335,6 +1875,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
@@ -1350,7 +1891,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/UpdateKnowledgeDto"
         required: true
       responses:
         "200":
@@ -1378,12 +1919,13 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
         - Knowledge
-  /api/knowledge/{knowledgeId}/session:
+  /api/knowledge/{knowledgeId}/connector:
     get:
-      operationId: SessionController_findMany
+      operationId: ConnectorController_findMany
       parameters:
         - description: Maximum number of records to return
           in: query
@@ -1418,7 +1960,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/SessionEntity"
+                  $ref: "#/components/schemas/ConnectorEntity"
                 type: array
           description: Records found successfully
         "400":
@@ -1434,11 +1976,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Session
+        - Connector
     post:
-      operationId: SessionController_create
+      operationId: ConnectorController_create
       parameters:
         - in: path
           name: knowledgeId
@@ -1449,14 +1992,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateSessionDto"
+              $ref: "#/components/schemas/CreateConnectorDto"
         required: true
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/ConnectorEntity"
           description: Record created successfully
         "400":
           content:
@@ -1477,12 +2020,13 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Session
-  /api/knowledge/{knowledgeId}/session/{id}:
+        - Connector
+  /api/knowledge/{knowledgeId}/connector/{id}:
     delete:
-      operationId: SessionController_delete
+      operationId: ConnectorController_delete
       parameters:
         - in: path
           name: id
@@ -1499,7 +2043,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/ConnectorEntity"
           description: Record deleted successfully
         "400":
           content:
@@ -1520,11 +2064,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Session
+        - Connector
     get:
-      operationId: SessionController_findByID
+      operationId: ConnectorController_findByID
       parameters:
         - in: path
           name: id
@@ -1541,7 +2086,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/ConnectorEntity"
           description: Record found successfully
         "400":
           content:
@@ -1562,11 +2107,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Session
+        - Connector
     put:
-      operationId: SessionController_update
+      operationId: ConnectorController_update
       parameters:
         - in: path
           name: id
@@ -1582,14 +2128,14 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/UpdateConnectorDto"
         required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionEntity"
+                $ref: "#/components/schemas/ConnectorEntity"
           description: Record updated successfully
         "400":
           content:
@@ -1610,12 +2156,64 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Session
-  /api/knowledge/{knowledgeId}/session/{sessionId}/message:
+        - Connector
+  /api/knowledge/{knowledgeId}/ingest-file:
+    post:
+      operationId: KnowledgeController_ingestFile
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                externalId:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
+                metadata:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
+                saveFile:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/saveFile"
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileIngestResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Knowledge
+  /api/knowledge/{knowledgeId}/snipet:
     get:
-      operationId: SessionMessageController_findMany
+      operationId: SnipetController_findMany
       parameters:
         - description: Maximum number of records to return
           in: query
@@ -1644,18 +2242,13 @@ paths:
           required: true
           schema:
             type: string
-        - in: path
-          name: sessionId
-          required: true
-          schema:
-            type: string
       responses:
         "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/SessionMessageEntity"
+                  $ref: "#/components/schemas/SnipetEntity"
                 type: array
           description: Records found successfully
         "400":
@@ -1671,19 +2264,15 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
+        - Snipet
     post:
-      operationId: SessionMessageController_create
+      operationId: SnipetController_create
       parameters:
         - in: path
           name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: sessionId
           required: true
           schema:
             type: string
@@ -1691,233 +2280,281 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SendMessageDto"
+              $ref: "#/components/schemas/CreateOrUpdateSnipetDto"
         required: true
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SnipetEntity"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{id}:
+    delete:
+      operationId: SnipetController_delete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SnipetEntity"
+          description: Record deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+    get:
+      operationId: SnipetController_findByID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SnipetEntity"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+    put:
+      operationId: SnipetController_update
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateSnipetDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SnipetEntity"
+          description: Record updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{snipetId}/execute:
+    post:
+      operationId: SnipetController_execute
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
+        - in: path
+          name: snipetId
+          required: true
+          schema: {}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                searchTypes:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/se\
+                    archTypes"
+                topK:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/to\
+                    pK"
+                use:
+                  $ref: "#/components/schemas/ExecuteSnipetContextKnowledgeOptions#/properties/us\
+                    e"
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecuteSnipetResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{snipetId}/stream/{id}:
+    get:
+      operationId: SnipetController_stream
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
+        - in: path
+          name: snipetId
+          required: true
+          schema: {}
+        - in: path
+          name: id
+          required: true
+          schema: {}
+      responses:
+        "200":
           description: ""
       security:
-        - access-token: []
+        - x-api-key: []
         - access-token: []
       tags:
-        - SessionMessage
-  /api/knowledge/{knowledgeId}/session/{sessionId}/message/stream:
+        - Snipet
+  /api/knowledge/{knowledgeId}/snipet/{snipetId}/view:
     get:
-      operationId: SessionMessageController_sendMessageStream
+      operationId: ViewController_view
       parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: sessionId
-          required: true
-          schema:
-            type: string
         - in: query
-          name: q
-          required: true
+          name: view
+          required: false
           schema:
-            type: string
-      responses:
-        "200":
-          content:
-            text/event-stream:
-              schema:
-                example: |+
-                  data: hello
-
-                  data: world
-
-                type: string
-          description: SSE stream
-      security:
-        - access-token: []
-      tags:
-        - SessionMessage
-  /api/knowledge/{knowledgeId}/session/{sessionId}/message/{id}:
-    delete:
-      operationId: SessionMessageController_delete
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
+            enum:
+              - chat
             type: string
         - in: path
           name: knowledgeId
           required: true
-          schema:
-            type: string
+          schema: {}
         - in: path
-          name: sessionId
+          name: snipetId
           required: true
-          schema:
-            type: string
+          schema: {}
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionMessageEntity"
-          description: Record deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - SessionMessage
-    get:
-      operationId: SessionMessageController_findByID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: sessionId
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SessionMessageEntity"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - SessionMessage
-    put:
-      operationId: SessionMessageController_update
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: knowledgeId
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: sessionId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SessionMessageEntity"
-          description: Record updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - SessionMessage
-  /api/role:
-    get:
-      operationId: RoleController_findMany
-      parameters:
-        - description: Maximum number of records to return
-          in: query
-          name: limit
-          required: false
-          schema:
-            example: 10
-            type: number
-        - description: Number of records to skip
-          in: query
-          name: offset
-          required: false
-          schema:
-            example: 0
-            type: number
-        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
-          in: query
-          name: sort
-          required: false
-          schema:
-            items:
-              type: string
-            type: array
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: "#/components/schemas/RoleEntity"
-                type: array
+                $ref: "#/components/schemas/ViewChatDto"
           description: Records found successfully
         "400":
           content:
@@ -1932,164 +2569,9 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal server error
       security:
+        - x-api-key: []
         - access-token: []
       tags:
-        - Role
-    post:
-      operationId: RoleController_create
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record created successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Conflict - duplicate record
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-  /api/role/{id}:
-    delete:
-      operationId: RoleController_delete
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-    get:
-      operationId: RoleController_findByID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
-    put:
-      operationId: RoleController_update
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RoleEntity"
-          description: Record updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - access-token: []
-      tags:
-        - Role
+        - View
 servers: []
 tags: []

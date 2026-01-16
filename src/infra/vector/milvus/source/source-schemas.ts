@@ -25,7 +25,13 @@ export const sourceFields = (_: string, dim: number): FieldType[] => [
   {
     name: "content",
     data_type: DataType.VarChar,
-    max_length: 2048,
+    max_length: 8192,
+    enable_analyzer: true,
+  },
+  {
+    name: "fullContent",
+    data_type: DataType.VarChar,
+    max_length: 8192,
     enable_analyzer: true,
     enable_match: true,
     analyzer_params: {
@@ -36,7 +42,8 @@ export const sourceFields = (_: string, dim: number): FieldType[] => [
   {
     name: "connectorId",
     data_type: DataType.VarChar,
-    max_length: 36
+    max_length: 36,
+    nullable: true
   },
   {
     name: "externalId",

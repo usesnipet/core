@@ -1,46 +1,39 @@
 import { env } from "@/env";
-import { BaseFragment, Fragments } from "@/fragment";
 import { getPresets } from "@/lib/presets";
 import { LLMPreset } from "@/types/llm-preset";
 import { buildOptions } from "@/utils/build-options";
 
 import { InvalidPresetError } from "./errors/invalid-preset";
 import { InvalidVectorFiltersError } from "./errors/invalid-vector-filters";
+import { VectorStorePayload } from "./payload/vector-store-payload";
 
 export type VectorStoreOptions = {
   llmPresetKey: string;
 }
-export type VectorStoreAddFragmentOptions = VectorStoreOptions & {
+export type VectorStoreAddOptions = VectorStoreOptions & {
   forceGenerateEmbedding?: boolean;
 }
 export type SearchOptions = VectorStoreOptions & {
   filters?: Record<string, string | number | boolean>;
   topK: number;
-  dense?: string | { topK?: number, query: string };
+  dense?: number[] | { topK?: number, vector: number[] };
   sparse?: string | { topK?: number, query: string };
   term?: string;
 }
 export type WithSearchOptions = (currentOpts: Partial<SearchOptions>) =>  Partial<SearchOptions>;
 
-export abstract class VectorStore<T extends BaseFragment> {
+export abstract class VectorStore<T extends VectorStorePayload> {
 
   constructor(protected readonly collectionName: string) {}
 
-  abstract addFragments(
-    fragments: T[] | T | Fragments<T>,
-    opts?: VectorStoreAddFragmentOptions
-  ): Promise<Fragments<T>>;
-  abstract deleteFragments(fragments: T[] | T | Fragments<T>, opts?: VectorStoreOptions): Promise<void>;
+  abstract add(data: T, opts?: VectorStoreAddOptions): Promise<T>;
+  abstract add(data: T[], opts?: VectorStoreAddOptions): Promise<T[]>;
 
-  abstract search(
-    knowledgeId: string,
-    ...options: Array<WithSearchOptions | undefined>
-  ): Promise<Fragments<T>>;
+  abstract remove(ids: string | string[], opts?: VectorStoreOptions): Promise<void>;
 
-  abstract deleteByFilter(
-    filter: Record<string, string | number | boolean>,
-    opts?: VectorStoreOptions
-  ): Promise<void>;
+  abstract search(knowledgeId: string, ...options: Array<WithSearchOptions>): Promise<T[]>;
+
+  abstract deleteByFilter(filter: Record<string, string | number | boolean>,opts?: VectorStoreOptions): Promise<void>;
 
   protected buildCollectionName(preset: LLMPreset): string {
     if (preset.config.type === "TEXT") {
@@ -83,22 +76,18 @@ export abstract class VectorStore<T extends BaseFragment> {
       return { ...currentOpts, topK };
     };
   }
-  static withDense(dense: string | { topK?: number, query: string }): WithSearchOptions {
+  static withDense(dense: number[] | { topK?: number, vector: number[] }): WithSearchOptions {
     return (currentOpts: Partial<SearchOptions>) => {
       return { ...currentOpts, dense };
     };
   }
-  static  withSparse(sparse: string | { topK?: number, query: string }): WithSearchOptions {
+  static withSparse(sparse: string | { topK?: number, query: string }): WithSearchOptions {
     return (currentOpts: Partial<SearchOptions>) => {
       return { ...currentOpts, sparse };
     };
   }
-  static withQuery(query: string | { topK?: number, query: string }): WithSearchOptions {
-    return (currentOpts: Partial<SearchOptions>) => {
-      return { ...currentOpts, dense: query, sparse: query };
-    };
-  }
-  static  withTerm(term: string): WithSearchOptions {
+
+  static withTerm(term: string): WithSearchOptions {
     return (currentOpts: Partial<SearchOptions>) => {
       return { ...currentOpts, term };
     };

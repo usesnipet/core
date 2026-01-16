@@ -1,11 +1,9 @@
-
-
 import { FieldFileOptions } from "../types";
-import { buildApiProperty } from "./api-property";
+import { Exclude } from "class-transformer";
 
 export const buildFileDecorators = (opts: FieldFileOptions): PropertyDecorator[] => {
   const decorators: PropertyDecorator[] = [];
-  decorators.push(buildApiProperty(opts));
+  decorators.push(Exclude());
 
   return decorators;
 };

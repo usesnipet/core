@@ -5,19 +5,28 @@ import { output, ZodObject } from "zod";
 import { GoogleGenAI } from "@google/genai";
 import { MessageEvent } from "@nestjs/common";
 
-import { ProviderHealth } from "../types";
-import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
+import { ProviderHealth, ProviderInfo } from "../types";
+import { GenerateParams, GenerateResult, TextProvider } from "./base";
+import { getUniversalEncoding } from "../../utils";
 
 type GeminiAdapterOptions = {
   apiKey: string;
   model: string;
 }
 export class GeminiTextAdapter extends TextProvider {
+  countTokens(text: string): number {
+    return getUniversalEncoding(this.opts.model).encode(text).length
+  }
+
   private client: GoogleGenAI;
+
   constructor(private opts: GeminiAdapterOptions) {
     super();
-
     this.client = new GoogleGenAI({ apiKey: opts.apiKey });
+  }
+
+  async info(): Promise<ProviderInfo> {
+    return { name: this.opts.model }
   }
 
   async generate(params: GenerateParams): Promise<GenerateResult> {
@@ -45,29 +54,7 @@ export class GeminiTextAdapter extends TextProvider {
     };
   }
 
-  async stream(params: GenerateParams, onChunk: (chunk: StreamChunk) => void): Promise<void> {
-    const { prompt, maxTokens, temperature } = params;
-    const start = Date.now();
-    const res = await this.client.models.generateContentStream({
-      contents: [ {
-        role: "user",
-        parts: [ { text: prompt } ]
-      } ],
-      model: this.opts.model,
-      config: {
-        temperature,
-        maxOutputTokens: maxTokens,
-        tools: [ { googleSearch: {} } ]
-      }
-    });
-    for await (const chunk of res) {
-      const chunkText = chunk.text;
-      onChunk({ delta: chunkText ?? "" });
-    }
-    onChunk({ delta: "", finishReason: "stop" });
-  }
-
-  async observableStream(params: GenerateParams): Promise<Observable<MessageEvent>> {
+  async stream(params: GenerateParams): Promise<Observable<MessageEvent>> {
     const { prompt, maxTokens, temperature } = params;
 
     const res = await this.client.models.generateContentStream({

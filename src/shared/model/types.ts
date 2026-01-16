@@ -16,7 +16,6 @@ export type BaseFieldOptions = {
   isArray?: boolean;
   description?: string;
   example?: any;
-  default?: any;
   hidden?: boolean;
   nullable?: boolean;
 
@@ -27,6 +26,8 @@ export type BaseFieldOptions = {
 
 export type FieldStringOptions = BaseFieldOptions & {
   type: "string";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   min?: number | { length: number } & ValidationOptions;
   max?: number | { length: number } & ValidationOptions;
   length?: number | { length: number } & ValidationOptions;
@@ -42,6 +43,8 @@ export type FieldStringOptions = BaseFieldOptions & {
 
 export type FieldNumberOptions = BaseFieldOptions & {
   type: "number";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   min?: number | { min: number } & ValidationOptions;
   max?: number | { max: number } & ValidationOptions;
   integer?: boolean;
@@ -50,22 +53,30 @@ export type FieldNumberOptions = BaseFieldOptions & {
 };
 
 export type FieldEnumOptions = BaseFieldOptions & {
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   type: "enum";
   enum: EnumAllowedTypes;
 };
 
 export type FieldBooleanOptions = BaseFieldOptions & {
   type: "boolean";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
 };
 
 export type FieldDateOptions = BaseFieldOptions & {
   type: "date";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   minDate?: Date | string;
   maxDate?: Date | string;
 };
 
 export type FieldClassOptions<T = any> = BaseFieldOptions & {
   type: "class";
+  source?: "params" | "query" | "body" | "apiKey";
+  sourceKey?: string;
   class: () => Constructor<T>;
 };
 

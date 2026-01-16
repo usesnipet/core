@@ -25,13 +25,15 @@
     "db:migrate": "pnpm typeorm migration:run",
     "db:migrate:prod": "npm run typeorm migration:run",
     "compodoc": "npx @compodoc/compodoc -p tsconfig.json -s",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.968.0",
+    "@aws-sdk/s3-request-presigner": "^3.968.0",
     "@bull-board/api": "^6.12.7",
     "@bull-board/express": "^6.12.7",
     "@bull-board/nestjs": "^6.12.7",
@@ -59,8 +61,8 @@
     "@opentelemetry/semantic-conventions": "^1.38.0",
     "@opentelemetry/tracing": "^0.24.0",
     "@scalar/nestjs-api-reference": "^1.0.8",
-    "@snipet/nest-prompt": "^1.0.1",
-    "@snipet/permission": "^1.0.2",
+    "@snipet/nest-prompt": "^1.0.3",
+    "@snipet/permission": "^1.0.3",
     "@zilliz/milvus2-sdk-node": "^2.6.0",
     "argon2": "^0.44.0",
     "bcrypt": "^6.0.0",
@@ -86,7 +88,9 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "stream-to-blob": "^2.0.1",
+    "tiktoken": "^1.0.22",
     "typeorm": "^0.3.27",
+    "unstructured-client": "^0.30.2",
     "voyageai": "^0.0.8",
     "word-extractor": "^1.0.4",
     "yaml": "^2.8.2",
@@ -115,12 +119,52 @@
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
-    "ts-jest": "^29.4.5",
+    "ts-jest": "^29.4.6",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.5",
-    "typescript": "^5.7.3",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "modulePaths": [
+      "<rootDir>"
+    ],
+    "moduleNameMapper": {
+      "@/(.*)$": "<rootDir>/src/$1"
+    },
+    "rootDir": "./",
+    "testRegex": ".*\\.spec\\.ts$",
+    "preset": "ts-jest/presets/default-esm",
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@snipet/permission)"
+    ],
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*.ts"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/main.ts",
+      "<rootDir>/src/app.module.ts",
+      "index.ts"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node"
   }
 }

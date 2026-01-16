@@ -1,8 +1,5 @@
-import {
-  EntityManager, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository
-} from "typeorm";
-
 import { Logger } from "@nestjs/common";
+import { EntityManager, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
 
 import { FilterOptions } from "./filter-options";
 import { GenericService } from "./generic-service";
@@ -25,7 +22,7 @@ export abstract class Service<
   }
 
   async findUnique(filterOptions: FilterOptions<TEntity>, manager?: EntityManager): Promise<TEntity | null> {
-    return await this.repository(manager).findOneOrFail(filterOptions);
+    return await this.repository(manager).findOne(filterOptions);
   }
 
   async findFirst(filterOptions: FilterOptions<TEntity>, manager?: EntityManager): Promise<TEntity | null> {
@@ -34,15 +31,15 @@ export abstract class Service<
 
     const data = await this.repository(manager).find(filterOptions);
 
-    return data.length === 0 ? null : data[0];
+    return data?.length === 0 ? null : data?.[0];
   }
 
   async findByID(
     id: string,
-    opts?: Omit<FindOneOptions<TEntity>, "where"> & { manager?: EntityManager }
+    opts?: FindOneOptions<TEntity> & { manager?: EntityManager }
   ): Promise<TEntity | null> {
     return await this.repository(opts?.manager)
-      .findOne({ ...opts, where: { [this.idField]: id } as FindOptionsWhere<TEntity> } );
+      .findOne({ ...opts, where: { [this.idField]: id, ...(opts?.where ?? {}) } as FindOptionsWhere<TEntity> } );
   }
 
   async create(input: TCreateDto, manager?: EntityManager): Promise<TEntity>

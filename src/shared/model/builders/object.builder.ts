@@ -1,4 +1,4 @@
-import { ValidateNested } from "class-validator";
+import { Allow, IsOptional } from "class-validator";
 
 import { ApiProperty, ApiPropertyOptional, ApiPropertyOptions } from "@nestjs/swagger";
 
@@ -8,21 +8,21 @@ export const buildObjectDecorators = (opts: FieldObjectOptions): PropertyDecorat
   const decorators: PropertyDecorator[] = [];
 
   const isRequired = opts.required ?? true;
+  if (opts.required === false) decorators.push(IsOptional());
+
 
   const apiMetadata: ApiPropertyOptions = {
     required: isRequired,
     description: opts.description,
     example: opts.example,
-    default: opts.default,
     isArray: opts.isArray,
     additionalProperties: opts.additionalProperties
   };
-
+  decorators.push(Allow({ each: opts.isArray }));
   if (opts.debug) console.log(apiMetadata);
   decorators.push(isRequired ? ApiProperty(apiMetadata) : ApiPropertyOptional(apiMetadata));
   if (opts.debug) console.log("added api property");
 
-  decorators.push(ValidateNested({ each: opts.isArray }));
   if (opts.debug) console.log("added validate nested");
   return decorators;
 };

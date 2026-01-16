@@ -1,4 +1,4 @@
-import { ValidateNested } from "class-validator";
+import { IsOptional, ValidateNested } from "class-validator";
 
 import {
   ApiExtraModels, ApiProperty, ApiPropertyOptional, ApiPropertyOptions, getSchemaPath
@@ -10,6 +10,7 @@ export const buildOneOfDecorators = (opts: FieldOneOfOptions): PropertyDecorator
   const decorators: PropertyDecorator[] = [];
 
   const isRequired = opts.required ?? true;
+  if (isRequired === false) decorators.push(IsOptional());
 
   // RESOLVE os modelos (executa as funções)
   const resolved = opts.classes.map(fn => fn());
@@ -18,7 +19,6 @@ export const buildOneOfDecorators = (opts: FieldOneOfOptions): PropertyDecorator
     required: isRequired,
     description: opts.description,
     example: opts.example,
-    default: opts.default,
     isArray: opts.isArray,
     oneOf: resolved.map(model => ({
       $ref: getSchemaPath(model)
@@ -36,7 +36,7 @@ export const buildOneOfDecorators = (opts: FieldOneOfOptions): PropertyDecorator
   );
 
   // Add validation
-  decorators.push(ValidateNested({ each: opts.isArray }));
+  // decorators.push(ValidateNested({ each: opts.isArray }));
 
   return decorators;
 };

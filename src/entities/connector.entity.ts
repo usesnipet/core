@@ -9,7 +9,7 @@ import {
   MCPIntegrationManifest
 } from "./integration.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
-import { RoleConnectorPermissionEntity } from "./role-connector-permission.entity";
+import { ApiKeyConnectorPermissionEntity } from "./api-key-connector-permission.entity";
 
 export class ConnectorAuth {
   type: IntegrationAuthType;
@@ -33,9 +33,9 @@ export class ConnectorEntity extends BaseEntity {
   @Column({ type: "uuid", name: "integration_id" })
   integrationId: string;
 
-  @Field({ type: "string", required: true, description: "The name of the connector" })
+  @Field({ type: "string", required: true, description: "The name of the connector", max: 255 })
   @Column({ type: "varchar", length: 255 })
-  name: string
+  name: string;
 
   @Field({ type: "enum", enum: IntegrationType, required: true, description: "The type of the connector" })
   @Column({ type: "enum", enum: IntegrationType })
@@ -74,9 +74,9 @@ export class ConnectorEntity extends BaseEntity {
   @ManyToOne(() => ConnectorStateEntity, (connectorState) => connectorState.connector)
   connectorState?: ConnectorStateEntity;
 
-  @Field({ type: "class", class: () => RoleConnectorPermissionEntity, isArray: true, required: false })
-  @OneToMany(() => RoleConnectorPermissionEntity, (roleConnectorPermission) => roleConnectorPermission.connector)
-  roleConnectorPermissions?: RoleConnectorPermissionEntity[];
+  @Field({ type: "class", class: () => ApiKeyConnectorPermissionEntity, isArray: true, required: false })
+  @OneToMany(() => ApiKeyConnectorPermissionEntity, (apiKeyConnectorPermission) => apiKeyConnectorPermission.connector)
+  apiKeyConnectorPermissions?: ApiKeyConnectorPermissionEntity[];
 
   constructor(data: Partial<ConnectorEntity>) {
     super(data);

@@ -1,6 +1,7 @@
 import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 
 import { EmbeddingProvider } from "./base";
+import { ProviderInfo } from "../types";
 
 type GeminiOptions = {
   apiKey: string;
@@ -15,6 +16,10 @@ export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
     super();
     this.client = new GoogleGenerativeAI(opts.apiKey);
     this.model = this.client.getGenerativeModel({ model: opts.model });
+  }
+
+  async info(): Promise<ProviderInfo> {
+    return { name: this.model.model }
   }
 
   embed(text: string): Promise<number[]>;

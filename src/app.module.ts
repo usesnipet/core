@@ -1,27 +1,26 @@
-import basicAuth from "express-basic-auth";
-import { ClsModule } from "nestjs-cls";
-
 import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { BullModule } from "@nestjs/bullmq";
 import { ClassSerializerInterceptor, Module } from "@nestjs/common";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { PromptModule } from "@snipet/nest-prompt";
+import basicAuth from "express-basic-auth";
+import { ClsModule } from "nestjs-cls";
 
 import { PromptTemplates } from "./@generated/prompts/prompts";
 import { env } from "./env";
 import { LLMManagerModule } from "./infra/llm-manager/llm-manager.module";
 import { VectorStoreModule } from "./infra/vector/vector.module";
-import { ConnectorModule } from "./modules/connector/connector.module";
-import { IngestModule } from "./modules/connector/ingest/ingest.module";
+import { ApiKeyModule } from "./modules/api-key/api-key.module";
+import { ConnectorModule } from "./modules/knowledge/connector/connector.module";
 import { IntegrationModule } from "./modules/integration/integration.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
-import { RoleModule } from "./modules/role/role.module";
 import { HTTPContextModule } from "./shared/http-context/http-context.module";
-import { ContextInterceptor } from "./shared/interceptor/context";
-import { SessionModule } from "./modules/session/session.module";
-import { SessionMessageModule } from "./modules/session/message/message.module";
+import { ApiKeyGuard } from "./guards/api-key.guard";
+import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
+import { ViewModule } from "./modules/knowledge/snipet/view/view.module";
+import { StorageModule } from "./infra/storage/storage.module";
 
 @Module({
   imports: [
@@ -52,25 +51,24 @@ import { SessionMessageModule } from "./modules/session/message/message.module";
         saveRes: true
       }
     }),
+    LLMManagerModule,
+    VectorStoreModule,
+    ConnectorModule,
+    IntegrationModule,
+    KnowledgeModule,
+    ApiKeyModule,
+    SnipetModule,
+    ViewModule,
     PromptModule.forRoot({
       debug: env.DEBUG_PROMPTS,
       templatesDir: env.PROMPT_TEMPLATES_DIR,
       templates: PromptTemplates
     }),
-    ConnectorModule,
-    IntegrationModule,
-    KnowledgeModule,
-    RoleModule,
-    IngestModule,
-    SessionModule,
-    SessionMessageModule,
-    LLMManagerModule,
-    VectorStoreModule,
   ],
   providers: [
     {
-      provide: APP_INTERCEPTOR,
-      useClass: ContextInterceptor
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard
     },
     {
       provide: APP_INTERCEPTOR,

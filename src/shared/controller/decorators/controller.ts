@@ -1,5 +1,6 @@
 import { Auth } from "@/shared/plugins/swagger-auth";
 import { applyDecorators, Controller as NestController } from "@nestjs/common";
+import { ApiSecurity } from "@nestjs/swagger";
 import { DECORATORS } from "@nestjs/swagger/dist/constants";
 
 export function ApiParamsInherit(params: Array<{ name: string; type?: any; required?: boolean }>) {
@@ -42,7 +43,10 @@ export function ApiParamsInherit(params: Array<{ name: string; type?: any; requi
   };
 }
 
-export function Controller(path: string, params: Array<{ name: string; type?: any; required?: boolean }> = []) {
+export function Controller(
+  path: string,
+  params: Array<{ name: string; type?: any; required?: boolean;  }> = []
+) {
   const regex = /:([^/]+)/g;
   let match;
 
@@ -51,6 +55,7 @@ export function Controller(path: string, params: Array<{ name: string; type?: an
   }
 
   return applyDecorators(
+    ApiSecurity("x-api-key"),
     Auth(),
     NestController(path),
     ApiParamsInherit(params)

@@ -22,8 +22,15 @@ const envSchema = z.object({
   APP_PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum([ "development", "production", "test" ]).default("development"),
 
+
+  // API KEY
+  ROOT_API_KEY: z.string().optional(),
+  DEFAULT_RATE_LIMIT: z.coerce.number().optional().default(1000),
+
+
   // SECURITY
   ENCRYPT_MASTER_PASSWORD: z.string().optional().default("change-me"),
+
 
   // CORS
   CORS_ORIGINS: z.string().transform((s) => s.split(",")).optional()
@@ -32,11 +39,23 @@ const envSchema = z.object({
   CORS_HEADERS: z.string().array().optional().default([ "*" ]),
   CORS_CREDENTIALS: z.boolean().optional().default(true),
 
-  FILE_UPLOAD_PATH: z.string().optional().default("./uploads"),
+
+  // STORAGE
+  STORAGE_TYPE: z.enum(['s3']).default('s3'),
+  // S3
+  AWS_ACCESS_KEY_ID: z.string().optional().default("minio"),
+  AWS_SECRET_ACCESS_KEY: z.string().optional().default("adminadmin"),
+  AWS_REGION: z.string().optional().default("us-east-1"),
+  AWS_ENDPOINT: z.string().optional().default("http://localhost:9000"),
+  AWS_PUBLIC_BUCKET_BASE_URL: z.string().optional().default("http://localhost:9000"),
+  AWS_BUCKET: z.string().optional().default("snipet-files"),
+  AWS_FORCE_PATH_STYLE: z.coerce.boolean().optional().default(true),
+
 
   // DATABASE
   DATABASE_URL: z.string(),
   CREATE_DATABASE: z.coerce.boolean().optional().default(false),
+
 
   // REDIS
   REDIS_HOST: z.string().optional().default("localhost"),
@@ -45,9 +64,11 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional().default(""),
   REDIS_DB: z.coerce.number().optional().default(0),
 
+
   // BULLBOARD
   BULL_BOARD_USER: z.string().optional().default("admin"),
   BULL_BOARD_PASSWORD: z.string().optional().default("admin"),
+
 
   // VECTOR
   VECTOR_ENGINE: z.enum([ "milvus" ]).default("milvus"),
@@ -56,6 +77,7 @@ const envSchema = z.object({
   MILVUS_COLLECTION_PREFIX: z.string().optional().default("snipet"),
   MILVUS_RECREATE_COLLECTION: z.string().transform((s) => s === "true").optional(),
 
+
   // LLM
   LLM_EMBEDDING_DEFAULT_PRESET_KEY: z.string().optional().default(""),
   LLM_EMBEDDING_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
@@ -63,9 +85,18 @@ const envSchema = z.object({
   LLM_TEXT_DEFAULT_PRESET_KEY: z.string().optional().default(""),
   LLM_TEXT_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
 
+
   // PROMPT
   PROMPT_TEMPLATES_DIR: z.string().optional().default(path.join(__root, "prompts")),
   DEBUG_PROMPTS: z.coerce.boolean().optional().default(false),
+
+
+  // PROCESSOR
+  DEFAULT_EXTRACTOR: z.enum([ "unstructured", "langchain" ]).optional().default("langchain"),
+  EXTRACTOR_SETTINGS: z.string().transform((s) => JSON.parse(s)).optional().default({}),
+  // EXTERNAL PROCESSOR - UNSTRUCTURED
+  UNSTRUCTURED_API_URL: z.string().optional().default("http://localhost:8000"),
+
 
   // OPEN TELEMETRY
   OTEL_ENABLED: z.coerce.boolean().optional().default(false),

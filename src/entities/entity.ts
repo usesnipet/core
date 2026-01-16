@@ -7,11 +7,11 @@ export class BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Field({ type: "date", description: "The timestamp when the invite was created" })
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 
-  @Field({ type: "date", description: "The timestamp when the invite was last updated" })
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt: Date;
 

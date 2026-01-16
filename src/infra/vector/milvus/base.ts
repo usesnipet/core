@@ -1,23 +1,25 @@
 /* eslint-disable camelcase */
 import { env } from "@/env";
-import { BaseFragment, Fragments } from "@/fragment";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { getPresets } from "@/lib/presets";
 import { Constructor } from "@/types/constructor";
 import { LLMPreset } from "@/types/llm-preset";
 import { Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import {
-  CreateIndexesReq, FieldType, FunctionObject, HybridSearchSingleReq, MilvusClient, RerankerObj,
-  RowData, RRFRanker, SearchResultData
+  CreateIndexesReq, FieldType, FunctionObject, HybridSearchSingleReq, MilvusClient, RerankerObj, RowData,
+  RRFRanker
 } from "@zilliz/milvus2-sdk-node";
 
 import { VectorDeleteError } from "../errors/delete-error";
 import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
-import { VectorStoreAddFragmentOptions, VectorStore, VectorStoreOptions, WithSearchOptions } from "../vector-store.service";
+import {
+  VectorStore, VectorStoreAddOptions, VectorStoreOptions, WithSearchOptions
+} from "../vector-store.service";
+import { VectorStorePayload } from "../payload/vector-store-payload";
 
-export abstract class MilvusService<T extends BaseFragment>
+export abstract class MilvusService<T extends VectorStorePayload>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {
 
   protected abstract readonly logger: Logger;
@@ -37,32 +39,37 @@ export abstract class MilvusService<T extends BaseFragment>
   }
 
   private async setupCollection(preset: LLMPreset): Promise<void> {
-    if (preset.config.type === "TEXT") return;
-    const { dimension, model } = preset.config;
-    if (typeof model !== "string" || typeof dimension !== "number") {
-      this.logger.warn("Invalid model name or dimension:", model, dimension);
-      return;
+    try {
+      if (preset.config.type === "TEXT") return;
+      const { dimension, model } = preset.config;
+      if (typeof model !== "string" || typeof dimension !== "number") {
+        this.logger.warn("Invalid model name or dimension:", model, dimension);
+        return;
+      }
+
+      const collectionName = this.buildCollectionName(preset);
+
+      const existsCollection = (await this.client.hasCollection({ collection_name: collectionName })).value;
+
+      if (!env.MILVUS_RECREATE_COLLECTION && existsCollection) return;
+      if (env.MILVUS_RECREATE_COLLECTION && existsCollection) {
+        this.logger.warn("Env var MILVUS_RECREATE_COLLECTION is true, dropping collection");
+        await this.client.dropCollection({ collection_name: collectionName });
+      }
+
+      await this.client.createCollection({
+        collection_name: collectionName,
+        fields: this.fields instanceof Function ? this.fields(model, dimension) : this.fields,
+        functions: this.functions instanceof Function ? this.functions() : this.functions
+      });
+
+      await this.client.createIndex(
+        this.indexSchema instanceof Function ? this.indexSchema(collectionName) : this.indexSchema
+      );
+      await this.client.loadCollectionAsync({ collection_name: collectionName });
+    } catch (error) {
+      this.logger.error("Failed to setup collection:", error);
     }
-
-    const collectionName = this.buildCollectionName(preset);
-
-    const existsCollection = (await this.client.hasCollection({ collection_name: collectionName })).value;
-
-    if (!env.MILVUS_RECREATE_COLLECTION && existsCollection) return;
-    if (env.MILVUS_RECREATE_COLLECTION && existsCollection) {
-      this.logger.warn("Env var MILVUS_RECREATE_COLLECTION is true, dropping collection");
-      await this.client.dropCollection({ collection_name: collectionName });
-    }
-
-    await this.client.createCollection({
-      collection_name: collectionName,
-      fields: this.fields instanceof Function ? this.fields(model, dimension) : this.fields,
-      functions: this.functions instanceof Function ? this.functions() : this.functions
-    });
-    await this.client.createIndex(
-      this.indexSchema instanceof Function ? this.indexSchema(collectionName) : this.indexSchema
-    );
-    await this.client.loadCollectionAsync({ collection_name: collectionName });
   }
 
   async onModuleInit(): Promise<void> {
@@ -76,57 +83,40 @@ export abstract class MilvusService<T extends BaseFragment>
     await this.client.closeConnection();
   }
 
-  abstract fragmentToChunk(fragment: T | T[] | Fragments<T>): RowData[];
-  abstract chunkToFragments(data: RowData[]): Fragments<T>;
+  abstract payloadToChunk(data: T): RowData;
+  abstract payloadToChunk(data: T[]): RowData[];
 
-  toFragments(c: T | T[] | Fragments<T>): Fragments<T> {
-    const fragments = new Fragments<T>();
+  abstract chunkToPayload(data: RowData[]): T[];
+  abstract chunkToPayload(data: RowData): T;
 
-    if (c instanceof this.Type) fragments.push(c);
-    else if (c instanceof Fragments) fragments.import(c);
-    else {
-      if (Array.isArray(c)) fragments.push(...c);
-      else fragments.push(c);
-    }
+  async add(c: T[], opts?: VectorStoreAddOptions): Promise<T[]>
+  async add(c: T, opts?: VectorStoreAddOptions): Promise<T>
+  async add(c: T[] | T, opts?: VectorStoreAddOptions): Promise<T | T[]> {
+    const collection_name = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
 
-    return fragments;
+    const data = Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)];
+
+    const res = await this.client.insert({
+      collection_name,
+      fields_data: data
+    });
+
+    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments to " + collection_name, res);
+    return c;
   }
 
-  async addFragments(c: T[] | T | Fragments<T>, opts?: VectorStoreAddFragmentOptions): Promise<Fragments<T>> {
-    // add embeddings
-    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
-
-    const chunks = this.fragmentToChunk(this.toFragments(c));
-    const embeddingProvider = await this.llmManager.getEmbeddingProvider();
-    if (!embeddingProvider) {
-      this.logger.error("No embedding provider found");
-      throw new VectorMutationError("No embedding provider found");
-    }
-    if (chunks.some(c => !c.dense || !(c.dense as number[]).length) || opts?.forceGenerateEmbedding) {
-      const embeddings = await embeddingProvider.embed(chunks.map(c => (c.content as string)));
-      for (let i = 0; i < chunks.length; i++) chunks[i].dense = embeddings[i];
-    }
-
-    const res = await this.client.insert({ collection_name: collectionName, fields_data: chunks });
-
-    if (res.err_index.length > 0) throw new VectorMutationError("Error adding fragments" + collectionName, res);
-    return this.chunkToFragments(chunks);
-  }
-
-  async deleteFragments(c: T | T[] | Fragments<T>, opts?: VectorStoreOptions): Promise<void> {
-    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
-
-    const ids = this.toFragments(c).map((f: any) => f.id);
+  async remove(ids: string | string[], opts?: VectorStoreOptions): Promise<void> {
+    ids = Array.isArray(ids) ? ids : [ids];
     if (!ids.length) return;
 
     const res = await this.client.delete({
-      collection_name: collectionName,
+      collection_name: await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey),
       filter: `id in [${ids.map(id => `"${id}"`).join(", ")}]`
     });
     if (res.err_index.length > 0) throw new VectorMutationError("Error deleting fragments", res);
   }
 
-  async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<Fragments<T>> {
+  async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<T[]> {
     const options = this.buildSearchOptions(...opts);
     if (!options.filters) options.filters = {};
     options.filters.knowledgeId = knowledgeId;
@@ -145,7 +135,7 @@ export abstract class MilvusService<T extends BaseFragment>
       }
 
       const term = escapeFilterValue(options.term.trim());
-      const textMatch = `TEXT_MATCH(content, '${term}')`;
+      const textMatch = `TEXT_MATCH(fullContent, '${term}')`;
 
       filter = filter ? `${filter} && ${textMatch}` : textMatch;
     }
@@ -153,10 +143,8 @@ export abstract class MilvusService<T extends BaseFragment>
     const data: HybridSearchSingleReq[] = [];
     if (options.dense) {
       let topK = options.topK;
-      if (typeof options.dense !== "string" && options.dense.topK) topK = options.dense.topK;
-      const embeddings = await embeddingProvider.embed(
-        typeof options.dense === "string" ? options.dense : options.dense.query
-      );
+      if (!Array.isArray(options.dense) && options.dense.topK) topK = options.dense.topK;
+      const embeddings = Array.isArray(options.dense) ? options.dense : options.dense.vector;
       data.push({
         anns_field: "dense",
         data: embeddings,
@@ -184,10 +172,10 @@ export abstract class MilvusService<T extends BaseFragment>
       topk: options.topK,
       rerank: options.dense && options.sparse ? this.reranker : undefined
     });
-    if (!result.results?.length) return new Fragments<T>();
+    if (!result.results?.length) return [];
     if (result.status.error_code !== "Success") throw new VectorSearchError("Error searching fragments");
 
-    return this.chunkToFragments(result.results);
+    return this.chunkToPayload(result.results);
   }
 
   async deleteByFilter(
@@ -225,3 +213,4 @@ export abstract class MilvusService<T extends BaseFragment>
     return exprParts.join(" && ");
   }
 }
+
