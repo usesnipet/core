@@ -1,13 +1,31 @@
+/**
+ * @file This file contains cryptographic utilities for encryption and decryption.
+ * It uses a combination of Argon2 for key derivation and AES-256-GCM for authenticated encryption.
+ * The encryption strategy is based on envelope encryption, where a data key is used to encrypt the secret,
+ * and a master key (derived from a password) is used to encrypt the data key.
+ */
+
 import * as argon2 from "argon2";
 import * as crypto from "crypto";
 
 import { env } from "@/env";
 import { SecretRecord } from "@/infra/security/types";
 
+/**
+ * Generates a buffer of random bytes.
+ * @param n The number of bytes to generate.
+ * @returns A buffer containing random bytes.
+ */
 function randBytes(n: number): Buffer {
   return crypto.randomBytes(n);
 }
 
+/**
+ * Derives a key from a password and salt using Argon2.
+ * @param password The password to derive the key from.
+ * @param salt The salt to use for key derivation.
+ * @returns A promise that resolves to the derived key as a buffer.
+ */
 async function deriveKey(password: string, salt: Buffer): Promise<Buffer> {
   return argon2.hash(password, {
     type: argon2.argon2id,
@@ -20,6 +38,12 @@ async function deriveKey(password: string, salt: Buffer): Promise<Buffer> {
   }) as unknown as Buffer;
 }
 
+/**
+ * Encrypts a plaintext string using AES-256-GCM.
+ * @param key The encryption key.
+ * @param plaintext The plaintext to encrypt.
+ * @returns An object containing the ciphertext, initialization vector (IV), and authentication tag.
+ */
 function aesGcmEncrypt(key: Buffer, plaintext: string) {
   const iv = randBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
@@ -31,6 +55,14 @@ function aesGcmEncrypt(key: Buffer, plaintext: string) {
   return { ciphertext, iv, tag };
 }
 
+/**
+ * Decrypts a ciphertext using AES-256-GCM.
+ * @param key The decryption key.
+ * @param iv The initialization vector (IV).
+ * @param tag The authentication tag.
+ * @param ciphertext The ciphertext to decrypt.
+ * @returns The decrypted plaintext as a UTF-8 string.
+ */
 function aesGcmDecrypt(key: Buffer, iv: Buffer, tag: Buffer, ciphertext: Buffer) {
   const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(tag);
@@ -38,6 +70,17 @@ function aesGcmDecrypt(key: Buffer, iv: Buffer, tag: Buffer, ciphertext: Buffer)
   return plaintext.toString("utf8");
 }
 
+/**
+ * Encrypts a secret using envelope encryption.
+ * 1. Generates a random data key.
+ * 2. Encrypts the secret with the data key.
+ * 3. Derives a master key from the master password and a new salt.
+ * 4. Encrypts the data key with the master key.
+ * 5. Returns a SecretRecord containing the encrypted data and necessary metadata, all Base64-encoded.
+ * @param secret The secret string to encrypt.
+ * @param masterPassword The master password to use for encryption. Defaults to `env.ENCRYPT_MASTER_PASSWORD`.
+ * @returns A promise that resolves to a {@link SecretRecord}.
+ */
 export async function encrypt(secret: string, masterPassword: string = env.ENCRYPT_MASTER_PASSWORD): Promise<SecretRecord> {
   // 1) generate data key
   const dataKey = randBytes(32);
@@ -64,6 +107,16 @@ export async function encrypt(secret: string, masterPassword: string = env.ENCRY
   };
 }
 
+/**
+ * Decrypts a secret from a SecretRecord.
+ * 1. Derives the master key from the master password and the salt from the record.
+ * 2. Decrypts the data key using the master key.
+ * 3. Decrypts the secret using the decrypted data key.
+ * 4. Returns the original secret string.
+ * @param record The {@link SecretRecord} to decrypt.
+ * @param masterPassword The master password to use for decryption. Defaults to `env.ENCRYPT_MASTER_PASSWORD`.
+ * @returns A promise that resolves to the decrypted secret string.
+ */
 export async function decrypt(record: SecretRecord, masterPassword: string = env.ENCRYPT_MASTER_PASSWORD): Promise<string> {
   const salt = Buffer.from(record.salt, "base64");
   const masterKey = await deriveKey(masterPassword, salt);
