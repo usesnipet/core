@@ -1,3 +1,11 @@
+/**
+ * @file Manages environment variables for the application.
+ *
+ * This file uses `dotenv` to load environment variables from a `.env` file and `zod` to validate,
+ * parse, and provide default values for them. This ensures that the application's configuration
+ * is type-safe and has sensible defaults.
+ */
+
 import dotenv from "dotenv";
 import path from "path";
 import z from "zod";
@@ -6,6 +14,13 @@ import { __root } from "./root";
 
 const envFile = process.env.ENV_FILE;
 
+/**
+ * Determines the search paths for the `.env` file.
+ * If an `ENV_FILE` environment variable is set, it prioritizes that file path.
+ * Otherwise, it defaults to a standard search path (`.env`, `../../.env`, etc.).
+ * @param envFile - Optional custom path for the environment file.
+ * @returns An array of paths to search for the `.env` file.
+ */
 const buildEnvPaths = (envFile?: string): string[] => {
   if (envFile) {
     return [ envFile, `../../${envFile}` ];
@@ -13,24 +28,39 @@ const buildEnvPaths = (envFile?: string): string[] => {
   return [ ".env", "../../.env", "../../.env.local" ];
 };
 
+// Load environment variables from the determined paths.
 dotenv.config({
   path: buildEnvPaths(envFile)
 });
 
+/**
+ * Defines the schema for all environment variables used in the application.
+ * `zod` is used to enforce types, provide default values, and perform transformations.
+ * This schema covers various aspects of the application's configuration, including:
+ * - Application settings (port, environment)
+ * - Security (API keys, encryption)
+ * - CORS policy
+ * - Storage (S3)
+ * - Database
+ * - Redis
+ * - BullMQ Dashboard
+ * - Vector store (Milvus)
+ * - LLM and prompt settings
+ * - File processing
+ * - OpenTelemetry
+ * - Logging
+ */
 const envSchema = z.object({
   // APP
   APP_PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum([ "development", "production", "test" ]).default("development"),
 
-
   // API KEY
   ROOT_API_KEY: z.string().optional(),
   DEFAULT_RATE_LIMIT: z.coerce.number().optional().default(1000),
 
-
   // SECURITY
   ENCRYPT_MASTER_PASSWORD: z.string().optional().default("change-me"),
-
 
   // CORS
   CORS_ORIGINS: z.string().transform((s) => s.split(",")).optional()
@@ -38,7 +68,6 @@ const envSchema = z.object({
   CORS_METHODS: z.string().array().optional().default([ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]),
   CORS_HEADERS: z.string().array().optional().default([ "*" ]),
   CORS_CREDENTIALS: z.boolean().optional().default(true),
-
 
   // STORAGE
   STORAGE_TYPE: z.enum(['s3']).default('s3'),
@@ -51,11 +80,9 @@ const envSchema = z.object({
   AWS_BUCKET: z.string().optional().default("snipet-files"),
   AWS_FORCE_PATH_STYLE: z.coerce.boolean().optional().default(true),
 
-
   // DATABASE
   DATABASE_URL: z.string(),
   CREATE_DATABASE: z.coerce.boolean().optional().default(false),
-
 
   // REDIS
   REDIS_HOST: z.string().optional().default("localhost"),
@@ -64,11 +91,9 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional().default(""),
   REDIS_DB: z.coerce.number().optional().default(0),
 
-
   // BULLBOARD
   BULL_BOARD_USER: z.string().optional().default("admin"),
   BULL_BOARD_PASSWORD: z.string().optional().default("admin"),
-
 
   // VECTOR
   VECTOR_ENGINE: z.enum([ "milvus" ]).default("milvus"),
@@ -77,19 +102,15 @@ const envSchema = z.object({
   MILVUS_COLLECTION_PREFIX: z.string().optional().default("snipet"),
   MILVUS_RECREATE_COLLECTION: z.string().transform((s) => s === "true").optional(),
 
-
   // LLM
   LLM_EMBEDDING_DEFAULT_PRESET_KEY: z.string().optional().default(""),
   LLM_EMBEDDING_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
-
   LLM_TEXT_DEFAULT_PRESET_KEY: z.string().optional().default(""),
   LLM_TEXT_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
-
 
   // PROMPT
   PROMPT_TEMPLATES_DIR: z.string().optional().default(path.join(__root, "prompts")),
   DEBUG_PROMPTS: z.coerce.boolean().optional().default(false),
-
 
   // PROCESSOR
   DEFAULT_EXTRACTOR: z.enum([ "unstructured", "langchain" ]).optional().default("langchain"),
@@ -97,20 +118,12 @@ const envSchema = z.object({
   // EXTERNAL PROCESSOR - UNSTRUCTURED
   UNSTRUCTURED_API_URL: z.string().optional().default("http://localhost:8000"),
 
-
-  // OPEN TELEMETRY
-  OTEL_ENABLED: z.coerce.boolean().optional().default(false),
-  OTEL_LOGS_EXPORTER: z.string().optional().default("none"),
-  OTEL_TRACES_EXPORTER: z.string().optional().default("otlp"),
-  OTEL_METRICS_EXPORTER: z.string().optional().default("otlp"),
-
-  OTEL_EXPORTER_OTLP_PROTOCOL: z.string().optional().default("grpc"),
-  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: z.string().optional().default("http://opentelemetry-collector:4317"),
-
-  OTEL_METRIC_EXPORT_INTERVAL: z.coerce.number().default(5000),
-  OTEL_METRIC_EXPORT_TIMEOUT: z.coerce.number().default(5000),
-
+  // FILE LOGGER
   FILE_LOGGER_ENABLED: z.coerce.boolean().optional().default(false),
 })
 
+/**
+ * The parsed and validated environment variables for the application.
+ * This object is exported and used throughout the application to access configuration settings in a type-safe way.
+ */
 export const env = envSchema.parse(process.env);
