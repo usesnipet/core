@@ -1,4 +1,3 @@
-import { Fragments, SnipetFragment } from "@/fragment";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { RowData } from "@zilliz/milvus2-sdk-node";
