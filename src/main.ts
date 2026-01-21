@@ -16,7 +16,6 @@ import { generateApi } from "./generate-api";
 import { ErrorsInterceptor } from "./interceptors/error.interceptor";
 import { FileLogger } from "./lib/file-logger";
 import "./utils/$log";
-import "./tracing";
 
 /**
  * Bootstraps and runs the NestJS application.
