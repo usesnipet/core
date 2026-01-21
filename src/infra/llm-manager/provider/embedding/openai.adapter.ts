@@ -1,25 +1,21 @@
-import OpenAI from "openai";
-
-
+import OpenAI, { ClientOptions } from "openai";
 
 import { ProviderHealth, ProviderInfo } from "../types";
 import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
+import { BaseEmbeddingLLMConfig } from "@/types";
 
-type OpenAIOptions = {
-  baseURL: string;
-  apiKey: string;
-  model: string;
-}
+type OpenAIOptions = BaseEmbeddingLLMConfig<ClientOptions>;
 
 export class OpenAIEmbeddingAdapter extends EmbeddingProvider {
   client: OpenAI;
 
-  constructor(private opts: OpenAIOptions) {
+  constructor(private config: OpenAIOptions) {
     super();
-    this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
+    this.client = new OpenAI(config.opts);
   }
+
   async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    return { name: this.config.model }
   }
 
   embed(text: string): Promise<SingleEmbeddingResult>;
@@ -28,7 +24,7 @@ export class OpenAIEmbeddingAdapter extends EmbeddingProvider {
     const start = Date.now();
 
     const response = await this.client.embeddings.create({
-      model: this.opts.model,
+      model: this.config.model,
       input: texts
     });
     if (Array.isArray(texts)) {

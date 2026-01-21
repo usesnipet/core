@@ -3,22 +3,20 @@ import { VoyageAIClient } from "voyageai";
 import { EmbedError } from "../../errors/embed.error";
 import { ProviderHealth, ProviderInfo } from "../types";
 import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
+import { BaseEmbeddingLLMConfig } from "@/types";
 
-type VoyageOptions = {
-  apiKey: string;
-  model: string;
-};
+type VoyageOptions = BaseEmbeddingLLMConfig<VoyageAIClient.Options>;
 
 export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
   client: VoyageAIClient;
 
-  constructor(private opts: VoyageOptions) {
+  constructor(private config: VoyageOptions) {
     super();
-    this.client = new VoyageAIClient({ apiKey: opts.apiKey });
+    this.client = new VoyageAIClient(config.opts);
   }
 
   async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    return { name: this.config.model }
   }
 
   embed(text: string): Promise<SingleEmbeddingResult>;
@@ -27,7 +25,7 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
     const start = Date.now();
     try {
       const response = await this.client.embed({
-        model: this.opts.model,
+        model: this.config.model,
         input: texts
       });
 
@@ -46,7 +44,7 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
             content: texts[i]
           })),
           latency: Date.now() - start,
-          model: response.model ?? this.opts.model,
+          model: response.model ?? this.config.model,
         }
       }
       return {
@@ -56,7 +54,7 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
           content: texts
         },
         latency: Date.now() - start,
-        model: response.model ?? this.opts.model,
+        model: response.model ?? this.config.model,
       }
     } catch (error) {
       throw new EmbedError(error.message, { cause: error });
@@ -70,7 +68,7 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
       // Voyage não tem equivalente direto a "models.list()",
       // então fazemos uma chamada de embed mínima como health-check.
       await this.client.embed({
-        model: this.opts.model,
+        model: this.config.model,
         input: "ping"
       });
 

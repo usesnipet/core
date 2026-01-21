@@ -25,7 +25,6 @@ export interface AIResult {
 
 export abstract class TextProvider {
   abstract info(): Promise<ProviderInfo>;
-  abstract countTokens(text: string): number;
   abstract generate(params: GenerateParams): Promise<AIResult>;
   abstract stream(
     params: GenerateParams

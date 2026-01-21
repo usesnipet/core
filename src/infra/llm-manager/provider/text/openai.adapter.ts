@@ -1,32 +1,24 @@
-import OpenAI from "openai";
+import OpenAI, { ClientOptions } from "openai";
 import { output, ZodObject } from "zod";
 
 import { ProviderHealth, ProviderInfo } from "../types";
 import { GenerateParams, AIResult, TextProvider } from "./base";
 import { Observable } from "rxjs";
 import { MessageEvent } from "@nestjs/common";
-import { getUniversalEncoding } from "../../utils";
+import { BaseTextLLMConfig } from "@/types";
 
-type OpenAIOptions = {
-  baseURL: string;
-  apiKey: string;
-  model: string;
-}
+type OpenAIOptions = BaseTextLLMConfig<ClientOptions>
 
 export class OpenAITextAdapter extends TextProvider {
   client: OpenAI;
 
-  countTokens(text: string): number {
-    return getUniversalEncoding(this.opts.model).encode(text).length
-  }
-
-  constructor(private opts: OpenAIOptions) {
+  constructor(private config: OpenAIOptions) {
     super();
-    this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
+    this.client = new OpenAI(config.opts);
   }
 
   async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    return { name: this.config.model }
   }
 
   async generate(params: GenerateParams): Promise<AIResult> {
@@ -34,7 +26,7 @@ export class OpenAITextAdapter extends TextProvider {
     const { prompt, maxTokens, temperature } = params;
 
     const response = await this.client.chat.completions.create({
-      model: this.opts.model,
+      model: this.config.model,
       messages: [ { role: "user", content: prompt } ],
       max_tokens: maxTokens,
       temperature,
@@ -64,7 +56,7 @@ export class OpenAITextAdapter extends TextProvider {
     const { prompt, maxTokens, temperature } = params;
 
     const stream = await this.client.chat.completions.create({
-      model: this.opts.model,
+      model: this.config.model,
       messages: [ { role: "user", content: prompt } ],
       max_tokens: maxTokens,
       temperature,
@@ -104,7 +96,7 @@ export class OpenAITextAdapter extends TextProvider {
     `.trim();
 
     const res = await this.client.chat.completions.create({
-      model: this.opts.model,
+      model: this.config.model,
       messages: [
         { role: "system", content: prompt },
         { role: "user", content: query }

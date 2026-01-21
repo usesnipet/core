@@ -74,6 +74,7 @@
     "nestjs-cls": "^6.0.1",
     "nodemailer": "^7.0.10",
     "officeparser": "^5.2.1",
+    "ollama": "^0.6.3",
     "openai": "^6.6.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^5.4.54",

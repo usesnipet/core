@@ -103,10 +103,14 @@ const envSchema = z.object({
   MILVUS_RECREATE_COLLECTION: z.string().transform((s) => s === "true").optional(),
 
   // LLM
-  LLM_EMBEDDING_DEFAULT_PRESET_KEY: z.string().optional().default(""),
-  LLM_EMBEDDING_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
-  LLM_TEXT_DEFAULT_PRESET_KEY: z.string().optional().default(""),
-  LLM_TEXT_DEFAULT_CONFIG: z.string().transform((s) => JSON.parse(s)).optional().default({}),
+  LLM_EMBEDDING_DEFAULT_PROVIDER: z.string().optional().default("ollama"),
+  LLM_EMBEDDING_DEFAULT_MODEL: z.string().optional().default("mxbai-embed-large"),
+  LLM_EMBEDDING_DEFAULT_DIMENSION: z.coerce.number().optional().default(1024),
+  LLM_EMBEDDING_DEFAULT_OPTIONS: z.string().transform((s) => JSON.parse(s)).optional().default({ host: "http://localhost:11434" }),
+
+  LLM_TEXT_DEFAULT_PROVIDER: z.string().optional().default("ollama"),
+  LLM_TEXT_DEFAULT_MODEL: z.string().optional().default("all-MiniLM-L6-v2"),
+  LLM_TEXT_DEFAULT_OPTIONS: z.string().transform((s) => JSON.parse(s)).optional().default({ host: "http://localhost:11434" }),
 
   // PROMPT
   PROMPT_TEMPLATES_DIR: z.string().optional().default(path.join(__root, "prompts")),

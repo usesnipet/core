@@ -2,21 +2,20 @@ import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 
 import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
 import { ProviderInfo } from "../types";
-import e from "express";
+import { BaseEmbeddingLLMConfig } from "@/types";
 
-type GeminiOptions = {
+type GeminiOptions = BaseEmbeddingLLMConfig<{
   apiKey: string;
-  model: string;
-};
+}>;
 
 export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
   client: GoogleGenerativeAI;
   model: GenerativeModel;
 
-  constructor(opts: GeminiOptions) {
+  constructor({ opts, model }: GeminiOptions) {
     super();
     this.client = new GoogleGenerativeAI(opts.apiKey);
-    this.model = this.client.getGenerativeModel({ model: opts.model });
+    this.model = this.client.getGenerativeModel({ model });
   }
 
   async info(): Promise<ProviderInfo> {

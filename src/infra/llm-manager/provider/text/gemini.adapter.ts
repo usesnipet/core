@@ -1,32 +1,25 @@
-import { randomUUID } from "crypto";
 import { Observable } from "rxjs";
 import { output, ZodObject } from "zod";
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, GoogleGenAIOptions } from "@google/genai";
 import { MessageEvent } from "@nestjs/common";
 
 import { ProviderHealth, ProviderInfo } from "../types";
 import { GenerateParams, AIResult, TextProvider } from "./base";
-import { getUniversalEncoding } from "../../utils";
+import { BaseTextLLMConfig } from "@/types";
 
-type GeminiAdapterOptions = {
-  apiKey: string;
-  model: string;
-}
+type GeminiAdapterOptions = BaseTextLLMConfig<GoogleGenAIOptions>;
+
 export class GeminiTextAdapter extends TextProvider {
-  countTokens(text: string): number {
-    return getUniversalEncoding(this.opts.model).encode(text).length
-  }
-
   private client: GoogleGenAI;
 
-  constructor(private opts: GeminiAdapterOptions) {
+  constructor(private config: GeminiAdapterOptions) {
     super();
-    this.client = new GoogleGenAI({ apiKey: opts.apiKey });
+    this.client = new GoogleGenAI(config.opts);
   }
 
   async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    return { name: this.config.model }
   }
 
   async generate(params: GenerateParams): Promise<AIResult> {
@@ -37,7 +30,7 @@ export class GeminiTextAdapter extends TextProvider {
         role: "user",
         parts: [ { text: prompt } ]
       } ],
-      model: this.opts.model,
+      model: this.config.model,
       config: {
         temperature,
         maxOutputTokens: maxTokens,
@@ -56,7 +49,7 @@ export class GeminiTextAdapter extends TextProvider {
       },
       cost: null,
       latency: Date.now() - start,
-      model: res.modelVersion ?? this.opts.model,
+      model: res.modelVersion ?? this.config.model,
     };
   }
 
@@ -69,11 +62,10 @@ export class GeminiTextAdapter extends TextProvider {
         role: "user",
         parts: [ { text: prompt } ]
       } ],
-      model: this.opts.model,
+      model: this.config.model,
       config: {
         temperature,
         maxOutputTokens: maxTokens,
-        tools: [ { googleSearch: {} } ]
       }
     });
     return new Observable((subscriber) => {
@@ -103,7 +95,7 @@ export class GeminiTextAdapter extends TextProvider {
             },
             cost: null,
             latency: Date.now() - start,
-            model: modelVersion ?? this.opts.model,
+            model: modelVersion ?? this.config.model,
             output: text.join("")
           } as AIResult);
           subscriber.complete();
@@ -136,7 +128,7 @@ export class GeminiTextAdapter extends TextProvider {
         role: "user",
         parts: [ { text: prompt } ]
       } ],
-      model: this.opts.model,
+      model: this.config.model,
       config: { temperature: 0 }
     });
 
@@ -156,7 +148,7 @@ export class GeminiTextAdapter extends TextProvider {
   async healthCheck(): Promise<ProviderHealth> {
     const start = Date.now();
     try {
-      await this.client.models.get({ model: this.opts.model });
+      await this.client.models.get({ model: this.config.model });
       return { ok: true, latencyMs: Date.now() - start };
     } catch (error) {
       return { ok: false, error: (error as Error).message };

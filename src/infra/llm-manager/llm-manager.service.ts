@@ -2,12 +2,11 @@ import { env } from "@/env";
 import { __root } from "@/root";
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 
-import { NotFoundError } from "./errors/not-found.error";
 import { LLMLoaderService } from "./llm-loader.service";
 import { EmbeddingProvider } from "./provider/embedding/base";
 import { TextProvider } from "./provider/text/base";
-import { getPresets } from "@/lib/presets";
-import { LLMPreset } from "@/types/llm-preset";
+import { fingerprint } from "@/lib/fingerprint";
+import { BaseEmbeddingLLMConfig, BaseTextLLMConfig } from "@/types";
 
 @Injectable()
 export class LLMManagerService implements OnModuleInit, OnModuleDestroy {
@@ -17,47 +16,77 @@ export class LLMManagerService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private readonly loader: LLMLoaderService) { }
 
+  private generateKey(type: "TEXT" | "EMBEDDING", provider: string, config: any): string {
+    return fingerprint(`${type}-${provider}-${JSON.stringify(config)}`);
+  }
+
   async getEmbeddingProvider(): Promise<EmbeddingProvider | null> {
-    const presets = await getPresets();
-    const embeddingPreset = presets.find(p => p.key === env.LLM_EMBEDDING_DEFAULT_PRESET_KEY);
-    if (!embeddingPreset) throw new Error("Embedding preset not found");
-    await this.getInstance(embeddingPreset, env.LLM_EMBEDDING_DEFAULT_CONFIG);
-    return this.getInstance<EmbeddingProvider>(embeddingPreset, env.LLM_EMBEDDING_DEFAULT_CONFIG);
+    return await this.getInstance(
+      "EMBEDDING",
+      env.LLM_EMBEDDING_DEFAULT_PROVIDER,
+      {
+        model: env.LLM_EMBEDDING_DEFAULT_MODEL,
+        dimension: env.LLM_EMBEDDING_DEFAULT_DIMENSION,
+        opts: env.LLM_EMBEDDING_DEFAULT_OPTIONS
+      }
+    );
   }
 
   async getTextProvider(): Promise<TextProvider | null> {
-    const presets = await getPresets();
-    const textPreset = presets.find(p => p.key === env.LLM_TEXT_DEFAULT_PRESET_KEY);
-    if (!textPreset) throw new Error("Text preset not found");
-    await this.getInstance(textPreset, env.LLM_TEXT_DEFAULT_CONFIG);
-    return this.getInstance<TextProvider>(textPreset, env.LLM_TEXT_DEFAULT_CONFIG);
+    return await this.getInstance(
+      "TEXT",
+      env.LLM_TEXT_DEFAULT_PROVIDER,
+      {
+        model: env.LLM_TEXT_DEFAULT_MODEL,
+        opts: env.LLM_TEXT_DEFAULT_OPTIONS
+      }
+    );
   }
 
-  async getInstance<T>(
-    preset: LLMPreset,
+  async getInstance(type: "TEXT", provider: string, config: BaseTextLLMConfig): Promise<TextProvider | null>
+  async getInstance(
+    type: "EMBEDDING",
+    provider: string,
+    config: BaseEmbeddingLLMConfig
+  ): Promise<EmbeddingProvider | null>
+  async getInstance(
+    type: "TEXT" | "EMBEDDING",
+    provider: string,
     config: any
-  ): Promise<T | null> {
-    if (this.instances.has(preset.key)) return this.instances.get(preset.key)!.instance as any;
+  ): Promise<EmbeddingProvider | TextProvider | null> {
+    const key = this.generateKey(type, provider, config);
+    if (this.instances.has(key)) return this.instances.get(key)!.instance;
+    let instance: TextProvider | EmbeddingProvider | null = null;
 
-    if (!preset) throw new NotFoundError("LLM not found");
-    const instance = await this.loader.load(preset, config);
+    if (type === "TEXT") instance = await this.loader.load(type, provider, config);
+    else instance = await this.loader.load(type, provider, config);
 
-    this.addInstance(preset, instance);
-    return instance as any;
+    this.addInstance(key, instance);
+    return instance;
   }
 
-  private addInstance(preset: LLMPreset, instance: EmbeddingProvider | TextProvider): void {
-    this.instances.set(preset.key, { instance, lastUse: Date.now() });
+  private addInstance(key: string, instance: EmbeddingProvider | TextProvider): void {
+    this.instances.set(key, { instance, lastUse: Date.now() });
   }
 
   async onModuleInit() {
-    const presets = await getPresets();
-    const embeddingPreset = presets.find(p => p.key === env.LLM_EMBEDDING_DEFAULT_PRESET_KEY);
-    const textPreset = presets.find(p => p.key === env.LLM_TEXT_DEFAULT_PRESET_KEY);
-    if (!embeddingPreset) throw new Error("Embedding preset not found");
-    if (!textPreset) throw new Error("Text preset not found");
-    await this.getInstance(embeddingPreset, env.LLM_EMBEDDING_DEFAULT_CONFIG);
-    await this.getInstance(textPreset, env.LLM_TEXT_DEFAULT_CONFIG);
+    await this.getInstance(
+      "EMBEDDING",
+      env.LLM_EMBEDDING_DEFAULT_PROVIDER,
+      {
+        model: env.LLM_EMBEDDING_DEFAULT_MODEL,
+        dimension: env.LLM_EMBEDDING_DEFAULT_DIMENSION,
+        opts: env.LLM_EMBEDDING_DEFAULT_OPTIONS
+      }
+    );
+    await this.getInstance(
+      "TEXT",
+      env.LLM_TEXT_DEFAULT_PROVIDER,
+      {
+        model: env.LLM_TEXT_DEFAULT_MODEL,
+        opts: env.LLM_TEXT_DEFAULT_OPTIONS
+      }
+    );
   }
 
   async onModuleDestroy(): Promise<void> {

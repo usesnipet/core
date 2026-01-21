@@ -1,9 +1,7 @@
 /* eslint-disable camelcase */
 import { env } from "@/env";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
-import { getPresets } from "@/lib/presets";
 import { Constructor } from "@/types/constructor";
-import { LLMPreset } from "@/types/llm-preset";
 import { Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import {
   CreateIndexesReq, FieldType, FunctionObject, HybridSearchSingleReq, MilvusClient, RerankerObj, RowData,
@@ -14,10 +12,9 @@ import { VectorDeleteError } from "../errors/delete-error";
 import { InvalidVectorFiltersError } from "../errors/invalid-vector-filters";
 import { VectorMutationError } from "../errors/vector-mutation";
 import { VectorSearchError } from "../errors/vector-search";
-import {
-  VectorStore, VectorStoreAddOptions, VectorStoreOptions, WithSearchOptions
-} from "../vector-store.service";
+import { VectorStore, WithSearchOptions } from "../vector-store.service";
 import { VectorStorePayload } from "../payload/vector-store-payload";
+import { BaseEmbeddingLLMConfig } from "@/types";
 
 export abstract class MilvusService<T extends VectorStorePayload>
   extends VectorStore<T> implements OnModuleInit, OnModuleDestroy {
@@ -38,16 +35,14 @@ export abstract class MilvusService<T extends VectorStorePayload>
     this.client = new MilvusClient({ address: env.MILVUS_URL });
   }
 
-  private async setupCollection(preset: LLMPreset): Promise<void> {
-    try {
-      if (preset.config.type === "TEXT") return;
-      const { dimension, model } = preset.config;
-      if (typeof model !== "string" || typeof dimension !== "number") {
-        this.logger.warn("Invalid model name or dimension:", model, dimension);
-        return;
-      }
+  private async setupCollection(config: BaseEmbeddingLLMConfig): Promise<void> {
+    const { dimension, model } = config;
+    if (typeof model !== "string" || typeof dimension !== "number") {
+      throw new Error(`Invalid config: ${JSON.stringify({ dimension, model })}`);
+    }
 
-      const collectionName = this.buildCollectionName(preset);
+    try {
+      const collectionName = this.buildCollectionName();
 
       const existsCollection = (await this.client.hasCollection({ collection_name: collectionName })).value;
 
@@ -74,9 +69,11 @@ export abstract class MilvusService<T extends VectorStorePayload>
 
   async onModuleInit(): Promise<void> {
     await this.client.connectPromise;
-    for (const preset of (await getPresets())) {
-      await this.setupCollection(preset);
-    }
+    await this.setupCollection({
+      model: env.LLM_EMBEDDING_DEFAULT_MODEL,
+      dimension: env.LLM_EMBEDDING_DEFAULT_DIMENSION,
+      opts: env.LLM_EMBEDDING_DEFAULT_OPTIONS
+    });
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -89,11 +86,10 @@ export abstract class MilvusService<T extends VectorStorePayload>
   abstract chunkToPayload(data: RowData[]): T[];
   abstract chunkToPayload(data: RowData): T;
 
-  async add(c: T[], opts?: VectorStoreAddOptions): Promise<T[]>
-  async add(c: T, opts?: VectorStoreAddOptions): Promise<T>
-  async add(c: T[] | T, opts?: VectorStoreAddOptions): Promise<T | T[]> {
-    const collection_name = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
-
+  async add(c: T[]): Promise<T[]>
+  async add(c: T): Promise<T>
+  async add(c: T[] | T): Promise<T | T[]> {
+    const collection_name = this.buildCollectionName();
     const data = Array.isArray(c) ? this.payloadToChunk(c) : [this.payloadToChunk(c)];
 
     const res = await this.client.insert({
@@ -105,12 +101,12 @@ export abstract class MilvusService<T extends VectorStorePayload>
     return c;
   }
 
-  async remove(ids: string | string[], opts?: VectorStoreOptions): Promise<void> {
+  async remove(ids: string | string[]): Promise<void> {
     ids = Array.isArray(ids) ? ids : [ids];
     if (!ids.length) return;
 
     const res = await this.client.delete({
-      collection_name: await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey),
+      collection_name: this.buildCollectionName(),
       filter: `id in [${ids.map(id => `"${id}"`).join(", ")}]`
     });
     if (res.err_index.length > 0) throw new VectorMutationError("Error deleting fragments", res);
@@ -120,7 +116,7 @@ export abstract class MilvusService<T extends VectorStorePayload>
     const options = this.buildSearchOptions(...opts);
     if (!options.filters) options.filters = {};
     options.filters.knowledgeId = knowledgeId;
-    const collectionName = await this.buildCollectionNameFromPresetKey(options.llmPresetKey);
+    const collectionName = this.buildCollectionName();
     const embeddingProvider = await this.llmManager.getEmbeddingProvider();
     if (!embeddingProvider) {
       this.logger.error("No embedding provider found");
@@ -178,11 +174,8 @@ export abstract class MilvusService<T extends VectorStorePayload>
     return this.chunkToPayload(result.results);
   }
 
-  async deleteByFilter(
-    filter: Record<string, string | number | boolean>,
-    opts?: VectorStoreOptions
-  ): Promise<void> {
-    const collectionName = await this.buildCollectionNameFromPresetKey(opts?.llmPresetKey);
+  async deleteByFilter(filter: Record<string, string | number | boolean>): Promise<void> {
+    const collectionName = this.buildCollectionName();
 
     const res = await this.client.delete({
       collection_name: collectionName,
