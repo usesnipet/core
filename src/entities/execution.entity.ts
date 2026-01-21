@@ -38,11 +38,10 @@ export class ExecuteSnipetContextKnowledgeOptions {
   metadata?: Record<string, any>;
 
   @Field({
-    type: "enum",
-    enum: ["force", "ignore", "auto"],
-    description: "force/ignore/auto policy for knowledge, this indicates if should filter the knowledge"
+    type: "boolean",
+    description: "This indicates if should search in the knowledge base"
   })
-  use: "force" | "ignore" | "auto";
+  use: boolean;
 }
 
 export class ExecuteSnipetContextSnipetOptions {
@@ -74,11 +73,10 @@ export class ExecuteSnipetContextSnipetOptions {
   metadata?: Record<string, any>;
 
   @Field({
-    type: "enum",
-    enum: ["force", "ignore", "auto"],
-    description: "force/ignore/auto policy for snipet memory, this indicates if should filter the memories"
+    type: "boolean",
+    description: "This indicates if should search in the snipet"
   })
-  use: "force" | "ignore" | "auto";
+  use: boolean;
 }
 
 export class ExecuteSnipetContextOptions {

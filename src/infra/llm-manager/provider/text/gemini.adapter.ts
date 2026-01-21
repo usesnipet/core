@@ -6,7 +6,7 @@ import { GoogleGenAI } from "@google/genai";
 import { MessageEvent } from "@nestjs/common";
 
 import { ProviderHealth, ProviderInfo } from "../types";
-import { GenerateParams, GenerateResult, TextProvider } from "./base";
+import { GenerateParams, AIResult, TextProvider } from "./base";
 import { getUniversalEncoding } from "../../utils";
 
 type GeminiAdapterOptions = {
@@ -29,9 +29,9 @@ export class GeminiTextAdapter extends TextProvider {
     return { name: this.opts.model }
   }
 
-  async generate(params: GenerateParams): Promise<GenerateResult> {
-    const { prompt, maxTokens, temperature } = params;
+  async generate(params: GenerateParams): Promise<AIResult> {
     const start = Date.now();
+    const { prompt, maxTokens, temperature } = params;
     const res = await this.client.models.generateContent({
       contents: [ {
         role: "user",
@@ -44,17 +44,24 @@ export class GeminiTextAdapter extends TextProvider {
         tools: [ { googleSearch: {} } ]
       }
     });
-
+    const inputTokens = res.usageMetadata?.promptTokenCount ?? 0;
+    const outputTokens = res.usageMetadata?.candidatesTokenCount ?? 0;
+    const totalTokens = res.usageMetadata?.totalTokenCount ?? inputTokens + outputTokens;
     return {
-      id: randomUUID(),
       output: res.text ?? "",
-      tokensIn: res.usageMetadata?.promptTokenCount ?? 0,
-      tokensOut: res.usageMetadata?.candidatesTokenCount ?? 0,
-      generationTimeMs: Date.now() - start
+      usage: {
+        inputTokens,
+        outputTokens,
+        totalTokens
+      },
+      cost: null,
+      latency: Date.now() - start,
+      model: res.modelVersion ?? this.opts.model,
     };
   }
 
-  async stream(params: GenerateParams): Promise<Observable<MessageEvent>> {
+  async stream(params: GenerateParams): Promise<Observable<MessageEvent | AIResult>> {
+    const start = Date.now();
     const { prompt, maxTokens, temperature } = params;
 
     const res = await this.client.models.generateContentStream({
@@ -72,11 +79,33 @@ export class GeminiTextAdapter extends TextProvider {
     return new Observable((subscriber) => {
       (async () => {
         try {
+          let inputTokens = 0;
+          let outputTokens = 0;
+          let totalTokens = 0;
+          let modelVersion: string | undefined;
+          const text: string[] = [];
           for await (const chunk of res) {
             const chunkText = chunk.candidates?.[0].content?.parts?.[0]?.text;
-            if (chunkText) subscriber.next({ data: chunkText });
+            if (chunkText) {
+              subscriber.next({ data: chunkText });
+              text.push(chunkText);
+            }
+            inputTokens = chunk.usageMetadata?.promptTokenCount ?? inputTokens;
+            outputTokens = chunk.usageMetadata?.candidatesTokenCount ?? outputTokens;
+            totalTokens = chunk.usageMetadata?.totalTokenCount ?? totalTokens;
+            modelVersion = chunk.modelVersion ?? modelVersion;
           }
-
+          subscriber.next({
+            usage: {
+              inputTokens,
+              outputTokens,
+              totalTokens
+            },
+            cost: null,
+            latency: Date.now() - start,
+            model: modelVersion ?? this.opts.model,
+            output: text.join("")
+          } as AIResult);
           subscriber.complete();
         } catch (error) {
           subscriber.error(error);

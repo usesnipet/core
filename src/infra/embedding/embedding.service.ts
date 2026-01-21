@@ -2,16 +2,12 @@ import { Inject, Injectable } from "@nestjs/common";
 import { LLMManagerService } from "../llm-manager/llm-manager.service";
 import { fingerprint } from "@/lib/fingerprint";
 import { CacheService } from "../cache/cache.service";
+import { SingleEmbeddingResult } from "../llm-manager/provider/embedding/base";
 
-type EmbeddingResult = {
-  content: string;
-  embeddings: number[];
-};
 
 export type EmbeddingCache = {
   hash: string;
-  content: string;
-  embeddings: number[];
+  embeddingResult: SingleEmbeddingResult;
 }
 
 @Injectable()
@@ -28,10 +24,8 @@ export class EmbeddingService {
     return this.cacheService.set<EmbeddingCache>(fingerprint, cache);
   }
 
-  async getOrCreateEmbedding(content: string): Promise<EmbeddingResult> {
-    if (!content) {
-      throw new Error('Content cannot be empty');
-    }
+  async getOrCreateEmbedding(content: string): Promise<SingleEmbeddingResult> {
+    if (!content) throw new Error('Content cannot be empty');
 
     let embeddingCache = await this.get(content);
 
@@ -41,19 +35,15 @@ export class EmbeddingService {
         throw new Error('No embedding provider available');
       }
       const hash = fingerprint(content);
-      const embeddings = await embeddingProvider.embed(content);
+      const embeddingResult = await embeddingProvider.embed(content);
       const cacheEntry = {
         hash,
-        content,
-        embeddings
+        embeddingResult
       };
       await this.set(hash, cacheEntry);
       embeddingCache = cacheEntry;
     }
 
-    return {
-      content: embeddingCache.content,
-      embeddings: embeddingCache.embeddings
-    };
+    return embeddingCache.embeddingResult;
   }
 }

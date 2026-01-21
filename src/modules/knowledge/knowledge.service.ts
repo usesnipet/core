@@ -184,7 +184,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     return this.vectorStore.search(
       knowledgeId,
       SourceVectorStoreService.withFilters({ ...opts.metadata }),
-      SourceVectorStoreService.withDense({ vector: queryEmbedding.embeddings, topK: 100 }),
+      SourceVectorStoreService.withDense({ vector: queryEmbedding.data.embeddings, topK: 100 }),
       SourceVectorStoreService.withSparse({ query: query, topK: 100 }),
       SourceVectorStoreService.withTopK(opts.topK ?? 10),
     );

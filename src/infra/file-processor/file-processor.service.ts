@@ -30,7 +30,7 @@ export class FileProcessorService {
     const payloads = await Promise.all(genericDocument.nodes.map(async ({ id, content, metadata: nodeMetadata }, index) => {
       if (!content) throw new Error('Content cannot be empty');
       const canonicalText = canonicalize(content);
-      const { embeddings } = await this.embeddingService.getOrCreateEmbedding(canonicalText);
+      const { data } = await this.embeddingService.getOrCreateEmbedding(canonicalText);
       return new SourceVectorStorePayload({
         id,
         connectorId,
@@ -39,7 +39,7 @@ export class FileProcessorService {
         content,
         fullContent: content,
         seqId: index,
-        dense: embeddings,
+        dense: data.embeddings,
         metadata: { ...metadata, ...nodeMetadata },
       });
     }));

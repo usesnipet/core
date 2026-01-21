@@ -1,7 +1,8 @@
 import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 
-import { EmbeddingProvider } from "./base";
+import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
 import { ProviderInfo } from "../types";
+import e from "express";
 
 type GeminiOptions = {
   apiKey: string;
@@ -22,9 +23,11 @@ export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
     return { name: this.model.model }
   }
 
-  embed(text: string): Promise<number[]>;
-  embed(texts: string[]): Promise<number[][]>;
-  override async embed(texts: string | string[]): Promise<number[] | number[][]> {
+
+  embed(text: string): Promise<SingleEmbeddingResult>;
+  embed(texts: string[]): Promise<MultipleEmbeddingResult>;
+  async embed(texts: string | string[]): Promise<SingleEmbeddingResult | MultipleEmbeddingResult> {
+    const start = Date.now();
     const inputs = Array.isArray(texts) ? texts : [ texts ];
 
     const embeddings = await Promise.all(
@@ -33,7 +36,25 @@ export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
         return result.embedding?.values ?? [];
       })
     );
-
-    return Array.isArray(texts) ? embeddings : embeddings[0];
+    if (Array.isArray(texts)) {
+      return {
+        cost: null,
+        data: embeddings.map((d, i) => ({
+          embeddings: d,
+          content: texts[i]
+        })),
+        latency: Date.now() - Date.now(),
+        model: this.model.model
+      }
+    }
+    return {
+      cost: null,
+      data: {
+        embeddings: embeddings[0],
+        content: texts
+      },
+      latency: Date.now() - start,
+      model: this.model.model
+    }
   }
 }

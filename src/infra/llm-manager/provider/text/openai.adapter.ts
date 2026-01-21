@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { output, ZodObject } from "zod";
 
 import { ProviderHealth, ProviderInfo } from "../types";
-import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
+import { GenerateParams, AIResult, TextProvider } from "./base";
 import { Observable } from "rxjs";
 import { MessageEvent } from "@nestjs/common";
 import { getUniversalEncoding } from "../../utils";
@@ -29,9 +29,9 @@ export class OpenAITextAdapter extends TextProvider {
     return { name: this.opts.model }
   }
 
-  async generate(params: GenerateParams): Promise<GenerateResult> {
-    const { prompt, maxTokens, temperature } = params;
+  async generate(params: GenerateParams): Promise<AIResult> {
     const start = Date.now();
+    const { prompt, maxTokens, temperature } = params;
 
     const response = await this.client.chat.completions.create({
       model: this.opts.model,
@@ -42,19 +42,25 @@ export class OpenAITextAdapter extends TextProvider {
     });
 
     const message = response.choices[0]?.message?.content ?? "";
-    const tokensIn = response.usage?.prompt_tokens ?? 0;
-    const tokensOut = response.usage?.completion_tokens ?? 0;
+    const inputTokens = response.usage?.prompt_tokens ?? 0;
+    const outputTokens = response.usage?.completion_tokens ?? 0;
+    const totalTokens = response.usage?.total_tokens ?? inputTokens + outputTokens;
 
     return {
-      id: response.id,
       output: message,
-      tokensIn,
-      tokensOut,
-      generationTimeMs: Date.now() - start
+      usage: {
+        inputTokens,
+        outputTokens,
+        totalTokens
+      },
+      cost: null,
+      latency: Date.now() - start,
+      model: response.model
     };
   }
 
-  async stream(params: GenerateParams): Promise<Observable<MessageEvent>> {
+  async stream(params: GenerateParams): Promise<Observable<MessageEvent | AIResult>> {
+    const start = Date.now();
     const { prompt, maxTokens, temperature } = params;
 
     const stream = await this.client.chat.completions.create({
@@ -67,7 +73,10 @@ export class OpenAITextAdapter extends TextProvider {
     return new Observable((subscriber) => {
       (async () => {
         try {
+          // TODO - send AIResult on finish stream
           for await (const chunk of stream) {
+            console.log(chunk);
+
             const chunkText = chunk.choices[0]?.delta?.content;
             if (chunkText) subscriber.next({ data: chunkText });
           }

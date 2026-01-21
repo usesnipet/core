@@ -30,7 +30,7 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
   async stream(executionId: string) {
     const execution = await this.executionService.findByID(executionId);
     if (!execution) throw new NotFoundException("Execution not found");
-     return new Observable<ExecutionEvent>((subscriber) => {
+    return new Observable<ExecutionEvent>((subscriber) => {
       (async () => {
         try {
           const { knowledgeId, snipetId, options } = execution;

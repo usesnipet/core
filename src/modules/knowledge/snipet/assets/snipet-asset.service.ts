@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AssetDomain, AssetEntity, AssetSource, AssetType } from "@/entities/asset.entity";
 import { SnipetAssetDto, SnipetAssetType } from "../dto/snipet-asset.dto";
 import { EntityManager } from "typeorm";
-import { ASSET_POLICIES, AssetPolicy } from "./assets.policy";
+import { ASSET_POLICIES } from "./assets.policy";
 import { SnipetVectorStorePayload } from "@/infra/vector/payload/snipet-vector-store-payload";
 import { EmbeddingService } from "@/infra/embedding/embedding.service";
 import { SnipetVectorStoreService } from "@/infra/vector/snipet-vector-store.service";
@@ -199,7 +199,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
     const embedding = await this.embeddingService.getOrCreateEmbedding(text);
     return await this.snipetVectorStore.add(
       new SnipetVectorStorePayload({
-        dense: embedding.embeddings,
+        dense: embedding.data.embeddings,
         id: asset.id,
         snipetId: asset.snipetId,
         content: text,
@@ -239,7 +239,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
       const opts = [
         SnipetVectorStoreService.withSnipetId(snipetId),
         SnipetVectorStoreService.withDense({
-          vector: queryEmbedding.embeddings,
+          vector: queryEmbedding.data.embeddings,
           topK: typeof query === "string" ? undefined : query.topK
         }),
       ]

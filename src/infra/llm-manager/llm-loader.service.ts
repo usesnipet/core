@@ -2,7 +2,7 @@
 import { Injectable } from "@nestjs/common";
 import { LLMPreset } from "@/types/llm-preset";
 
-import { EmbeddingProvider } from "./provider/embedding/base";
+import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./provider/embedding/base";
 import { GeminiLLMEmbeddingAdapter } from "./provider/embedding/gemini.adapter";
 import { OpenAIEmbeddingAdapter } from "./provider/embedding/openai.adapter";
 import { TextProvider } from "./provider/text/base";
@@ -50,7 +50,7 @@ export class LLMLoaderService {
     adapter: string,
     preset: LLMPreset,
     config: any
-  ): { embed: (text: string) => Promise<number[]> } {
+  ): { embed: (text: string | string[]) => Promise<MultipleEmbeddingResult | SingleEmbeddingResult> } {
     if (preset.config.type !== "EMBEDDING") throw new Error("Invalid provider type");
 
     let AdapterClass: new (config: any, preset: LLMPreset) => EmbeddingProvider;

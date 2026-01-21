@@ -2,7 +2,7 @@ import { VoyageAIClient } from "voyageai";
 
 import { EmbedError } from "../../errors/embed.error";
 import { ProviderHealth, ProviderInfo } from "../types";
-import { EmbeddingProvider } from "./base";
+import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
 
 type VoyageOptions = {
   apiKey: string;
@@ -21,9 +21,10 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
     return { name: this.opts.model }
   }
 
-  embed(text: string): Promise<number[]>;
-  embed(texts: string[]): Promise<number[][]>;
-  async embed(texts: string | string[]): Promise<number[] | number[][]> {
+  embed(text: string): Promise<SingleEmbeddingResult>;
+  embed(texts: string[]): Promise<MultipleEmbeddingResult>;
+  async embed(texts: string | string[]): Promise<SingleEmbeddingResult | MultipleEmbeddingResult> {
+    const start = Date.now();
     try {
       const response = await this.client.embed({
         model: this.opts.model,
@@ -35,10 +36,28 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
       }
 
       const embeddings = response.data.map((d) => d.embedding);
-      if (embeddings.some((e) => !e)) {
-        throw new EmbedError("Some embeddings not found");
+      if (embeddings.some((e) => !e)) throw new EmbedError("Some embeddings not found");
+
+      if (Array.isArray(texts)) {
+        return {
+          cost: null,
+          data: embeddings.map((e, i) => ({
+            embeddings: e!,
+            content: texts[i]
+          })),
+          latency: Date.now() - start,
+          model: response.model ?? this.opts.model,
+        }
       }
-      return Array.isArray(texts) ? embeddings as number[][] : embeddings[0] as number[];
+      return {
+        cost: null,
+        data: {
+          embeddings: embeddings[0]!,
+          content: texts
+        },
+        latency: Date.now() - start,
+        model: response.model ?? this.opts.model,
+      }
     } catch (error) {
       throw new EmbedError(error.message, { cause: error });
     }

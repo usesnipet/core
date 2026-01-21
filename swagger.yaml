@@ -566,13 +566,8 @@ components:
         topK:
           type: number
         use:
-          description: force/ignore/auto policy for knowledge, this indicates if should
-            filter the knowledge
-          enum:
-            - force
-            - ignore
-            - auto
-          type: string
+          description: This indicates if should search in the knowledge base
+          type: boolean
       required:
         - searchTypes
         - use
@@ -604,13 +599,8 @@ components:
         topK:
           type: number
         use:
-          description: force/ignore/auto policy for snipet memory, this indicates if
-            should filter the memories
-          enum:
-            - force
-            - ignore
-            - auto
-          type: string
+          description: This indicates if should search in the snipet
+          type: boolean
       required:
         - searchTypes
         - use

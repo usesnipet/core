@@ -11,24 +11,25 @@ export interface GenerateParams {
   metadata?: Record<string, any>;
 }
 
-export interface GenerateResult {
-  id: string;
+export interface AIResult {
   output: string;
-  tokensIn: number;
-  tokensOut: number;
-  generationTimeMs: number;
-}
-
-export interface StreamChunk {
-  delta: string;
-  finishReason?: string;
+  model: string;
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  cost: number | null;
+  latency: number;
 }
 
 export abstract class TextProvider {
   abstract info(): Promise<ProviderInfo>;
   abstract countTokens(text: string): number;
-  abstract generate(params: GenerateParams): Promise<GenerateResult>;
-  abstract stream(params: GenerateParams): Observable<MessageEvent> | Promise<Observable<MessageEvent>>;
+  abstract generate(params: GenerateParams): Promise<AIResult>;
+  abstract stream(
+    params: GenerateParams
+  ): Observable<MessageEvent | AIResult> | Promise<Observable<MessageEvent | AIResult>>;
   abstract healthCheck?(): Promise<ProviderHealth>;
   abstract withStructuredOutput<S extends z.ZodObject<any>>(query: string, schema: S): Promise<z.infer<S>>;
 
