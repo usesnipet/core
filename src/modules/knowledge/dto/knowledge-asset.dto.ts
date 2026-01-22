@@ -18,7 +18,6 @@ export class KnowledgeAssetDto extends PickType(AssetEntity, [
   @Field({ type: "enum", enum: KnowledgeAssetType })
   type: KnowledgeAssetType;
 
-
   constructor(partial: Partial<KnowledgeAssetDto>) {
     super(partial);
     Object.assign(this, partial);

@@ -1,4 +1,4 @@
-import { Column, Entity, Index, OneToMany } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 import { Field } from "../shared/model";
 import { ConnectorEntity } from "./connector.entity";
@@ -8,8 +8,20 @@ import { AssetEntity } from "./asset.entity";
 
 @Entity("knowledge_bases")
 @Index("knowledge_base_namespace_unique", ["namespace"])
-export class KnowledgeEntity extends BaseEntity {
-  @Field({ type: "string", min: 10, description: "The name of the knowledge base", required: true })
+export class KnowledgeEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
+  @Field({ type: "string", min: 1, max: 255, description: "The name of the knowledge base" })
   @Column({ type: "varchar", length: 255 })
   name: string;
 
@@ -30,7 +42,6 @@ export class KnowledgeEntity extends BaseEntity {
   assets?: AssetEntity[];
 
   constructor(data: Partial<KnowledgeEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

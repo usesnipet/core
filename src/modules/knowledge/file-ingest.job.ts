@@ -4,8 +4,6 @@ import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.ser
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject, Logger } from "@nestjs/common";
 import { Job } from "bullmq";
-import * as fs from "fs/promises";
-import { Readable } from "stream";
 import streamToBlob from "stream-to-blob";
 import { KnowledgeAssetService } from "./knowledge-asset.service";
 

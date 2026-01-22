@@ -1,6 +1,6 @@
 import { KnowledgeEntity } from "@/entities";
 import { BaseController } from "@/shared/controller";
-import { Controller, HttpGet, HttpPost } from "@/shared/controller/decorators";
+import { ApiFilterQuery, Controller, Filter, HttpGet, HttpPost } from "@/shared/controller/decorators";
 
 import { KnowledgeService } from "./knowledge.service";
 import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
@@ -14,6 +14,8 @@ import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
 import { IngestJobStateResponseDto } from "./dto/job-state.dto";
 import { HTTPData } from "@/shared/http-data/http-data.decorator";
 import { HTTPDataSwagger } from "@/shared/http-data/http-data-swagger.decorator";
+import { KnowledgeAssetDto } from "./dto/knowledge-asset.dto";
+import { FilterOptions } from "@/shared/filter-options";
 
 @Controller("knowledge")
 export class KnowledgeController extends BaseController({
@@ -32,9 +34,9 @@ export class KnowledgeController extends BaseController({
     super(service);
   }
 
-  @HttpGet("status/:id", { responses: getDefaultFindByIDResponses(IngestJobStateResponseDto) })
+  @HttpGet("ingest-status/:id", { responses: getDefaultFindByIDResponses(IngestJobStateResponseDto) })
   async getStatus(@Param("id") id: string) {
-    return this.service.getStatus(id);
+    return this.service.getIngestStatus(id);
   }
 
   @HttpPost(":knowledgeId/ingest-file", { responses: getDefaultCreateResponses(FileIngestResponseDto) })
@@ -43,5 +45,14 @@ export class KnowledgeController extends BaseController({
   @HTTPDataSwagger(FileIngestDto)
   async ingestFile(@UploadedFile() file: Express.Multer.File, @HTTPData(FileIngestDto) body: FileIngestDto) {
     return this.service.ingestFile(file, body);
+  }
+
+  @ApiFilterQuery(
+    ["id", "createdById", "type"] as Array<keyof KnowledgeAssetDto>,
+    ["knowledge", "createdBy"] as Array<keyof KnowledgeAssetDto>
+  )
+  @HttpGet(":knowledgeId/assets")
+  async getAssets(@Filter() filterOpts: FilterOptions<KnowledgeAssetDto>) {
+    return this.service.getAssets(filterOpts);
   }
 }

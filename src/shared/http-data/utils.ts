@@ -21,7 +21,6 @@ export function getAllSources(target: Constructor<any>) {
 
     current = Object.getPrototypeOf(current);
   }
-
   return result;
 }
 

@@ -18,6 +18,8 @@ import { randomUUID } from "crypto";
 import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
 import { StorageService } from "@/infra/storage/storage.service";
 import { KnowledgeAssetDto } from "./dto/knowledge-asset.dto";
+import { KnowledgeAssetService } from "./knowledge-asset.service";
+import { filter } from "rxjs";
 
 export type SearchOptions = {
   knowledgeId: string;
@@ -34,13 +36,13 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   logger = new Logger(KnowledgeService.name);
   entity = KnowledgeEntity;
 
-
   @InjectQueue(FileIngestJob.INGEST_KEY) private readonly ingestQueue: Queue<FileIngestJobData>;
 
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly vectorStore:      SourceVectorStoreService;
   @Inject() private readonly apiKeyService:    ApiKeyService;
   @Inject() private readonly storageService:   StorageService;
+  @Inject() private readonly knowledgeAssetService: KnowledgeAssetService;
 
   private getApiKey() {
     const apiKey = this.context.apiKey;
@@ -82,7 +84,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     return new FileIngestResponseDto(job.id);
   }
 
-  async getStatus(id: string): Promise<IngestJobStateResponseDto> {
+  async getIngestStatus(id: string): Promise<IngestJobStateResponseDto> {
     const state = await this.ingestQueue.getJobState(id);
     let jobState: IngestJobState;
     switch (state) {
@@ -103,6 +105,10 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     }
 
     return new IngestJobStateResponseDto(jobState);
+  }
+
+  async getAssets(filterOpts: FilterOptions<KnowledgeAssetDto>): Promise<KnowledgeAssetDto[]> {
+    return this.knowledgeAssetService.find(filterOpts);
   }
 
   //#region Override crud methods
