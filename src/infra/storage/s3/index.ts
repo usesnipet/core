@@ -12,6 +12,7 @@ import { GetPreSignedUploadUrlOptions, StorageService } from '../storage.service
 
 @Injectable()
 export class S3Service extends StorageService {
+
   private readonly logger = new Logger(S3Service.name);
   private readonly s3: S3Client;
   private readonly defaultBucket?: string;
@@ -40,6 +41,10 @@ export class S3Service extends StorageService {
 
   private buildKey(key: string, opts?: { temp?: boolean }): string {
     return opts?.temp ? key.startsWith("temp/") ? key : `temp/${key}` : key;
+  }
+
+  providerName(): string {
+    return "s3";
   }
 
   async getUploadUrl(
@@ -112,9 +117,9 @@ export class S3Service extends StorageService {
     body: Buffer,
     contentType: string,
     opts: { bucket?: string, temp?: boolean } = { temp: false, bucket: this.defaultBucket }
-  ): Promise<void> {
+  ): Promise<string> {
     if (!opts.bucket) opts.bucket = this.defaultBucket;
-
+    const keyToUse = this.buildKey(key, opts);
     const command = new PutObjectCommand({
       Bucket: opts.bucket,
       Key: this.buildKey(key, opts),
@@ -123,6 +128,7 @@ export class S3Service extends StorageService {
     });
 
     await this.s3.send(command);
+    return keyToUse;
   }
 
   buildPublicUrl(key: string, publicBaseURL = this.publicBaseURL): string {

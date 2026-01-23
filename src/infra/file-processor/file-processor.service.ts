@@ -5,7 +5,7 @@ import { ExtractionService } from "./extraction/extraction.service";
 import { SourceVectorStorePayload } from "../vector/payload/source-vector-store-payload";
 import { EmbeddingService } from "../embedding/embedding.service";
 import { canonicalize } from "@/lib/canonicalize";
-import { FileMetadata } from "../vector/payload/vector-store-payload";
+import { KnowledgeAssetEntity } from "@/modules/knowledge/asset/knowledge-asset.entity";
 
 @Injectable()
 export class FileProcessorService {
@@ -15,15 +15,12 @@ export class FileProcessorService {
 
   async process(
     blob: Blob,
-    metadata: FileMetadata,
-    knowledgeId: string,
-    connectorId?: string,
-    externalId?: string
+    knowledgeAsset: KnowledgeAssetEntity,
   ): Promise<SourceVectorStorePayload[]> {
     const genericDocument = await this.extractorService.extract(
       env.DEFAULT_EXTRACTOR,
       blob,
-      metadata,
+      knowledgeAsset.metadata ?? {},
       env.EXTRACTOR_SETTINGS,
     );
 
@@ -33,14 +30,21 @@ export class FileProcessorService {
       const { data } = await this.embeddingService.getOrCreateEmbedding(canonicalText);
       return new SourceVectorStorePayload({
         id,
-        connectorId,
-        knowledgeId,
-        externalId,
+        connectorId: knowledgeAsset.connectorId,
+        knowledgeId: knowledgeAsset.knowledgeId,
+        externalId: knowledgeAsset.externalId,
         content,
         fullContent: content,
         seqId: index,
         dense: data.embeddings,
-        metadata: { ...metadata, ...nodeMetadata },
+        metadata: {
+          type: "file",
+          fileMetadata: knowledgeAsset.metadata ?? {},
+          mimeType: knowledgeAsset.content?.mimeType?? "",
+          originalName: knowledgeAsset.content?.text?? "",
+          size: knowledgeAsset.content?.sizeBytes?? 0,
+          ...nodeMetadata
+        },
       });
     }));
 

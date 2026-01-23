@@ -1,6 +1,6 @@
 import { Column, Entity } from "typeorm";
 import { BaseEntity } from "./entity";
-import { Field } from "@/shared/model";
+import { Field } from "../shared/model";
 import { ApiExtraModels } from "@nestjs/swagger";
 
 export enum MetricModelType {

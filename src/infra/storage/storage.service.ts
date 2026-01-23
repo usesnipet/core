@@ -4,6 +4,7 @@ export type GetPreSignedUploadUrlOptions = {
 }
 
 export abstract class StorageService {
+  abstract providerName(): string;
   abstract getUploadUrl(
     key: string,
     contentType: string,
@@ -18,7 +19,7 @@ export abstract class StorageService {
     body: Buffer,
     contentType: string,
     opts?: { bucket?: string, temp?: boolean }
-  ): Promise<void>;
+  ): Promise<string>;
 
   abstract delete(key: string, isFolder?: boolean): Promise<void>;
 }

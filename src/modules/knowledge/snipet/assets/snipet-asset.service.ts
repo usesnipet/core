@@ -1,6 +1,6 @@
 import { AssetService } from "@/infra/assets/assets.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { AssetDomain, AssetEntity, AssetSource, AssetType } from "@/entities/asset.entity";
+import { AssetDomain, AssetEntity, AssetSource } from "@/entities/asset.entity";
 import { SnipetAssetDto, SnipetAssetType } from "../dto/snipet-asset.dto";
 import { EntityManager } from "typeorm";
 import { ASSET_POLICIES } from "./assets.policy";
@@ -36,36 +36,6 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly snipetVectorStore: SnipetVectorStoreService;
 
-  private knowledgeAssetTypeToAssetType(type: SnipetAssetType): AssetType {
-    switch (type) {
-      case SnipetAssetType.ACTION:
-        return AssetType.ACTION;
-      case SnipetAssetType.CONTEXT:
-        return AssetType.CONTEXT;
-      case SnipetAssetType.AI_RESPONSE:
-        return AssetType.AI_RESPONSE;
-      case SnipetAssetType.USER_INPUT:
-        return AssetType.USER_INPUT;
-      default:
-        throw new Error("Invalid asset type");
-    }
-  }
-
-  private assetTypeToKnowledgeAssetType(type: AssetType): SnipetAssetType {
-    switch (type) {
-      case AssetType.AI_RESPONSE:
-        return SnipetAssetType.AI_RESPONSE;
-      case AssetType.CONTEXT:
-        return SnipetAssetType.CONTEXT;
-      case AssetType.ACTION:
-        return SnipetAssetType.ACTION;
-      case AssetType.USER_INPUT:
-        return SnipetAssetType.USER_INPUT;
-      default:
-        throw new Error("Invalid asset type");
-    }
-  }
-
   fromEntity(entity: AssetEntity): SnipetAssetDto {
     return new SnipetAssetDto({
       id: entity.id,
@@ -80,7 +50,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
       metadata: entity.metadata,
       model: entity.model,
       storage: entity.storage,
-      type: this.assetTypeToKnowledgeAssetType(entity.type),
+      type: entity.type as SnipetAssetType,
       snipetId: entity.snipetId!,
       snipet: entity.snipet,
       source: entity.source,
@@ -91,7 +61,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
 
   toEntity(asset: SnipetAssetDto): AssetEntity {
     return new AssetEntity({
-      type: this.knowledgeAssetTypeToAssetType(asset.type),
+      type: asset.type,
       domain: this.domain,
       content: asset.content,
       id: asset.id,

@@ -3,7 +3,6 @@ import { randomUUID } from "crypto";
 export type FileMetadata = {
   type: "file";
   originalName: string;
-  extension: string;
   size: number;
   mimeType: string;
   lastModified?: number;

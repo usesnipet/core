@@ -197,6 +197,10 @@ components:
           description: The unique identifier for the execution asset
           format: uuid
           type: string
+        extraData:
+          additionalProperties: true
+          description: Extra data of the asset
+          type: object
         id:
           description: The unique identifier for the entity
           format: uuid
@@ -232,13 +236,6 @@ components:
         type:
           description: Indicates the type of the asset, if it is a file, text, user
             question, ai response...
-          enum:
-            - FILE
-            - TEXT
-            - USER_INPUT
-            - AI_RESPONSE
-            - CONTEXT
-            - ACTION
           type: string
         updatedAt:
           description: The timestamp when the entity was last updated
@@ -713,6 +710,9 @@ components:
       required:
         - id
       type: object
+    GetAssetsDto:
+      properties: {}
+      type: object
     IngestJobStateResponseDto:
       properties:
         state:
@@ -776,6 +776,76 @@ components:
         - authMethods
         - manifest
         - connectors
+      type: object
+    KnowledgeAssetEntity:
+      properties:
+        connectorId:
+          format: uuid
+          type: string
+        content:
+          $ref: "#/components/schemas/ContentInfo"
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/ApiKeyEntity"
+        createdById:
+          description: The unique identifier for the api key who created the asset
+          format: uuid
+          type: string
+        deletedAt:
+          description: The timestamp of the deletion
+          format: date-time
+          type: string
+        error:
+          type: string
+        externalId:
+          format: uuid
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        knowledgeId:
+          description: The unique identifier for the knowledge asset
+          format: uuid
+          type: string
+        metadata:
+          additionalProperties: true
+          description: The metadata of the asset
+          type: object
+        model:
+          $ref: "#/components/schemas/ModelInfo"
+        status:
+          enum:
+            - PENDING
+            - INDEXING
+            - INDEXED
+            - FAILED
+          type: string
+        storage:
+          $ref: "#/components/schemas/StorageInfo"
+        type:
+          enum:
+            - FILE
+            - TEXT
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - knowledgeId
+        - createdById
+        - deletedAt
+        - type
+        - status
       type: object
     KnowledgeBaseApiKeyConfig:
       properties:
@@ -1114,9 +1184,8 @@ components:
       type: object
     StorageInfo:
       properties:
-        key:
-          description: The key of the storage, where the asset is stored
-          nullable: true
+        path:
+          description: The path of the storage, where the asset is stored
           type: string
         persisted:
           description: Indicates if the asset is persisted
@@ -1127,7 +1196,6 @@ components:
           type: string
       required:
         - provider
-        - key
         - persisted
       type: object
     StreamDto:
@@ -1917,6 +1985,10 @@ paths:
     get:
       operationId: KnowledgeController_getAssets
       parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
         - description: "Relations. Allowed fields: knowledge, createdBy"
           in: query
           name: relations
@@ -1968,7 +2040,25 @@ paths:
             type: string
       responses:
         "200":
-          description: ""
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/KnowledgeAssetEntity"
+                type: array
+          description: Records found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
       security:
         - x-api-key: []
         - access-token: []
