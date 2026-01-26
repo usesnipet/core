@@ -1,11 +1,12 @@
 import { env } from "@/env";
 import { Injectable } from "@nestjs/common";
 import { UnstructuredClient } from "unstructured-client";
-import { Strategy } from "unstructured-client/sdk/models/shared";
+import { Files, Strategy } from "unstructured-client/sdk/models/shared";
 
 import { DocumentExtractor } from "../interfaces/document-extractor";
 import { ExtractedDocument } from "../interfaces/extracted-document";
 
+import { File } from "node:buffer";
 import { mapUnstructuredElementToNode } from "./unstructured.mapper";
 
 @Injectable()
@@ -33,22 +34,13 @@ export class UnstructuredExtractor implements DocumentExtractor {
   }
 
   async extract(
-    input: string | Blob,
+    input: File,
     metadata: Record<string, any>,
     options?: Record<string, any>,
   ): Promise<ExtractedDocument> {
-    let blob: Blob;
-    if (typeof input === 'string') {
-      blob = new Blob([input], { type: 'text/plain' });
-    } else if (input instanceof Blob) {
-      blob = input;
-    } else {
-      blob = new Blob([input]);
-    }
-
     const elements = await this.client.general.partition({
       partitionParameters: {
-        files: blob,
+        files: { content: await input.arrayBuffer(), fileName: input.name } as Files,
         strategy: Strategy.Auto,
         ...options,
       },
@@ -63,7 +55,7 @@ export class UnstructuredExtractor implements DocumentExtractor {
       nodes,
       metadata: {
         ...metadata,
-        fileType: blob.type,
+        fileType: input.type,
         extractor: 'unstructured',
       },
     };

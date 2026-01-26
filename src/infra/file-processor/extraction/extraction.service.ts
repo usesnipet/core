@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import { File } from "node:buffer";
 import { ExtractedDocument } from "./interfaces/extracted-document";
 import { LangchainExtractor } from "./langchain/langchain.extractor";
 import { UnstructuredExtractor } from "./unstructured/unstructured.extractor";
@@ -11,7 +12,7 @@ export class ExtractionService {
 
   extract(
     extractor: string,
-    input: string | Blob,
+    input: File,
     metadata: Record<string, any>,
     options?: Record<string, any>,
   ): Promise<ExtractedDocument> {
