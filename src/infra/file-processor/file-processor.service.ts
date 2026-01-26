@@ -2,12 +2,11 @@ import { env } from "@/env";
 import { Inject, Injectable } from "@nestjs/common";
 
 import { canonicalize } from "@/lib/canonicalize";
+import { KnowledgeAssetEntity } from "@/modules/knowledge/asset/knowledge-asset.entity";
 import { File } from "node:buffer";
 import { EmbeddingService } from "../embedding/embedding.service";
 import { SourceVectorStorePayload } from "../vector/payload/source-vector-store-payload";
-import { EmbeddingService } from "../embedding/embedding.service";
-import { canonicalize } from "@/lib/canonicalize";
-import { KnowledgeAssetEntity } from "@/modules/knowledge/asset/knowledge-asset.entity";
+import { ExtractionService } from "./extraction/extraction.service";
 
 @Injectable()
 export class FileProcessorService {
@@ -16,12 +15,12 @@ export class FileProcessorService {
   @Inject() private readonly embeddingService: EmbeddingService;
 
   async process(
-    blob: Blob,
+    file: File,
     knowledgeAsset: KnowledgeAssetEntity,
   ): Promise<SourceVectorStorePayload[]> {
     const genericDocument = await this.extractorService.extract(
       env.DEFAULT_EXTRACTOR,
-      blob,
+      file,
       knowledgeAsset.metadata ?? {},
       env.EXTRACTOR_SETTINGS,
     );

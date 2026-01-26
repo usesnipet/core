@@ -4,9 +4,8 @@ import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.ser
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject, Logger, NotFoundException } from "@nestjs/common";
 import { Job } from "bullmq";
-import streamToBlob from "stream-to-blob";
-import { KnowledgeAssetService } from "./knowledge-asset.service";
 import { KnowledgeAssetEntity, KnowledgeAssetStatus } from "./asset/knowledge-asset.entity";
+import { KnowledgeAssetService } from "./knowledge-asset.service";
 
 @Processor(FileIngestJob.INGEST_KEY, { concurrency: 1 })
 export class FileIngestJob extends WorkerHost {
@@ -23,10 +22,10 @@ export class FileIngestJob extends WorkerHost {
     if (!data.storage || !data.storage.path) throw new NotFoundException("File not found");
     const tempPath = data.storage.path;
     this.logger.debug(`Processing file "${tempPath}"`);
-    const readableStream = await this.storageService.getObject(tempPath, { temp: true });
-    if (!readableStream) return;
+    const file = await this.storageService.getObject(tempPath, { temp: true });
+    if (!file) return;
 
-    const payloads = await this.fileIndexer.process(await streamToBlob(readableStream), data);
+    const payloads = await this.fileIndexer.process(file, data);
 
     if (payloads.length > 0) await this.vectorStore.add(payloads);
 

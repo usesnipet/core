@@ -1,25 +1,25 @@
 import { KbPermission, KnowledgeEntity } from "@/entities";
 import { EmbeddingService } from "@/infra/embedding/embedding.service";
+import { StorageService } from "@/infra/storage/storage.service";
 import { SourceVectorStorePayload } from "@/infra/vector/payload/source-vector-store-payload";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { FilterOptions } from "@/shared/filter-options";
 import { Service } from "@/shared/service";
 import { buildOptions } from "@/utils/build-options";
+import { InjectQueue } from "@nestjs/bullmq";
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { Queue } from "bullmq";
+import { randomUUID } from "crypto";
 import { EntityManager, FindOneOptions } from "typeorm";
-import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
 import { ApiKeyService } from "../api-key/api-key.service";
 import { KnowledgeBaseApiKeyConfig } from "../api-key/dto/knowledge-base-api-key-config.dto";
-import { InjectQueue } from "@nestjs/bullmq";
-import { FileIngestJob } from "./file-ingest.job";
-import { Queue } from "bullmq";
-import { IngestJobState, IngestJobStateResponseDto } from "./dto/job-state.dto";
-import { randomUUID } from "crypto";
-import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
-import { StorageService } from "@/infra/storage/storage.service";
-import { KnowledgeAssetService } from "./knowledge-asset.service";
-import { GetAssetsDto } from "./dto/get-assets.dto";
 import { KnowledgeAssetEntity, KnowledgeAssetStatus } from "./asset/knowledge-asset.entity";
+import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
+import { GetAssetsDto } from "./dto/get-assets.dto";
+import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
+import { IngestJobState, IngestJobStateResponseDto } from "./dto/job-state.dto";
+import { FileIngestJob } from "./file-ingest.job";
+import { KnowledgeAssetService } from "./knowledge-asset.service";
 
 export type SearchOptions = {
   knowledgeId: string;
@@ -75,8 +75,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       mimetype,
       { temp: true }
     );
-
-    console.log(path);
 
     const asset = await this.knowledgeAssetService.saveFile({
       path,
@@ -139,6 +137,30 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       knowledgeId: data.knowledgeId
     }
     return this.knowledgeAssetService.find(filterOpts);
+  }
+
+  async deleteById(id: string, manager?: EntityManager): Promise<void> {
+    const apiKey = this.getApiKey();
+
+    const asset = await this.knowledgeAssetService.findByID(id, { manager });
+    if (!asset) throw new NotFoundException("Knowledge asset not found");
+    await this.knowledgeAssetService.delete(id, manager);
+    
+    if (
+      asset.knowledgeId !== this.context.params.shouldGetString("knowledgeId") || 
+      !apiKey.canAccessKnowledgeBase(asset.knowledgeId)
+    ) {
+      throw new UnauthorizedException("You do not have permission to delete this knowledge asset");
+    }
+    // delete from storage
+    if (asset.storage?.path) await this.storageService.delete(asset.storage.path);
+
+    // delete from vector store
+    await this.vectorStore.deleteByFilter({ id: asset.id });
+
+    // delete from database
+    await this.knowledgeAssetService.delete(id, manager);
+
   }
 
   //#region Override crud methods

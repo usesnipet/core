@@ -1,7 +1,6 @@
-import { Column, Entity } from "typeorm";
-import { BaseEntity } from "./entity";
-import { Field } from "../shared/model";
 import { ApiExtraModels } from "@nestjs/swagger";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Field } from "../shared/model";
 
 export enum MetricModelType {
   EMBEDDING = "embedding",
@@ -35,9 +34,22 @@ export class ModelMetric {
   ModelMetric
 )
 @Entity("metrics")
-export class MetricEntity extends BaseEntity {
+export class MetricEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
   @Field({ type: "class", class: () => ModelMetric, required: false })
   @Column(() => ModelMetric, { prefix: "model" })
   modelMetric?: ModelMetric;
+
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
 
 }

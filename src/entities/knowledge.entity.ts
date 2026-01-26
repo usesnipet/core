@@ -11,6 +11,7 @@ export class KnowledgeEntity {
   @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
   @PrimaryGeneratedColumn("uuid")
   id: string;
+
   @Field({ type: "string", min: 10, description: "The name of the knowledge base", required: true })
   @Column({ type: "varchar", length: 255 })
   name: string;

@@ -839,11 +839,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledgeId
         - createdById
         - deletedAt
+        - createdAt
+        - updatedAt
         - type
         - status
       type: object
