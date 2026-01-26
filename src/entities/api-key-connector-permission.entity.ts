@@ -1,8 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 import { Field } from "../shared/model";
 import { ConnectorEntity } from "./connector.entity";
-import { BaseEntity } from "./entity";
 import { ManualIntegrationManifest, MCPIntegrationManifest } from "./integration.entity";
 import { ApiKeyAssignmentEntity } from "./api-key-assignment.entity";
 
@@ -12,7 +11,10 @@ export enum PolicyMode {
 }
 
 @Entity("api_key_connector_permissions")
-export class ApiKeyConnectorPermissionEntity extends BaseEntity {
+export class ApiKeyConnectorPermissionEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
   @Field({ type: "string", uuid: true, description: "The id of api key connector permission" })
   @Column({ type: "uuid", name: "connector_id" })
   connectorId: string;
@@ -36,7 +38,7 @@ export class ApiKeyConnectorPermissionEntity extends BaseEntity {
   @Field({ type: "string", isArray: true, nullable: true, description: "The webhook events of api key connector permission" })
   @Column({ type: "jsonb", nullable: true })
   webhookEvents?: string[];
-
+  
   @Field({ 
     type: "oneOf",
     classes: [
@@ -57,14 +59,22 @@ export class ApiKeyConnectorPermissionEntity extends BaseEntity {
   @ManyToOne(() => ApiKeyAssignmentEntity, (apiKeyAssignment) => apiKeyAssignment.connectorPermissions, { nullable: true, onDelete: "CASCADE" })
   @JoinColumn({ name: "api_key_assignment_id" })
   apiKeyAssignment?: ApiKeyAssignmentEntity;
-
+  
   @Field({ type: "class", class: () => ConnectorEntity, required: false, description: "The connector of api key connector permission" })
   @ManyToOne(() => ConnectorEntity, (connector) => connector.apiKeyConnectorPermissions, { nullable: true, onDelete: "CASCADE" })
   @JoinColumn({ name: "connector_id" })
   connector?: ConnectorEntity;
 
+
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
   constructor(data: Partial<ApiKeyConnectorPermissionEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

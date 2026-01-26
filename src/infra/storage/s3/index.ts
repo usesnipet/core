@@ -7,8 +7,20 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, Logger } from '@nestjs/common';
 
+import { File } from 'node:buffer';
 import { StorageDeleteError } from '../errors';
 import { GetPreSignedUploadUrlOptions, StorageService } from '../storage.service';
+
+
+async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+
+  return new Promise((resolve, reject) => {
+    stream.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    stream.on("error", reject);
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+  });
+}
 
 @Injectable()
 export class S3Service extends StorageService {
@@ -102,14 +114,20 @@ export class S3Service extends StorageService {
     return getSignedUrl(this.s3, command, { expiresIn: 300 });
   }
 
-  async getObject(key: string, opts?: { temp?: boolean }, bucket = this.defaultBucket): Promise<NodeJS.ReadableStream | null> {
+  async getObject(key: string, opts?: { temp?: boolean }, bucket = this.defaultBucket): Promise<File | null> {
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: this.buildKey(key, opts),
     });
 
     const result = await this.s3.send(command);
-    return result.Body as NodeJS.ReadableStream | null;
+    const buffer = await streamToBuffer(result.Body as NodeJS.ReadableStream);
+
+    const filename = key.split("/").pop() ?? "file";
+    const contentType = result.ContentType ?? "application/octet-stream";
+
+    const file = new File([buffer], filename, { type: contentType });
+    return file;
   }
 
   async putObject(

@@ -1,9 +1,8 @@
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Field } from "../shared/model";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
-import { BaseEntity } from "./entity";
+import { SnipetIntent } from "../types/snipet-intent";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
-import { SnipetIntent } from "../types/snipet-intent";
 
 export enum MemoryType {
   USER_INPUT = "user_input",
@@ -11,7 +10,10 @@ export enum MemoryType {
 }
 
 @Entity("snipet_memory")
-export class SnipetMemoryEntity<TPayload = any> extends BaseEntity {
+export class SnipetMemoryEntity<TPayload = any> {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
   @Field({ type: "string", required: true, uuid: true })
   @Column({ name: "snipet_id", type: "uuid" })
   snipetId: string;
@@ -42,8 +44,15 @@ export class SnipetMemoryEntity<TPayload = any> extends BaseEntity {
   @JoinColumn({ name: "snipet_id" })
   snipet?: SnipetEntity;
 
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+  
   constructor(partial: Partial<SnipetMemoryEntity<TPayload>>) {
-    super(partial);
     Object.assign(this, partial);
   }
 }

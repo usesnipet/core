@@ -1,7 +1,9 @@
 import { env } from "@/env";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { ExtractionService } from "./extraction/extraction.service";
+import { canonicalize } from "@/lib/canonicalize";
+import { File } from "node:buffer";
+import { EmbeddingService } from "../embedding/embedding.service";
 import { SourceVectorStorePayload } from "../vector/payload/source-vector-store-payload";
 import { EmbeddingService } from "../embedding/embedding.service";
 import { canonicalize } from "@/lib/canonicalize";

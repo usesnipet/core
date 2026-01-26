@@ -1,10 +1,9 @@
-import { Column, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { BaseEntity } from "./entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Field } from "../shared/model";
+import { ApiKeyEntity } from "./api-key.entity";
+import { ExecutionEntity } from "./execution.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
-import { ApiKeyEntity } from "./api-key.entity";
-import { Field } from "../shared/model";
-import { ExecutionEntity } from "./execution.entity";
 
 export enum AssetDomain {
   SNIPET = "SNIPET",
@@ -66,7 +65,11 @@ export class ContentInfo {
 
 @Entity("assets")
 @Index(["domain", "type"])
-export class AssetEntity extends BaseEntity {
+export class AssetEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
   @Field({ type: "enum", enum: AssetDomain, description: "The domain of the asset (Knowledge or Snipet)" })
   @Column({ type: "enum", enum: AssetDomain })
   domain: AssetDomain;
@@ -142,8 +145,15 @@ export class AssetEntity extends BaseEntity {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  constructor(data: AssetEntity) {
-    super(data);
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
+  constructor(data: Partial<AssetEntity>) {
     Object.assign(this, data);
   }
 }

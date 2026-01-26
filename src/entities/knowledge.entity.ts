@@ -1,10 +1,9 @@
 import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 import { Field } from "../shared/model";
-import { ConnectorEntity } from "./connector.entity";
-import { BaseEntity } from "./entity";
 import { ApiKeyAssignmentEntity } from "./api-key-assignment.entity";
 import { AssetEntity } from "./asset.entity";
+import { ConnectorEntity } from "./connector.entity";
 
 @Entity("knowledge_bases")
 @Index("knowledge_base_namespace_unique", ["namespace"])
@@ -12,16 +11,7 @@ export class KnowledgeEntity {
   @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
   @PrimaryGeneratedColumn("uuid")
   id: string;
-
-  @Field({ type: "date", description: "The timestamp when the entity was created" })
-  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
-  createdAt: Date;
-
-  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
-  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
-  updatedAt: Date;
-
-  @Field({ type: "string", min: 1, max: 255, description: "The name of the knowledge base" })
+  @Field({ type: "string", min: 10, description: "The name of the knowledge base", required: true })
   @Column({ type: "varchar", length: 255 })
   name: string;
 
@@ -40,6 +30,14 @@ export class KnowledgeEntity {
   @Field({ type: "class", class: () => AssetEntity, isArray: true, description: "The assets of the knowledge base" })
   @OneToMany(() => AssetEntity, (asset) => asset.knowledge)
   assets?: AssetEntity[];
+
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
 
   constructor(data: Partial<KnowledgeEntity>) {
     Object.assign(this, data);
