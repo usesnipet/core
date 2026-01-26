@@ -1,25 +1,15 @@
 import { KbPermission, KnowledgeEntity } from "@/entities";
 import { EmbeddingService } from "@/infra/embedding/embedding.service";
-import { StorageService } from "@/infra/storage/storage.service";
 import { SourceVectorStorePayload } from "@/infra/vector/payload/source-vector-store-payload";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { FilterOptions } from "@/shared/filter-options";
 import { Service } from "@/shared/service";
 import { buildOptions } from "@/utils/build-options";
-import { InjectQueue } from "@nestjs/bullmq";
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import { Queue } from "bullmq";
-import { randomUUID } from "crypto";
+import { Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { EntityManager, FindOneOptions } from "typeorm";
 import { ApiKeyService } from "../api-key/api-key.service";
 import { KnowledgeBaseApiKeyConfig } from "../api-key/dto/knowledge-base-api-key-config.dto";
-import { KnowledgeAssetEntity, KnowledgeAssetStatus } from "./asset/knowledge-asset.entity";
 import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
-import { GetAssetsDto } from "./dto/get-assets.dto";
-import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
-import { IngestJobState, IngestJobStateResponseDto } from "./dto/job-state.dto";
-import { FileIngestJob } from "./file-ingest.job";
-import { KnowledgeAssetService } from "./knowledge-asset.service";
 
 export type SearchOptions = {
   knowledgeId: string;
@@ -36,13 +26,9 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   logger = new Logger(KnowledgeService.name);
   entity = KnowledgeEntity;
 
-  @InjectQueue(FileIngestJob.INGEST_KEY) private readonly ingestQueue: Queue<KnowledgeAssetEntity>;
-
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly vectorStore:      SourceVectorStoreService;
   @Inject() private readonly apiKeyService:    ApiKeyService;
-  @Inject() private readonly storageService:   StorageService;
-  @Inject() private readonly knowledgeAssetService: KnowledgeAssetService;
 
   private getApiKey() {
     const apiKey = this.context.apiKey;
@@ -59,108 +45,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       } as KnowledgeBaseApiKeyConfig;
     }
     return Array.isArray(knowledge) ? knowledge.map(toApiConfig) : [toApiConfig(knowledge)];
-  }
-
-  async ingestFile(
-    { buffer, originalname, mimetype }: Express.Multer.File,
-    { knowledgeId, metadata, saveFile, externalId }: FileIngestDto
-  ): Promise<FileIngestResponseDto> {
-
-    const extension = originalname.split('.').pop();
-    console.log(originalname, mimetype, extension);
-    if (!extension) throw new BadRequestException("Failed to ingest content");
-    const path = await this.storageService.putObject(
-      `source/${knowledgeId}/${randomUUID()}.${extension}`,
-      buffer,
-      mimetype,
-      { temp: true }
-    );
-
-    const asset = await this.knowledgeAssetService.saveFile({
-      path,
-      extension,
-      knowledgeId,
-      metadata,
-      mimeType: mimetype,
-      originalName: originalname,
-      externalId,
-      status: KnowledgeAssetStatus.PENDING,
-      size: buffer.byteLength,
-      storage: {
-        persisted: saveFile,
-        path,
-        provider: this.storageService.providerName()
-      }
-    });
-
-    try {
-      const job = await this.ingestQueue.add("", asset, { jobId: randomUUID() });
-      if (!job.id) throw new BadRequestException("Failed to ingest content");
-      return new FileIngestResponseDto(job.id);
-    } catch (error) {
-      asset.status = KnowledgeAssetStatus.FAILED;
-      asset.error = error.message;
-      await this.knowledgeAssetService.update(asset.id, asset);
-      throw error;
-    }
-  }
-
-  async getIngestStatus(id: string): Promise<IngestJobStateResponseDto> {
-    const state = await this.ingestQueue.getJobState(id);
-    let jobState: IngestJobState;
-    switch (state) {
-      case "waiting":
-      case "waiting-children":
-      case "delayed":
-      case "unknown":
-        jobState = IngestJobState.PENDING;
-      case "active":
-      case "prioritized":
-        jobState = IngestJobState.IN_PROGRESS;
-      case "completed":
-        jobState = IngestJobState.COMPLETED;
-      case "failed":
-        jobState = IngestJobState.FAILED;
-      default:
-        jobState = IngestJobState.FAILED;
-    }
-
-    return new IngestJobStateResponseDto(jobState);
-  }
-
-  async getAssets(
-    data: GetAssetsDto,
-    filterOpts: FilterOptions<KnowledgeAssetEntity>
-  ): Promise<KnowledgeAssetEntity[]> {
-    filterOpts.where = {
-      ...filterOpts.where,
-      knowledgeId: data.knowledgeId
-    }
-    return this.knowledgeAssetService.find(filterOpts);
-  }
-
-  async deleteById(id: string, manager?: EntityManager): Promise<void> {
-    const apiKey = this.getApiKey();
-
-    const asset = await this.knowledgeAssetService.findByID(id, { manager });
-    if (!asset) throw new NotFoundException("Knowledge asset not found");
-    await this.knowledgeAssetService.delete(id, manager);
-    
-    if (
-      asset.knowledgeId !== this.context.params.shouldGetString("knowledgeId") || 
-      !apiKey.canAccessKnowledgeBase(asset.knowledgeId)
-    ) {
-      throw new UnauthorizedException("You do not have permission to delete this knowledge asset");
-    }
-    // delete from storage
-    if (asset.storage?.path) await this.storageService.delete(asset.storage.path);
-
-    // delete from vector store
-    await this.vectorStore.deleteByFilter({ id: asset.id });
-
-    // delete from database
-    await this.knowledgeAssetService.delete(id, manager);
-
   }
 
   //#region Override crud methods
@@ -188,6 +72,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       return kns;
     }, manager);
   }
+
   override find(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -198,6 +83,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).find(filterOptions);
   }
+
   override findByID(
     id: string,
     opts?: (Omit<FindOneOptions<KnowledgeEntity>, "where"> & { manager?: EntityManager; })
@@ -207,6 +93,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     }
     throw new UnauthorizedException("You do not have permission to access this knowledge");
   }
+
   override findFirst(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -216,6 +103,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).findOne(filterOptions);
   }
+
   override findUnique(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager

@@ -1,8 +1,17 @@
 import { AssetService } from "@/infra/assets/assets.service";
-import { Logger } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger } from "@nestjs/common";
 import { AssetDomain, AssetEntity, AssetSource, ModelInfo, StorageInfo } from "@/entities/asset.entity";
 import { EntityManager } from "typeorm";
 import { KnowledgeAssetEntity, KnowledgeAssetStatus, KnowledgeAssetType } from "./asset/knowledge-asset.entity";
+import { ICRUDService } from "@/shared/service.interface";
+import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
+import { randomUUID } from "crypto";
+import { IngestJobStateResponseDto, IngestJobState } from "./dto/job-state.dto";
+import { StorageService } from "@/infra/storage/storage.service";
+import { InjectQueue } from "@nestjs/bullmq";
+import { FileIngestJob } from "./file-ingest.job";
+import { Queue } from "bullmq";
+import { FILE_INGEST_QUEUE } from "./file-ingest.constants";
 
 export type CreateFileData = {
   originalName: string;
@@ -19,10 +28,17 @@ export type CreateFileData = {
   storage?: StorageInfo;
 }
 
-export class KnowledgeAssetService extends AssetService<KnowledgeAssetEntity> {
+@Injectable()
+export class KnowledgeAssetService
+  extends AssetService<KnowledgeAssetEntity> implements ICRUDService<KnowledgeAssetEntity>
+  {
   logger = new Logger(KnowledgeAssetService.name);
 
   domain = AssetDomain.KNOWLEDGE;
+
+  @Inject() private readonly storageService: StorageService;
+  @InjectQueue(FILE_INGEST_QUEUE) private readonly ingestQueue: Queue<KnowledgeAssetEntity>
+
   fromEntity(entity: AssetEntity): KnowledgeAssetEntity {
     return new KnowledgeAssetEntity({
       id: entity.id,
@@ -92,5 +108,72 @@ export class KnowledgeAssetService extends AssetService<KnowledgeAssetEntity> {
       status: data.status,
     });
     return super.create(asset, manager);
+  }
+
+  async ingestFile(
+    { buffer, originalname, mimetype }: Express.Multer.File,
+    { knowledgeId, metadata, saveFile, externalId }: FileIngestDto
+  ): Promise<FileIngestResponseDto> {
+
+    const extension = originalname.split('.').pop();
+    console.log(originalname, mimetype, extension);
+    if (!extension) throw new BadRequestException("Failed to ingest content");
+    const path = await this.storageService.putObject(
+      `source/${knowledgeId}/${randomUUID()}.${extension}`,
+      buffer,
+      mimetype,
+      { temp: true }
+    );
+
+    const asset = await this.saveFile({
+      path,
+      extension,
+      knowledgeId,
+      metadata,
+      mimeType: mimetype,
+      originalName: originalname,
+      externalId,
+      status: KnowledgeAssetStatus.PENDING,
+      size: buffer.byteLength,
+      storage: {
+        persisted: saveFile,
+        path,
+        provider: this.storageService.providerName()
+      }
+    });
+
+    try {
+      const job = await this.ingestQueue.add("", asset, { jobId: randomUUID() });
+      if (!job.id) throw new BadRequestException("Failed to ingest content");
+      return new FileIngestResponseDto(job.id);
+    } catch (error) {
+      asset.status = KnowledgeAssetStatus.FAILED;
+      asset.error = error.message;
+      await this.update(asset.id, asset);
+      throw error;
+    }
+  }
+
+  async getIngestStatus(id: string): Promise<IngestJobStateResponseDto> {
+    const state = await this.ingestQueue.getJobState(id);
+    let jobState: IngestJobState;
+    switch (state) {
+      case "waiting":
+      case "waiting-children":
+      case "delayed":
+      case "unknown":
+        jobState = IngestJobState.PENDING;
+      case "active":
+      case "prioritized":
+        jobState = IngestJobState.IN_PROGRESS;
+      case "completed":
+        jobState = IngestJobState.COMPLETED;
+      case "failed":
+        jobState = IngestJobState.FAILED;
+      default:
+        jobState = IngestJobState.FAILED;
+    }
+
+    return new IngestJobStateResponseDto(jobState);
   }
 }

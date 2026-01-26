@@ -2,14 +2,14 @@ import { FileProcessorService } from "@/infra/file-processor/file-processor.serv
 import { StorageService } from "@/infra/storage/storage.service";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
-import { Inject, Logger, NotFoundException } from "@nestjs/common";
+import { forwardRef, Inject, Logger, NotFoundException } from "@nestjs/common";
 import { Job } from "bullmq";
 import { KnowledgeAssetEntity, KnowledgeAssetStatus } from "./asset/knowledge-asset.entity";
 import { KnowledgeAssetService } from "./knowledge-asset.service";
+import { FILE_INGEST_QUEUE } from "./file-ingest.constants";
 
-@Processor(FileIngestJob.INGEST_KEY, { concurrency: 1 })
+@Processor(FILE_INGEST_QUEUE, { concurrency: 10 })
 export class FileIngestJob extends WorkerHost {
-  static INGEST_KEY = "file-ingest";
   private readonly logger = new Logger(FileIngestJob.name);
 
   @Inject() private readonly fileIndexer:           FileProcessorService;
@@ -31,25 +31,35 @@ export class FileIngestJob extends WorkerHost {
 
     if (data.storage.persisted) data.storage.path = await this.storageService.confirmTempUpload(tempPath);
     else data.storage.path = undefined;
-    data.status = KnowledgeAssetStatus.INDEXED;
-
     await this.knowledgeAssetService.update(data.id, data);
 
-    this.logger.log(`File "${data.storage.path}" processed`);
+    this.logger.debug(`File "${data.id}" processed`);
   }
 
   @OnWorkerEvent("active")
   async onStart(job: Job<KnowledgeAssetEntity>) {
-    this.logger.log("ingest started");
+    this.logger.debug("ingest started");
   }
 
   @OnWorkerEvent("completed")
   async onCompleted(job: Job<KnowledgeAssetEntity>) {
-    this.logger.log("ingest completed");
+    const id = job.data.id;
+    const asset = await this.knowledgeAssetService.findByID(id);
+    if (!asset) return;
+    asset.status = KnowledgeAssetStatus.INDEXED;
+    await this.knowledgeAssetService.update(id, asset);
+
+    this.logger.debug("ingest completed");
   }
 
   @OnWorkerEvent("failed")
   async onFailed(job: Job<KnowledgeAssetEntity>, error: Error) {
-    this.logger.log(error);
+    const id = job.data.id;
+    const asset = await this.knowledgeAssetService.findByID(id);
+    if (!asset) return;
+    asset.status = KnowledgeAssetStatus.FAILED;
+    await this.knowledgeAssetService.update(id, asset);
+
+    this.logger.error(error);
   }
 }

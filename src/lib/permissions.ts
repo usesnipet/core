@@ -56,8 +56,10 @@ export enum Permission {
   /** Allows deleting snipets. */
   DELETE_SNIPET = 1 << 19,
 
-  /** Allows running a connector. */
-  RUN_CONNECTOR = 1 << 20,
+  CREATE_KNOWLEDGE_ASSET = 1 << 20,
+  READ_KNOWLEDGE_ASSET = 1 << 21,
+  UPDATE_KNOWLEDGE_ASSET = 1 << 22,
+  DELETE_KNOWLEDGE_ASSET = 1 << 23,
 }
 
 // The `loadRoles` function (from `@snipet/permission`) likely initializes roles and permission-related utilities.

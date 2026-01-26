@@ -25,7 +25,6 @@ describe('Permissions', () => {
     expect(Permission.READ_SNIPET).toBe(1 << 17);
     expect(Permission.UPDATE_SNIPET).toBe(1 << 18);
     expect(Permission.DELETE_SNIPET).toBe(1 << 19);
-    expect(Permission.RUN_CONNECTOR).toBe(1 << 20);
   });
 
   // Test to verify if utility functions are available
@@ -49,7 +48,6 @@ describe('Permissions', () => {
 
     // Verify admin role has all permissions
     expect(adminRole?.permissions).toContain(Permission.CREATE_KNOWLEDGE);
-    expect(adminRole?.permissions).toContain(Permission.RUN_CONNECTOR);
 
     // Verify user role has no permissions by default
     expect(userRole?.permissions).toHaveLength(0);
@@ -64,13 +62,11 @@ describe('Permissions', () => {
       const adminRole = roles.find(r => r.key === 'admin')!;
       // Using permissions directly since admin has all permissions
       expect(can(adminRole.permissions, Permission.CREATE_KNOWLEDGE)).toBe(true);
-      expect(can(adminRole.permissions, Permission.RUN_CONNECTOR)).toBe(true);
     });
 
     test('should return false for user without permissions', () => {
       const userRole = roles.find(r => r.key === 'user')!;
       expect(can(userRole.permissions, Permission.CREATE_KNOWLEDGE)).toBe(false);
-      expect(can(userRole.permissions, Permission.RUN_CONNECTOR)).toBe(false);
     });
   });
 

@@ -59,7 +59,13 @@ export abstract class AssetService<AssetType> extends GenericService {
     return data?.length === 0 ? null : this.fromEntity(data?.[0]);
   }
 
-  async create(input: AssetType, manager?: EntityManager): Promise<AssetType> {
+  async create(input: AssetType, manager?: EntityManager): Promise<AssetType>
+  async create(input: AssetType[], manager?: EntityManager): Promise<AssetType[]>
+  async create(input: AssetType | AssetType[], manager?: EntityManager): Promise<AssetType | AssetType[]> {
+    if (Array.isArray(input)) {
+      const saved = await this.repository(manager).save(input.map((i) => this.toEntity(i)));
+      return saved.map(s => this.fromEntity(s));
+    }
     const entity = this.toEntity(input);
     return this.fromEntity(await this.repository(manager).save(entity));
   }

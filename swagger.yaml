@@ -710,9 +710,6 @@ components:
       required:
         - id
       type: object
-    GetAssetsDto:
-      properties: {}
-      type: object
     IngestJobStateResponseDto:
       properties:
         state:
@@ -1821,45 +1818,6 @@ paths:
         - access-token: []
       tags:
         - Knowledge
-  /api/knowledge/ingest-status/{id}:
-    get:
-      operationId: KnowledgeController_getStatus
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IngestJobStateResponseDto"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Knowledge
   /api/knowledge/{id}:
     delete:
       operationId: KnowledgeController_delete
@@ -1981,23 +1939,10 @@ paths:
         - access-token: []
       tags:
         - Knowledge
-  /api/knowledge/{knowledgeId}/assets:
+  /api/knowledge/{knowledgeId}/asset:
     get:
-      operationId: KnowledgeController_getAssets
+      operationId: KnowledgeAssetController_findMany
       parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema: {}
-        - description: "Relations. Allowed fields: knowledge, createdBy"
-          in: query
-          name: relations
-          required: false
-          schema:
-            example: knowledge,createdBy
-            items:
-              type: string
-            type: array
         - description: Maximum number of records to return
           in: query
           name: limit
@@ -2012,7 +1957,7 @@ paths:
           schema:
             example: 0
             type: number
-        - description: 'Sort order. Use "-" to DESC. Allowed fields: id, createdById, type'
+        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
           in: query
           name: sort
           required: false
@@ -2020,22 +1965,9 @@ paths:
             items:
               type: string
             type: array
-        - description: Filter by id
-          in: query
-          name: filter[id]
-          required: false
-          schema:
-            type: string
-        - description: Filter by createdById
-          in: query
-          name: filter[createdById]
-          required: false
-          schema:
-            type: string
-        - description: Filter by type
-          in: query
-          name: filter[type]
-          required: false
+        - in: path
+          name: knowledgeId
+          required: true
           schema:
             type: string
       responses:
@@ -2063,7 +1995,189 @@ paths:
         - x-api-key: []
         - access-token: []
       tags:
-        - Knowledge
+        - KnowledgeAsset
+  /api/knowledge/{knowledgeId}/asset/ingest-file:
+    post:
+      operationId: KnowledgeAssetController_ingestFile
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                externalId:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
+                metadata:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
+                saveFile:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/saveFile"
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileIngestResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+  /api/knowledge/{knowledgeId}/asset/ingest/{id}:
+    get:
+      operationId: KnowledgeAssetController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestJobStateResponseDto"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+  /api/knowledge/{knowledgeId}/asset/{id}:
+    delete:
+      operationId: KnowledgeAssetController_delete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeAssetEntity"
+          description: Record deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+    get:
+      operationId: KnowledgeAssetController_findByID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeAssetEntity"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
   /api/knowledge/{knowledgeId}/connector:
     get:
       operationId: ConnectorController_findMany
@@ -2301,57 +2415,6 @@ paths:
         - access-token: []
       tags:
         - Connector
-  /api/knowledge/{knowledgeId}/ingest-file:
-    post:
-      operationId: KnowledgeController_ingestFile
-      parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema: {}
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                externalId:
-                  $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
-                metadata:
-                  $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
-                saveFile:
-                  $ref: "#/components/schemas/FileIngestDto#/properties/saveFile"
-              type: object
-        required: true
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/FileIngestResponseDto"
-          description: Record created successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Conflict - duplicate record
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Knowledge
   /api/knowledge/{knowledgeId}/snipet:
     get:
       operationId: SnipetController_findMany
