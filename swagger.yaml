@@ -44,11 +44,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - apiKeyId
         - kbPermissions
         - knowledgeId
+        - createdAt
+        - updatedAt
       type: object
     ApiKeyConnectorPermissionEntity:
       properties:
@@ -115,8 +115,6 @@ components:
           type: array
       required:
         - id
-        - createdAt
-        - updatedAt
         - connectorId
         - apiKeyAssignmentId
         - policyMode
@@ -125,6 +123,8 @@ components:
         - webhookEvents
         - manifestSnapshot
         - manifestVersion
+        - createdAt
+        - updatedAt
       type: object
     ApiKeyEntity:
       properties:
@@ -161,11 +161,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - name
         - rateLimit
         - expiresAt
+        - createdAt
+        - updatedAt
       type: object
     AssetEntity:
       properties:
@@ -246,8 +246,6 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - domain
         - type
         - source
@@ -256,6 +254,8 @@ components:
         - executionId
         - createdById
         - deletedAt
+        - createdAt
+        - updatedAt
       type: object
     ChatDto:
       properties:
@@ -342,14 +342,14 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledgeId
         - integrationId
         - name
         - type
         - capabilities
         - config
+        - createdAt
+        - updatedAt
       type: object
     ConnectorMetrics:
       properties: {}
@@ -409,8 +409,6 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - connectorId
         - lastHeartbeatAt
         - lastSyncAt
@@ -421,6 +419,8 @@ components:
         - throttleStatus
         - metrics
         - syncCursor
+        - createdAt
+        - updatedAt
       type: object
     ConnectorThrottleStatus:
       properties: {}
@@ -693,10 +693,10 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledge
         - options
+        - createdAt
+        - updatedAt
       type: object
     ExecutionResult:
       properties:
@@ -779,13 +779,13 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - name
         - type
         - authMethods
         - manifest
         - connectors
+        - createdAt
+        - updatedAt
       type: object
     KnowledgeBaseApiKeyConfig:
       properties:
@@ -873,12 +873,12 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - name
         - connectors
         - apiKeyAssignments
         - assets
+        - createdAt
+        - updatedAt
       type: object
     MCPIntegrationManifest:
       properties:
@@ -1068,11 +1068,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledgeId
         - assets
         - memory
+        - createdAt
+        - updatedAt
       type: object
     SnipetMemoryEntity:
       properties:
@@ -1114,13 +1114,13 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - snipetId
         - knowledgeId
         - type
         - intent
         - payload
+        - createdAt
+        - updatedAt
       type: object
     StorageInfo:
       properties:

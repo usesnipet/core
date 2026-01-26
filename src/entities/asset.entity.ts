@@ -1,10 +1,9 @@
-import { Column, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { BaseEntity } from "./entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Field } from "../shared/model";
+import { ApiKeyEntity } from "./api-key.entity";
+import { ExecutionEntity } from "./execution.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
-import { ApiKeyEntity } from "./api-key.entity";
-import { Field } from "../shared/model";
-import { ExecutionEntity } from "./execution.entity";
 
 export enum AssetDomain {
   SNIPET = "SNIPET",
@@ -75,7 +74,11 @@ export class ContentInfo {
 
 @Entity("assets")
 @Index(["domain", "type"])
-export class AssetEntity extends BaseEntity {
+export class AssetEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
   @Field({ type: "enum", enum: AssetDomain, description: "The domain of the asset (Knowledge or Snipet)" })
   @Column({ type: "enum", enum: AssetDomain })
   domain: AssetDomain;
@@ -105,20 +108,20 @@ export class AssetEntity extends BaseEntity {
   @ManyToOne(() => SnipetEntity, kn => kn.assets, { onDelete: "CASCADE" })
   @JoinColumn({ name: "snipet_id" })
   snipet?: SnipetEntity;
-
+  
   @Field({ type: "string", uuid: true, description: "The unique identifier for the execution asset" })
   @Column({ name: "execution_id",  nullable: true })
   executionId?: string | null;
-
+  
   @Field({ type: "class", class: () => ExecutionEntity, required: false })
   @ManyToOne(() => ExecutionEntity, kn => kn.assets, { onDelete: "CASCADE" })
   @JoinColumn({ name: "execution_id" })
   execution?: ExecutionEntity;
-
+  
   @Field({ type: "string", uuid: true, description: "The unique identifier for the api key who created the asset" })
   @Column({ name: "created_by_id", nullable: true })
   createdById?: string;
-
+  
   @Field({ type: "class", class: () => ApiKeyEntity, required: false })
   @ManyToOne(() => ApiKeyEntity, kn => kn.assets, { onDelete: "CASCADE" })
   @JoinColumn({ name: "created_by_id" })
@@ -127,7 +130,7 @@ export class AssetEntity extends BaseEntity {
   @Field({ type: "class", class: () => ContentInfo, required: false })
   @Column(() => ContentInfo, { prefix: "content" })
   content?: ContentInfo;
-
+  
   @Field({ type: "class", class: () => StorageInfo, required: false })
   @Column(() => StorageInfo, { prefix: "storage" })
   storage?: StorageInfo;
@@ -139,13 +142,20 @@ export class AssetEntity extends BaseEntity {
   @Field({ type: "object", additionalProperties: true, required: false, description: "The metadata of the asset" })
   @Column({ type: "jsonb", nullable: true })
   metadata?: Record<string, any>;
-
+  
   @Field({ type: "date", description: "The timestamp of the deletion" })
   @DeleteDateColumn()
   deletedAt?: Date;
+  
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
 
   constructor(data: Partial<AssetEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

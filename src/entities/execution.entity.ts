@@ -1,11 +1,10 @@
+import { ApiExtraModels } from "@nestjs/swagger";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Field } from "../shared/model";
 import { SnipetIntent } from "../types/snipet-intent";
-import { ApiExtraModels } from "@nestjs/swagger";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { AssetEntity } from "./asset.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
-import { BaseEntity } from "./entity";
-import { AssetEntity } from "./asset.entity";
 
 export enum SearchType {
   DENSE = "dense",
@@ -158,7 +157,11 @@ export class ExecutionResult {
   ExecutionResult
 )
 @Entity("executions")
-export class ExecutionEntity extends BaseEntity {
+export class ExecutionEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
   @Field({ type: "string", uuid: true, source: "params" })
   @Column({ name: "knowledge_id", type: "uuid" })
   knowledgeId: string;
@@ -171,7 +174,7 @@ export class ExecutionEntity extends BaseEntity {
   @Field({ type: "string", uuid: true, source: "params" })
   @Column({ name: "snipet_id", type: "uuid" })
   snipetId: string;
-
+  
   @Field({ type: "class", class: () => SnipetEntity, required: false })
   @ManyToOne(() => SnipetEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "snipet_id" })
@@ -192,9 +195,16 @@ export class ExecutionEntity extends BaseEntity {
   @Field({ type: "class", class: () => AssetEntity, isArray: true, required: false })
   @OneToMany(() => AssetEntity, asset => asset.execution, { onDelete: "CASCADE" })
   assets?: AssetEntity[];
+  
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
 
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+  
   constructor(data: Partial<ExecutionEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }
