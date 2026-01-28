@@ -10,6 +10,11 @@ export const snipetFields = (_: string, dim: number): FieldType[] => [
     is_primary_key: true,
   },
   {
+    name: "assetId",
+    data_type: DataType.VarChar,
+    max_length: 36,
+  },
+  {
     name: "dense",
     data_type: DataType.FloatVector,
     dim

@@ -2,6 +2,7 @@ import { VectorStorePayload } from "./vector-store-payload";
 
 export class SnipetVectorStorePayload extends VectorStorePayload {
   snipetId: string;
+  assetId: string;
   knowledgeId: string;
   role: string;
 

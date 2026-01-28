@@ -1,4 +1,3 @@
-import { Constructor } from "@/types/constructor";
 import { applyDecorators } from "@nestjs/common";
 import { Expose } from "class-transformer";
 import "reflect-metadata";
@@ -13,6 +12,9 @@ export interface SourceFieldOptions {
 
 export const getSourceFields = (target: any):Array<SourceFieldOptions> => {
   return Reflect.getMetadata(SOURCE_FIELDS_KEY, target) || [];
+};
+export const setSourceFields = (target: any, opts: SourceFieldOptions[]): void => {
+  return Reflect.defineMetadata(SOURCE_FIELDS_KEY, opts, target);
 };
 
 export function SourceField(options: Partial<Omit<SourceFieldOptions, "as">>): PropertyDecorator {

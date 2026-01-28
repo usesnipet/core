@@ -177,6 +177,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
         metadata: { type: "text" },
         knowledgeId: asset.knowledgeId,
         createdAt: asset.createdAt,
+        assetId: asset.id,
         updatedAt: asset.updatedAt,
         role: asset.source
       })

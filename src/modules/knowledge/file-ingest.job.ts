@@ -8,7 +8,7 @@ import { KnowledgeAssetEntity, KnowledgeAssetStatus } from "./asset/knowledge-as
 import { KnowledgeAssetService } from "./knowledge-asset.service";
 import { FILE_INGEST_QUEUE } from "./file-ingest.constants";
 
-@Processor(FILE_INGEST_QUEUE, { concurrency: 10 })
+@Processor(FILE_INGEST_QUEUE, { concurrency: 1 })
 export class FileIngestJob extends WorkerHost {
   private readonly logger = new Logger(FileIngestJob.name);
 
@@ -32,13 +32,6 @@ export class FileIngestJob extends WorkerHost {
     if (data.storage.persisted) data.storage.path = await this.storageService.confirmTempUpload(tempPath);
     else data.storage.path = undefined;
     await this.knowledgeAssetService.update(data.id, data);
-
-    this.logger.debug(`File "${data.id}" processed`);
-  }
-
-  @OnWorkerEvent("active")
-  async onStart(job: Job<KnowledgeAssetEntity>) {
-    this.logger.debug("ingest started");
   }
 
   @OnWorkerEvent("completed")
@@ -49,7 +42,7 @@ export class FileIngestJob extends WorkerHost {
     asset.status = KnowledgeAssetStatus.INDEXED;
     await this.knowledgeAssetService.update(id, asset);
 
-    this.logger.debug("ingest completed");
+    this.logger.debug(`File "${id}" processed`);
   }
 
   @OnWorkerEvent("failed")

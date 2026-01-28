@@ -23,7 +23,7 @@ export abstract class VectorStore<T extends VectorStorePayload> {
   abstract add(data: T[]): Promise<T[]>;
 
   abstract remove(ids: string | string[]): Promise<void>;
-
+  abstract removeBy(field: string, value: any): Promise<void>
   abstract search(knowledgeId: string, ...options: Array<WithSearchOptions>): Promise<T[]>;
 
   abstract deleteByFilter(filter: Record<string, string | number | boolean>): Promise<void>;

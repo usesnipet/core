@@ -1,8 +1,18 @@
-import { SnipetEntity } from "@/entities";
 import { Field } from "@/shared/model";
-import { PickType } from "@nestjs/swagger";
 
-export class CreateOrUpdateSnipetDto extends PickType(SnipetEntity, ['name', "metadata"]) {
+export class CreateOrUpdateSnipetDto {
+  @Field({ type: "string", required: false, nullable: true })
+  name?: string | null;
+
+  @Field({
+    type: "object",
+    additionalProperties: true,
+    required: false,
+    nullable: true,
+    description: "Metadata of the snipet",
+  })
+  metadata: Record<string, any> | null = null;
+
   @Field({ type: "string", required: true, uuid: true, source: "params" })
   knowledgeId: string;
 }

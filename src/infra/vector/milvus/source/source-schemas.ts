@@ -14,6 +14,11 @@ export const sourceFields = (_: string, dim: number): FieldType[] => [
     data_type: DataType.Int32
   },
   {
+    name: "assetId",
+    data_type: DataType.VarChar,
+    max_length: 36,
+  },
+  {
     name: "dense",
     data_type: DataType.FloatVector,
     dim

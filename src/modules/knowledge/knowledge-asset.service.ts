@@ -1,7 +1,7 @@
 import { AssetService } from "@/infra/assets/assets.service";
-import { BadRequestException, Inject, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { AssetDomain, AssetEntity, AssetSource, ModelInfo, StorageInfo } from "@/entities/asset.entity";
-import { EntityManager } from "typeorm";
+import { EntityManager, FindOptionsWhere } from "typeorm";
 import { KnowledgeAssetEntity, KnowledgeAssetStatus, KnowledgeAssetType } from "./asset/knowledge-asset.entity";
 import { ICRUDService } from "@/shared/service.interface";
 import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
@@ -9,9 +9,9 @@ import { randomUUID } from "crypto";
 import { IngestJobStateResponseDto, IngestJobState } from "./dto/job-state.dto";
 import { StorageService } from "@/infra/storage/storage.service";
 import { InjectQueue } from "@nestjs/bullmq";
-import { FileIngestJob } from "./file-ingest.job";
 import { Queue } from "bullmq";
 import { FILE_INGEST_QUEUE } from "./file-ingest.constants";
+import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 
 export type CreateFileData = {
   originalName: string;
@@ -37,7 +37,9 @@ export class KnowledgeAssetService
   domain = AssetDomain.KNOWLEDGE;
 
   @Inject() private readonly storageService: StorageService;
-  @InjectQueue(FILE_INGEST_QUEUE) private readonly ingestQueue: Queue<KnowledgeAssetEntity>
+  @Inject() private readonly vectorStore:    SourceVectorStoreService;
+
+  @InjectQueue(FILE_INGEST_QUEUE) private readonly ingestQueue: Queue<KnowledgeAssetEntity>;
 
   fromEntity(entity: AssetEntity): KnowledgeAssetEntity {
     return new KnowledgeAssetEntity({
@@ -114,9 +116,9 @@ export class KnowledgeAssetService
     { buffer, originalname, mimetype }: Express.Multer.File,
     { knowledgeId, metadata, saveFile, externalId }: FileIngestDto
   ): Promise<FileIngestResponseDto> {
+    console.log(originalname);
 
     const extension = originalname.split('.').pop();
-    console.log(originalname, mimetype, extension);
     if (!extension) throw new BadRequestException("Failed to ingest content");
     const path = await this.storageService.putObject(
       `source/${knowledgeId}/${randomUUID()}.${extension}`,
@@ -175,5 +177,34 @@ export class KnowledgeAssetService
     }
 
     return new IngestJobStateResponseDto(jobState);
+  }
+
+  override delete(
+    id: string | FindOptionsWhere<KnowledgeAssetEntity>,
+    manager?: EntityManager
+  ): Promise<void> {
+    return this.transaction(async (manager) => {
+      const asset = await this.findFirst({
+        where: typeof id === "string" ? { id } : id,
+      }, manager);
+      if (!asset) throw new NotFoundException(`Asset with id ${id} not found`);
+
+      // Remove from vector store
+      await this.vectorStore.removeBy("assetId", asset.id);
+
+      // remove from storage
+      if (asset?.storage?.persisted) {
+        if (asset.storage.path) {
+          this.logger.debug("Deleting file");
+          await this.storageService.delete(asset.storage.path);
+          this.logger.debug("Deleting file done");
+        } else {
+          this.logger.warn(`File persisted without a path ${asset.id}`);
+        }
+      }
+
+      // remove from database
+      await super.delete(id, manager);
+    }, manager);
   }
 }

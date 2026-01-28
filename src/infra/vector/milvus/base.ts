@@ -109,7 +109,15 @@ export abstract class MilvusService<T extends VectorStorePayload>
       collection_name: this.buildCollectionName(),
       filter: `id in [${ids.map(id => `"${id}"`).join(", ")}]`
     });
-    if (res.err_index.length > 0) throw new VectorMutationError("Error deleting fragments", res);
+    if (res.err_index.length > 0) throw new VectorMutationError("Error deleting data", res);
+  }
+
+  async removeBy(field: string, value: any): Promise<void> {
+    const res = await this.client.delete({
+      collection_name: this.buildCollectionName(),
+      filter: `${field} == "${value}"`
+    });
+    if (res.err_index.length > 0) throw new VectorMutationError("Error deleting data", res);
   }
 
   async search(knowledgeId: string, ...opts: WithSearchOptions[]): Promise<T[]> {

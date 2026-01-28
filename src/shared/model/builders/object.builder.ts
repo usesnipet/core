@@ -19,10 +19,7 @@ export const buildObjectDecorators = (opts: FieldObjectOptions): PropertyDecorat
     additionalProperties: opts.additionalProperties
   };
   decorators.push(Allow({ each: opts.isArray }));
-  if (opts.debug) console.log(apiMetadata);
   decorators.push(isRequired ? ApiProperty(apiMetadata) : ApiPropertyOptional(apiMetadata));
-  if (opts.debug) console.log("added api property");
 
-  if (opts.debug) console.log("added validate nested");
   return decorators;
 };
