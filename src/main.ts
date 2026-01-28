@@ -3,12 +3,11 @@
  * It bootstraps the NestJS application, sets up middleware, configures API documentation, and starts the server.
  */
 
-import "reflect-metadata";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { apiReference } from "@scalar/nestjs-api-reference";
 import cookieParser from "cookie-parser";
+import "reflect-metadata";
 
 import { AppModule } from "./app.module";
 import { env } from "./env";
@@ -60,7 +59,6 @@ async function bootstrap(): Promise<void> {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  app.use("/scalar", apiReference({ content: document }));
   SwaggerModule.setup("swagger", app, document);
 
   app.use(cookieParser());
