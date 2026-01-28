@@ -24,13 +24,11 @@ RUN pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production
-ENV SERVE_STATIC=/app/apps/frontend/dist
 WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prompts ./prompts
-COPY --from=builder /app/llm-presets ./llm-presets
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/package.json ./package.json
 
