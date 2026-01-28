@@ -17,6 +17,8 @@ import { FileProcessorModule } from "@/infra/file-processor/file-processor.modul
 import { MulterModule } from "@nestjs/platform-express";
 import { StorageModule } from "@/infra/storage/storage.module";
 import { KnowledgeAssetService } from "./knowledge-asset.service";
+import { KnowledgeAssetController } from "./knowledge-asset.controller";
+import { FILE_INGEST_QUEUE } from "./file-ingest.constants";
 
 @Module({
   imports: [
@@ -26,13 +28,13 @@ import { KnowledgeAssetService } from "./knowledge-asset.service";
     VectorStoreModule,
     FileProcessorModule,
     ApiKeyModule,
-    BullModule.registerQueue({ name: FileIngestJob.INGEST_KEY }),
-    BullBoardModule.forFeature({ name: FileIngestJob.INGEST_KEY, adapter: BullMQAdapter }),
+    BullModule.registerQueue({ name: FILE_INGEST_QUEUE }),
+    BullBoardModule.forFeature({ name: FILE_INGEST_QUEUE, adapter: BullMQAdapter }),
     MulterModule.register({ storage: memoryStorage() }),
     StorageModule.register()
   ],
-  controllers: [KnowledgeController],
+  controllers: [KnowledgeController, KnowledgeAssetController],
   providers: [KnowledgeService, FileIngestJob, KnowledgeAssetService],
-  exports: [KnowledgeService]
+  exports: [KnowledgeService, KnowledgeAssetService]
 })
 export class KnowledgeModule {}

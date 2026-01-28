@@ -1,15 +1,14 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 import { Field } from "../shared/model";
+import { ApiKeyConnectorPermissionEntity } from "./api-key-connector-permission.entity";
 import { Capability } from "./capability";
 import { ConnectorStateEntity } from "./connector-state.entity";
-import { BaseEntity } from "./entity";
 import {
   IntegrationAuthType, IntegrationEntity, IntegrationType, ManualIntegrationManifest,
   MCPIntegrationManifest
 } from "./integration.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
-import { ApiKeyConnectorPermissionEntity } from "./api-key-connector-permission.entity";
 
 export class ConnectorAuth {
   type: IntegrationAuthType;
@@ -24,7 +23,10 @@ export class ConnectorAuth {
 }
 
 @Entity("connectors")
-export class ConnectorEntity extends BaseEntity {
+export class ConnectorEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
   @Field({ type: "string", required: true, uuid: true, description: "The knowledge base id" })
   @Column({ type: "uuid", name: "knowledge_base_id" })
   knowledgeId: string;
@@ -77,9 +79,17 @@ export class ConnectorEntity extends BaseEntity {
   @Field({ type: "class", class: () => ApiKeyConnectorPermissionEntity, isArray: true, required: false })
   @OneToMany(() => ApiKeyConnectorPermissionEntity, (apiKeyConnectorPermission) => apiKeyConnectorPermission.connector)
   apiKeyConnectorPermissions?: ApiKeyConnectorPermissionEntity[];
+  
+
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
 
   constructor(data: Partial<ConnectorEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

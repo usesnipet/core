@@ -2,31 +2,30 @@ import { VoyageAIClient } from "voyageai";
 
 import { EmbedError } from "../../errors/embed.error";
 import { ProviderHealth, ProviderInfo } from "../types";
-import { EmbeddingProvider } from "./base";
+import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
+import { BaseEmbeddingLLMConfig } from "@/types";
 
-type VoyageOptions = {
-  apiKey: string;
-  model: string;
-};
+type VoyageOptions = BaseEmbeddingLLMConfig<VoyageAIClient.Options>;
 
 export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
   client: VoyageAIClient;
 
-  constructor(private opts: VoyageOptions) {
+  constructor(private config: VoyageOptions) {
     super();
-    this.client = new VoyageAIClient({ apiKey: opts.apiKey });
+    this.client = new VoyageAIClient(config.opts);
   }
 
   async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    return { name: this.config.model }
   }
 
-  embed(text: string): Promise<number[]>;
-  embed(texts: string[]): Promise<number[][]>;
-  async embed(texts: string | string[]): Promise<number[] | number[][]> {
+  embed(text: string): Promise<SingleEmbeddingResult>;
+  embed(texts: string[]): Promise<MultipleEmbeddingResult>;
+  async embed(texts: string | string[]): Promise<SingleEmbeddingResult | MultipleEmbeddingResult> {
+    const start = Date.now();
     try {
       const response = await this.client.embed({
-        model: this.opts.model,
+        model: this.config.model,
         input: texts
       });
 
@@ -35,10 +34,28 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
       }
 
       const embeddings = response.data.map((d) => d.embedding);
-      if (embeddings.some((e) => !e)) {
-        throw new EmbedError("Some embeddings not found");
+      if (embeddings.some((e) => !e)) throw new EmbedError("Some embeddings not found");
+
+      if (Array.isArray(texts)) {
+        return {
+          cost: null,
+          data: embeddings.map((e, i) => ({
+            embeddings: e!,
+            content: texts[i]
+          })),
+          latency: Date.now() - start,
+          model: response.model ?? this.config.model,
+        }
       }
-      return Array.isArray(texts) ? embeddings as number[][] : embeddings[0] as number[];
+      return {
+        cost: null,
+        data: {
+          embeddings: embeddings[0]!,
+          content: texts
+        },
+        latency: Date.now() - start,
+        model: response.model ?? this.config.model,
+      }
     } catch (error) {
       throw new EmbedError(error.message, { cause: error });
     }
@@ -51,7 +68,7 @@ export class VoyageAIEmbeddingAdapter extends EmbeddingProvider {
       // Voyage não tem equivalente direto a "models.list()",
       // então fazemos uma chamada de embed mínima como health-check.
       await this.client.embed({
-        model: this.opts.model,
+        model: this.config.model,
         input: "ping"
       });
 

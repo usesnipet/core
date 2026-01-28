@@ -15,14 +15,14 @@ export class ContextResolver {
     subscriber: Subscriber<ExecutionEvent>,
   ): Promise<SnipetResolvedContext> {
     subscriber.next({ event: "context.start" });
-    const useKnowledge = req.executeSnipetOptions?.knowledgeOptions?.use ?? "auto";
-    const useSnipet = req.executeSnipetOptions?.snipetOptions?.use ?? "auto";
+    const useKnowledge = req.executeSnipetOptions?.knowledgeOptions?.use;
+    const useSnipet = req.executeSnipetOptions?.snipetOptions?.use;
     const res: SnipetResolvedContext = {
       knowledge: [],
       snipet: [],
       lastNMemories: []
     }
-    if (useKnowledge !== "ignore") {
+    if (useKnowledge) {
       subscriber.next({ event: "context.read-knowledge" });
       const knowledgeContext = await this.knowledgeContextResolver.resolve(
         req.snipet.knowledgeId,
@@ -47,7 +47,7 @@ export class ContextResolver {
       subscriber.next({ event: "context.retrieved-knowledge", payload: res.knowledge });
     }
 
-    if (useSnipet !== "ignore") {
+    if (useSnipet) {
       subscriber.next({ event: "context.read-snipet" });
       const snipetContext = await this.snipetContextResolver.resolve(
         req.snipet.knowledgeId,

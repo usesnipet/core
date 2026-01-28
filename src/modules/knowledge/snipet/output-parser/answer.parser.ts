@@ -1,13 +1,14 @@
 import { Subscriber } from "rxjs";
 import { SnipetResolvedContext } from "../context-resolver/context-resolver.types";
 import { ExecutionEvent } from "../types/execution-event";
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, MessageEvent } from "@nestjs/common";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { PromptService } from "@snipet/nest-prompt";
 import { PromptTemplates } from "@/@generated/prompts/prompts";
 import { SnipetIntent } from "@/types/snipet-intent";
 import { BaseOutputResult, OutputParserStrategy } from "./types";
 import { ExecutionEntity } from "@/entities/execution.entity";
+import { AIResult } from "@/infra/llm-manager/provider/text/base";
 
 export type AnswerOutput = BaseOutputResult & {
   intent: SnipetIntent.ANSWER;
@@ -26,11 +27,8 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
     context: SnipetResolvedContext,
     subscriber: Subscriber<ExecutionEvent>,
   ): Promise<AnswerOutput> {
-    const startDate = new Date();
     const textProvider = await this.llmManager.getTextProvider();
     if (!textProvider) throw new Error('No text provider available for answer generation');
-
-    const info = await textProvider.info();
 
     const prompt = this.promptService.getTemplate("AnswerQuestion").build({
       question: execution.options.query,
@@ -38,10 +36,7 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
       snipetMemories: context.snipet.map(s => ({ content: s.content, role: s.metadata.role ?? "assistant" }))
     });
 
-    let res: AnswerOutput = {
-      intent: SnipetIntent.ANSWER,
-      modelInfo: info,
-    } as AnswerOutput;
+    let res: AnswerOutput = { intent: SnipetIntent.ANSWER } as AnswerOutput;
 
     if (execution.options.stream) {
       const stream = await textProvider.stream({
@@ -50,25 +45,18 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
         temperature: execution.options?.output?.temperature,
       });
 
-      const chunks: string[] = [];
-
       await new Promise<void>((resolve, reject) => {
         const subscription = stream.subscribe({
-          next: chunk => {
-            chunks.push(chunk.data as string);
-            subscriber.next({ event: "output.streaming", payload: { chunk: chunk.data } });
+          next: (chunk: MessageEvent | AIResult) => {
+            if ("data" in chunk) {
+              subscriber.next({ event: "output.streaming", payload: { chunk: chunk.data } });
+            } else {
+              res.aiResult = chunk;
+              res.answer = chunk.output;
+            }
           },
           error: reject,
-          complete: () => {
-            res.answer = chunks.join("");
-            res.tokens = {
-              input: textProvider.countTokens(execution.options.query),
-              prompt: textProvider.countTokens(prompt),
-              output: textProvider.countTokens(res.answer)
-            }
-
-            resolve();
-          }
+          complete: () => resolve(),
         });
         subscriber.add(() => subscription.unsubscribe());
       });
@@ -78,16 +66,9 @@ export class AnswerOutputStrategy implements OutputParserStrategy<AnswerOutput> 
         maxTokens: execution.options?.output?.maxTokens,
         temperature: execution.options?.output?.temperature,
       });
-      res.tokens = {
-        input: textProvider.countTokens(execution.options.query),
-        prompt: generateResponse.tokensIn,
-        output: generateResponse.tokensOut
-      }
+      res.aiResult = generateResponse;
       res.answer = generateResponse.output;
     }
-
-    res.time = { start: startDate, end: new Date() };
-
     subscriber.next({ event: "output.data", payload: res });
     subscriber.next({ event: "output.finish" });
 

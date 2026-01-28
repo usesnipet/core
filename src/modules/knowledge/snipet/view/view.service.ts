@@ -33,7 +33,6 @@ export class ViewService extends GenericService {
     filterOpts.skip = filterOpts.skip || 0;
 
     const assets = await this.snipetAssetService.find(filterOpts);
-    console.log(assets);
 
     return new ViewChatDto(
       assets.map(a => new ChatDto({

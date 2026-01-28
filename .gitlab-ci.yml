@@ -1,16 +1,108 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- test
-- secret-detection
-variables:
-  SECRET_DETECTION_ENABLED: 'true'
-secret_detection:
-  stage: secret-detection
-include:
-- template: Security/Secret-Detection.gitlab-ci.yml
+  - pnpm
+  - build
+  - push-cloud
+  - deploy
+  - sonarqube
+
+pnpm:
+  image: node:20-alpine
+  stage: pnpm
+  artifacts:
+    paths:
+      - node_modules/
+      - pnpm-lock.yaml
+    expire_in: 1 hour
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@latest --activate
+  script:
+    - pnpm install --frozen-lockfile=false
+  only:
+    - ci
+    - tags
+    - develop
+
+docker-build-dev:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:18-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:dev" .
+    - docker push "$CI_REGISTRY_IMAGE:dev"
+  only:
+    - ci
+    - develop
+
+docker-build-prod:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:18-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" .
+    - if [ "${LATEST_IMAGE:-true}" = true ]; then
+        docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" "$CI_REGISTRY_IMAGE:latest";
+        docker push "$CI_REGISTRY_IMAGE:latest";
+      fi
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG"
+  only:
+    - tags
+
+docker-push-cloud:
+  image: docker:latest
+  stage: push-cloud
+  services:
+    - docker:18-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "$ALGHORIT_CLOUD_REGISTRY_PASS" | docker login -u "$ALGHORIT_CLOUD_REGISTRY_USER" --password-stdin $ALGHORIT_CLOUD_REGISTRY_ADDR
+  script:
+    - CLOUD_REGISTRY_IMAGE="${ALGHORIT_CLOUD_REGISTRY_ADDR%%/}/${ALGHORIT_CLOUD_REGISTRY_IMAGE_PATH##/}"
+    - docker pull "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG"
+    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" "$CLOUD_REGISTRY_IMAGE:$CI_COMMIT_TAG"
+    - if [ "${LATEST_IMAGE:-true}" = true ]; then
+        docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" "$CLOUD_REGISTRY_IMAGE:latest";
+        docker push "$CLOUD_REGISTRY_IMAGE:latest";
+      fi
+    - docker push "$CLOUD_REGISTRY_IMAGE:$CI_COMMIT_TAG"
+  only:
+    - tags
+
+deploy:
+  image: curlimages/curl:latest
+  stage: deploy
+  script:
+    - if [ -n "$CI_COMMIT_TAG" ]; then
+        if [ -n "$DEPLOY_URL" ]; then curl -X POST --insecure $DEPLOY_URL; fi;
+      else
+        if [ -n "$DEPLOY_URL_DEV" ]; then curl -X POST --insecure $DEPLOY_URL_DEV; fi;
+      fi
+  allow_failure: true
+  only:
+    - ci
+    - develop
+    - tags
+
+sonarqube-check:
+  stage: sonarqube
+  image:
+    name: ${SONAR_SCANNER_CLI_IMAGE}:${SONAR_SCANNER_CLI_TAG}
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  script:
+    - echo "sonar.projectKey=${SONAR_PROJECT_KEY:-snipet}" >> sonar-project.properties
+    - echo "sonar.projectVersion=${CI_COMMIT_TAG:-dev}" >> sonar-project.properties
+    - sonar-scanner
+  allow_failure: true
+  only:
+    - ci
+    - tags
+    - develop

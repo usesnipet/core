@@ -4,6 +4,12 @@ import { AuthRequest } from "@/types/request";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
+/**
+ * A guard that validates API keys.
+ * It checks for the presence of an API key in the `x-api-key` header and validates it.
+ * If the route is marked as public, access is granted even without an API key.
+ * If the API key is valid, it is attached to the request object for later use.
+ */
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
   constructor(
@@ -11,6 +17,13 @@ export class ApiKeyGuard implements CanActivate {
     private readonly reflector: Reflector
   ) {}
 
+  /**
+   * Determines whether the current request is authorized to proceed.
+   *
+   * @param context The execution context of the current request.
+   * @returns A boolean indicating whether the request is authorized.
+   * @throws {UnauthorizedException} If the API key is missing or invalid for a non-public route.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: AuthRequest = context.switchToHttp().getRequest();
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [

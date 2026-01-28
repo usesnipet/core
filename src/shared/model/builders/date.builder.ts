@@ -23,19 +23,16 @@ export const buildDateDecorators = (opts: FieldDateOptions): PropertyDecorator[]
       return moment(value).toDate();
     })
   );
-  if (opts.debug) console.log("added date transformer");
 
   // VALIDATION
   decorators.push(IsDate());
 
   if (opts.minDate) {
     decorators.push(MinDate(new Date(opts.minDate)));
-    if (opts.debug) console.log("added min date validator");
   }
 
   if (opts.maxDate) {
     decorators.push(MaxDate(new Date(opts.maxDate)));
-    if (opts.debug) console.log("added max date validator");
   }
 
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));

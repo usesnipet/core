@@ -1,40 +1,32 @@
-import OpenAI from "openai";
+import OpenAI, { ClientOptions } from "openai";
 import { output, ZodObject } from "zod";
 
 import { ProviderHealth, ProviderInfo } from "../types";
-import { GenerateParams, GenerateResult, StreamChunk, TextProvider } from "./base";
+import { GenerateParams, AIResult, TextProvider } from "./base";
 import { Observable } from "rxjs";
 import { MessageEvent } from "@nestjs/common";
-import { getUniversalEncoding } from "../../utils";
+import { BaseTextLLMConfig } from "@/types";
 
-type OpenAIOptions = {
-  baseURL: string;
-  apiKey: string;
-  model: string;
-}
+type OpenAIOptions = BaseTextLLMConfig<ClientOptions>
 
 export class OpenAITextAdapter extends TextProvider {
   client: OpenAI;
 
-  countTokens(text: string): number {
-    return getUniversalEncoding(this.opts.model).encode(text).length
-  }
-
-  constructor(private opts: OpenAIOptions) {
+  constructor(private config: OpenAIOptions) {
     super();
-    this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
+    this.client = new OpenAI(config.opts);
   }
 
   async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    return { name: this.config.model }
   }
 
-  async generate(params: GenerateParams): Promise<GenerateResult> {
-    const { prompt, maxTokens, temperature } = params;
+  async generate(params: GenerateParams): Promise<AIResult> {
     const start = Date.now();
+    const { prompt, maxTokens, temperature } = params;
 
     const response = await this.client.chat.completions.create({
-      model: this.opts.model,
+      model: this.config.model,
       messages: [ { role: "user", content: prompt } ],
       max_tokens: maxTokens,
       temperature,
@@ -42,23 +34,29 @@ export class OpenAITextAdapter extends TextProvider {
     });
 
     const message = response.choices[0]?.message?.content ?? "";
-    const tokensIn = response.usage?.prompt_tokens ?? 0;
-    const tokensOut = response.usage?.completion_tokens ?? 0;
+    const inputTokens = response.usage?.prompt_tokens ?? 0;
+    const outputTokens = response.usage?.completion_tokens ?? 0;
+    const totalTokens = response.usage?.total_tokens ?? inputTokens + outputTokens;
 
     return {
-      id: response.id,
       output: message,
-      tokensIn,
-      tokensOut,
-      generationTimeMs: Date.now() - start
+      usage: {
+        inputTokens,
+        outputTokens,
+        totalTokens
+      },
+      cost: null,
+      latency: Date.now() - start,
+      model: response.model
     };
   }
 
-  async stream(params: GenerateParams): Promise<Observable<MessageEvent>> {
+  async stream(params: GenerateParams): Promise<Observable<MessageEvent | AIResult>> {
+    const start = Date.now();
     const { prompt, maxTokens, temperature } = params;
 
     const stream = await this.client.chat.completions.create({
-      model: this.opts.model,
+      model: this.config.model,
       messages: [ { role: "user", content: prompt } ],
       max_tokens: maxTokens,
       temperature,
@@ -67,7 +65,10 @@ export class OpenAITextAdapter extends TextProvider {
     return new Observable((subscriber) => {
       (async () => {
         try {
+          // TODO - send AIResult on finish stream
           for await (const chunk of stream) {
+            console.log(chunk);
+
             const chunkText = chunk.choices[0]?.delta?.content;
             if (chunkText) subscriber.next({ data: chunkText });
           }
@@ -95,7 +96,7 @@ export class OpenAITextAdapter extends TextProvider {
     `.trim();
 
     const res = await this.client.chat.completions.create({
-      model: this.opts.model,
+      model: this.config.model,
       messages: [
         { role: "system", content: prompt },
         { role: "user", content: query }

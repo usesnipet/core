@@ -1,8 +1,7 @@
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 import { Field } from "../shared/model";
 import { ConnectorEntity } from "./connector.entity";
-import { BaseEntity } from "./entity";
 
 export class ConnectorMetrics {
   totalCalls: number;
@@ -25,7 +24,10 @@ export enum ConnectorStateStatus {
 }
 
 @Entity("connector_states")
-export class ConnectorStateEntity extends BaseEntity {
+export class ConnectorStateEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
   @Field({ type: "string", required: true, uuid: true, description: "The unique identifier for the connector state" })
   @Column({ type: "uuid", name: "connector_id" })
   connectorId: string;
@@ -49,30 +51,37 @@ export class ConnectorStateEntity extends BaseEntity {
   @Field({ type: "string", nullable: false, description: "The last error message of the connector state" })
   @Column({ type: "text", nullable: true, name: "last_error_message" })
   lastErrorMessage: string | null;
-
+  
   @Field({ type: "string", nullable: true, description: "The last error details of the connector state" })
   @Column({ type: "json", nullable: true, name: "last_error_details" })
   lastErrorDetails?: any;
-
+  
   @Field({ type: "class", class: () => ConnectorThrottleStatus, nullable: true })
   @Column({ type: "jsonb", nullable: true, name: "throttle_status" })
   throttleStatus?: ConnectorThrottleStatus;
-
+  
   @Field({ type: "class", class: () => ConnectorMetrics, nullable: true })
   @Column({ type: "jsonb", nullable: true, name: "metrics" })
   metrics?: ConnectorMetrics;
-
+  
   @Field({ type: "string", nullable: true, description: "The sync cursor of the connector state" })
   @Column({ type: "text", nullable: true })
   syncCursor?: string;
-
+  
   @Field({ type: "class", class: () => ConnectorEntity, required: false })
   @OneToOne(() => ConnectorEntity, (c) => c.connectorState)
   @JoinColumn({ name: "connector_id" })
   connector?: ConnectorEntity;
+  
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
 
   constructor(data: Partial<ConnectorStateEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

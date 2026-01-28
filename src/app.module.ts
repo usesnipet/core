@@ -1,3 +1,7 @@
+/**
+ * @file This file defines the root module of the NestJS application.
+ */
+
 import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { BullModule } from "@nestjs/bullmq";
@@ -20,8 +24,24 @@ import { HTTPContextModule } from "./shared/http-context/http-context.module";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 import { SnipetModule } from "./modules/knowledge/snipet/snipet.module";
 import { ViewModule } from "./modules/knowledge/snipet/view/view.module";
-import { StorageModule } from "./infra/storage/storage.module";
 
+/**
+ * The root module of the application.
+ *
+ * This module orchestrates the entire application by importing and configuring all necessary modules:
+ * - `ScheduleModule`: For task scheduling.
+ * - `HTTPContextModule`: For managing request-level context.
+ * - `BullModule`: For integrating with BullMQ for background job processing.
+ * - `BullBoardModule`: For providing a UI to monitor BullMQ queues.
+ * - `ClsModule`: For Continuation-Local Storage, enabling request-scoped data.
+ * - `LLMManagerModule`, `VectorStoreModule`: Infrastructure modules for AI and vector operations.
+ * - Feature modules: `ConnectorModule`, `IntegrationModule`, `KnowledgeModule`, `ApiKeyModule`, etc.
+ * - `PromptModule`: For managing and using prompt templates.
+ *
+ * It also registers global providers:
+ * - `ApiKeyGuard`: A global guard to protect endpoints with API key authentication.
+ * - `ClassSerializerInterceptor`: A global interceptor to handle entity serialization.
+ */
 @Module({
   imports: [
     ScheduleModule.forRoot(),

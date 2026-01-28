@@ -1,4 +1,3 @@
-import { Fragments, SnipetFragment } from "@/fragment";
 import { LLMManagerService } from "@/infra/llm-manager/llm-manager.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { RowData } from "@zilliz/milvus2-sdk-node";
@@ -24,6 +23,7 @@ export class MilvusSnipetVectorStoreService extends MilvusService<SnipetVectorSt
       content: payload.content,
       fullContent: payload.fullContent,
       dense: payload.dense,
+      assetId: payload.assetId,
       createdAt: payload.createdAt.getTime() ?? Date.now(),
       updatedAt: payload.updatedAt.getTime() ?? Date.now(),
       metadata: payload.metadata,
@@ -45,6 +45,7 @@ export class MilvusSnipetVectorStoreService extends MilvusService<SnipetVectorSt
       content: chunk.content as string,
       fullContent: chunk.fullContent as string,
       dense: chunk.dense as number[],
+      assetId: chunk.assetId as string,
       createdAt: moment(Number(chunk.createdAt)).toDate(),
       updatedAt: moment(Number(chunk.updatedAt)).toDate(),
       metadata: chunk.metadata as any,

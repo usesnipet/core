@@ -1,3 +1,8 @@
+/**
+ * @file This is the entry point of the application.
+ * It bootstraps the NestJS application, sets up middleware, configures API documentation, and starts the server.
+ */
+
 import "reflect-metadata";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
@@ -12,6 +17,24 @@ import { ErrorsInterceptor } from "./interceptors/error.interceptor";
 import { FileLogger } from "./lib/file-logger";
 import "./utils/$log";
 
+/**
+ * Bootstraps and runs the NestJS application.
+ *
+ * This function performs the following steps:
+ * 1.  Creates a NestJS application instance, optionally using a `FileLogger`.
+ * 2.  Applies global interceptors (`ErrorsInterceptor`) and pipes (`ValidationPipe`).
+ * 3.  Sets a global prefix for all API routes (`/api`).
+ * 4.  Configures Cross-Origin Resource Sharing (CORS) based on environment variables.
+ * 5.  Builds the OpenAPI (Swagger) documentation configuration.
+ * 6.  Creates the OpenAPI document.
+ * 7.  Sets up two API documentation UIs:
+ *     - `@scalar/nestjs-api-reference` at the `/scalar` endpoint.
+ *     - `SwaggerModule` at the `/swagger` endpoint.
+ * 8.  Applies `cookie-parser` middleware.
+ * 9.  Calls `generateApi` to write the `swagger.yaml` file if changes are detected.
+ * 10. Starts the application server on the port defined by `env.APP_PORT`.
+ * 11. Logs a message indicating that the server is running.
+ */
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: env.FILE_LOGGER_ENABLED ? new FileLogger() : undefined

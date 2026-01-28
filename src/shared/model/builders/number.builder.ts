@@ -31,11 +31,8 @@ export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorat
   }
 
   if (opts.integer) decorators.push(IsInt());
-  if (opts.integer && opts.debug) console.log("added integer validator");
   if (opts.positive) decorators.push(IsPositive());
-  if (opts.positive && opts.debug) console.log("added positive validator");
   if (opts.negative) decorators.push(IsNegative());
-  if (opts.negative && opts.debug) console.log("added negative validator");
 
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
   if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));

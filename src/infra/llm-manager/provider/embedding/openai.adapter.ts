@@ -1,36 +1,52 @@
-import OpenAI from "openai";
-
-
+import OpenAI, { ClientOptions } from "openai";
 
 import { ProviderHealth, ProviderInfo } from "../types";
-import { EmbeddingProvider } from "./base";
+import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
+import { BaseEmbeddingLLMConfig } from "@/types";
 
-type OpenAIOptions = {
-  baseURL: string;
-  apiKey: string;
-  model: string;
-}
+type OpenAIOptions = BaseEmbeddingLLMConfig<ClientOptions>;
 
 export class OpenAIEmbeddingAdapter extends EmbeddingProvider {
   client: OpenAI;
 
-  constructor(private opts: OpenAIOptions) {
+  constructor(private config: OpenAIOptions) {
     super();
-    this.client = new OpenAI({ baseURL: opts.baseURL, apiKey: opts.apiKey });
-  }
-  async info(): Promise<ProviderInfo> {
-    return { name: this.opts.model }
+    this.client = new OpenAI(config.opts);
   }
 
-  embed(text: string): Promise<number[]>;
-  embed(texts: string[]): Promise<number[][]>;
-  async embed(texts: string | string[]): Promise<number[] | number[][]> {
+  async info(): Promise<ProviderInfo> {
+    return { name: this.config.model }
+  }
+
+  embed(text: string): Promise<SingleEmbeddingResult>;
+  embed(texts: string[]): Promise<MultipleEmbeddingResult>;
+  async embed(texts: string | string[]): Promise<SingleEmbeddingResult | MultipleEmbeddingResult> {
+    const start = Date.now();
+
     const response = await this.client.embeddings.create({
-      model: this.opts.model,
+      model: this.config.model,
       input: texts
     });
-    if (Array.isArray(texts)) return response.data.map((d) => d.embedding);
-    return response.data[0].embedding;
+    if (Array.isArray(texts)) {
+      return {
+        cost: null,
+        data: response.data.map((d) => ({
+          embeddings: d.embedding,
+          content: texts[d.index]
+        })),
+        latency: Date.now() - Date.now(),
+        model: response.model
+      }
+    }
+    return {
+      cost: null,
+      data: {
+        embeddings: response.data[0].embedding,
+        content: texts
+      },
+      latency: Date.now() - start,
+      model: response.model
+    }
   }
 
   async healthCheck(): Promise<ProviderHealth> {

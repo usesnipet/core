@@ -1,4 +1,4 @@
-import { SnipetEntity, SnipetMemoryEntity } from "@/entities";
+import { SnipetEntity } from "@/entities";
 import { BaseController } from "@/shared/controller";
 import { Controller, HttpPost } from "@/shared/controller/decorators";
 import { CreateOrUpdateSnipetDto } from "./dto/create-or-update-snipet.dto";

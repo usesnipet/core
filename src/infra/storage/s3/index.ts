@@ -7,11 +7,24 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, Logger } from '@nestjs/common';
 
+import { File } from 'node:buffer';
 import { StorageDeleteError } from '../errors';
 import { GetPreSignedUploadUrlOptions, StorageService } from '../storage.service';
 
+
+async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+
+  return new Promise((resolve, reject) => {
+    stream.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    stream.on("error", reject);
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+  });
+}
+
 @Injectable()
 export class S3Service extends StorageService {
+
   private readonly logger = new Logger(S3Service.name);
   private readonly s3: S3Client;
   private readonly defaultBucket?: string;
@@ -40,6 +53,10 @@ export class S3Service extends StorageService {
 
   private buildKey(key: string, opts?: { temp?: boolean }): string {
     return opts?.temp ? key.startsWith("temp/") ? key : `temp/${key}` : key;
+  }
+
+  providerName(): string {
+    return "s3";
   }
 
   async getUploadUrl(
@@ -97,14 +114,20 @@ export class S3Service extends StorageService {
     return getSignedUrl(this.s3, command, { expiresIn: 300 });
   }
 
-  async getObject(key: string, opts?: { temp?: boolean }, bucket = this.defaultBucket): Promise<NodeJS.ReadableStream | null> {
+  async getObject(key: string, opts?: { temp?: boolean }, bucket = this.defaultBucket): Promise<File | null> {
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: this.buildKey(key, opts),
     });
 
     const result = await this.s3.send(command);
-    return result.Body as NodeJS.ReadableStream | null;
+    const buffer = await streamToBuffer(result.Body as NodeJS.ReadableStream);
+
+    const filename = key.split("/").pop() ?? "file";
+    const contentType = result.ContentType ?? "application/octet-stream";
+
+    const file = new File([buffer], filename, { type: contentType });
+    return file;
   }
 
   async putObject(
@@ -112,9 +135,9 @@ export class S3Service extends StorageService {
     body: Buffer,
     contentType: string,
     opts: { bucket?: string, temp?: boolean } = { temp: false, bucket: this.defaultBucket }
-  ): Promise<void> {
+  ): Promise<string> {
     if (!opts.bucket) opts.bucket = this.defaultBucket;
-
+    const keyToUse = this.buildKey(key, opts);
     const command = new PutObjectCommand({
       Bucket: opts.bucket,
       Key: this.buildKey(key, opts),
@@ -123,6 +146,7 @@ export class S3Service extends StorageService {
     });
 
     await this.s3.send(command);
+    return keyToUse;
   }
 
   buildPublicUrl(key: string, publicBaseURL = this.publicBaseURL): string {

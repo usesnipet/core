@@ -20,17 +20,14 @@ export const buildClassDecorators = (opts: FieldClassOptions): PropertyDecorator
 
   if (opts.required === false) decorators.push(IsOptional());
 
-  if (opts.debug) console.log(apiMetadata);
   const isFromBody = !opts.source || opts.source === "body";
 
   // Swagger
   decorators.push(isRequired ? ApiProperty(apiMetadata) : ApiPropertyOptional(apiMetadata));
 
   decorators.push(Type(() => opts.class()));
-  if (opts.debug) console.log("added type");
 
   decorators.push(ValidateNested({ each: opts.isArray }));
-  if (opts.debug) console.log("added validate nested");
 
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
   if (opts.source === "query") decorators.push(FromQuery(opts.sourceKey));

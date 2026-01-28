@@ -1,23 +1,13 @@
-import { Column, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { BaseEntity } from "./entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Field } from "../shared/model";
+import { ApiKeyEntity } from "./api-key.entity";
+import { ExecutionEntity } from "./execution.entity";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { SnipetEntity } from "./snipet.entity";
-import { ApiKeyEntity } from "./api-key.entity";
-import { Field } from "../shared/model";
-import { ExecutionEntity } from "./execution.entity";
 
 export enum AssetDomain {
   SNIPET = "SNIPET",
   KNOWLEDGE = "KNOWLEDGE",
-}
-
-export enum AssetType {
-  FILE = "FILE",
-  TEXT = "TEXT",
-  USER_INPUT = "USER_INPUT",
-  AI_RESPONSE = "AI_RESPONSE",
-  CONTEXT = "CONTEXT",
-  ACTION = "ACTION",
 }
 
 export enum AssetSource {
@@ -40,11 +30,11 @@ export class ModelInfo {
 export class StorageInfo {
   @Field({ type: "string", nullable: true, description: "The provider of the storage, where the asset is stored" })
   @Column({ nullable: true })
-  provider?: string;
+  provider: string;
 
-  @Field({ type: "string", nullable: true, description: "The key of the storage, where the asset is stored" })
+  @Field({ type: "string", required: false, description: "The path of the storage, where the asset is stored" })
   @Column({ nullable: true })
-  key?: string;
+  path?: string;
 
   @Field({ type: "boolean", description: "Indicates if the asset is persisted" })
   @Column({ default: false })
@@ -75,21 +65,28 @@ export class ContentInfo {
 
 @Entity("assets")
 @Index(["domain", "type"])
-export class AssetEntity extends BaseEntity {
+export class AssetEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
   @Field({ type: "enum", enum: AssetDomain, description: "The domain of the asset (Knowledge or Snipet)" })
   @Column({ type: "enum", enum: AssetDomain })
   domain: AssetDomain;
 
-  @Field({ type: "enum", enum: AssetType, description: "Indicates the type of the asset, if it is a file, text, user question, ai response..." })
-  @Column({ type: "enum", enum: AssetType })
-  type: AssetType;
+  @Field({
+    type: "string",
+    description: "Indicates the type of the asset, if it is a file, text, user question, ai response..."
+  })
+  @Column()
+  type: string;
 
   @Field({ type: "enum", enum: AssetSource, description: "The source of the asset (USER, AI, SYSTEM, INTEGRATION)" })
   @Column({ type: "enum", enum: AssetSource })
   source: AssetSource;
 
   @Field({ type: "string", uuid: true, description: "The unique identifier for the knowledge asset" })
-  @Column({ name: "knowledge_id"})
+  @Column({ name: "knowledge_id" })
   knowledgeId: string;
 
   @Field({ type: "class", class: () => KnowledgeEntity, required: false })
@@ -140,12 +137,23 @@ export class AssetEntity extends BaseEntity {
   @Column({ type: "jsonb", nullable: true })
   metadata?: Record<string, any>;
 
+  @Field({ type: "object", additionalProperties: true, required: false, description: "Extra data of the asset" })
+  @Column({ name: "extra_data", type: "jsonb", nullable: true })
+  extraData?: Record<string, any>;
+
   @Field({ type: "date", description: "The timestamp of the deletion" })
   @DeleteDateColumn()
   deletedAt?: Date;
 
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
   constructor(data: Partial<AssetEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

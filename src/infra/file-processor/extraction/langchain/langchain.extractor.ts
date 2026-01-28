@@ -1,9 +1,11 @@
 
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 
 import { DocumentExtractor } from "../interfaces/document-extractor";
 import { ExtractedDocument } from "../interfaces/extracted-document";
 
+import { fileToBlob } from "@/utils/file-to-blob";
+import { File } from "node:buffer";
 import {
   LangchainCSVLoader, LangchainDocxLoader, LangchainJSONLLoader, LangchainJSONLoader, LangchainPDFLoader,
   LangchainPPTXLoader, LangchainTextLoader
@@ -28,7 +30,6 @@ export class LangchainExtractor implements DocumentExtractor {
     'text/markdown',
   ];
 
-  private readonly logger = new Logger(LangchainExtractor.name);
 
   @Inject() private readonly pdfProcessor!: LangchainPDFLoader;
   @Inject() private readonly docxProcessor!: LangchainDocxLoader;
@@ -52,16 +53,10 @@ export class LangchainExtractor implements DocumentExtractor {
     throw new Error(`Unsupported file extension: ${extension}`);
   }
 
-  extract(input: string | Blob, metadata: Record<string, any>): Promise<ExtractedDocument> {
-    let blob: Blob;
-    if (typeof input === 'string') {
-      blob = new Blob([input], { type: 'text/plain' });
-    } else if (input instanceof Blob) {
-      blob = input;
-    } else {
-      blob = new Blob([input]);
-    }
-    const loader = this.getLoader(metadata.extension);
-    return loader.process(blob, metadata);
+  async extract(input: File, metadata: Record<string, any>): Promise<ExtractedDocument> {
+    const extension = input.name.split('.').pop();
+    if (!extension) throw new BadRequestException('File extension not found');
+    const loader = this.getLoader(extension);
+    return loader.process(await fileToBlob(input), metadata);
   }
 }

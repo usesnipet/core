@@ -13,8 +13,8 @@ export abstract class AssetService<AssetType> extends GenericService {
     super();
   }
 
-  get domainFilter() {
-    return { domain: this.domain };
+  get domainFilter(): FindOptionsWhere<AssetType> {
+    return { domain: this.domain } as unknown as FindOptionsWhere<AssetType>;
   }
 
   abstract fromEntity(entity: AssetEntity): AssetType;
@@ -25,16 +25,24 @@ export abstract class AssetService<AssetType> extends GenericService {
   }
 
   async find(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType[]> {
+    filterOptions = { ...filterOptions, where: { ...filterOptions.where, ...this.domainFilter } };
     const res = await this.repository(manager).find(filterOptions);
     return res.map((entity) => this.fromEntity(entity));
   }
 
-  async findUnique(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType | null> {
+  async findUnique(
+    filterOptions: FilterOptions<AssetType>,
+    manager?: EntityManager
+  ): Promise<AssetType | null> {
+    filterOptions = { ...filterOptions, where: { ...filterOptions.where, ...this.domainFilter } };
     const res = await this.repository(manager).findOne(filterOptions);
     return res ? this.fromEntity(res) : null;
   }
 
-  async findByID(id: string, opts?: (FindOneOptions<AssetType> & { manager?: EntityManager; }) | undefined): Promise<AssetType | null> {
+  async findByID(
+    id: string,
+    opts?: (FindOneOptions<AssetType> & { manager?: EntityManager; }) | undefined
+  ): Promise<AssetType | null> {
     const res = await this.repository(opts?.manager)
       .findOne({ ...opts as any, where: { id, ...opts?.where, ...this.domainFilter } });
 
@@ -42,6 +50,7 @@ export abstract class AssetService<AssetType> extends GenericService {
   }
 
   async findFirst(filterOptions: FilterOptions<AssetType>, manager?: EntityManager): Promise<AssetType | null> {
+    filterOptions = { ...filterOptions, where: { ...filterOptions.where, ...this.domainFilter } };
     filterOptions.take = 1;
     filterOptions.skip = 0;
 
@@ -50,7 +59,13 @@ export abstract class AssetService<AssetType> extends GenericService {
     return data?.length === 0 ? null : this.fromEntity(data?.[0]);
   }
 
-  async create(input: AssetType, manager?: EntityManager): Promise<AssetType> {
+  async create(input: AssetType, manager?: EntityManager): Promise<AssetType>
+  async create(input: AssetType[], manager?: EntityManager): Promise<AssetType[]>
+  async create(input: AssetType | AssetType[], manager?: EntityManager): Promise<AssetType | AssetType[]> {
+    if (Array.isArray(input)) {
+      const saved = await this.repository(manager).save(input.map((i) => this.toEntity(i)));
+      return saved.map(s => this.fromEntity(s));
+    }
     const entity = this.toEntity(input);
     return this.fromEntity(await this.repository(manager).save(entity));
   }

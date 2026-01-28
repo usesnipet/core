@@ -16,23 +16,15 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceVectorSt
     super(llmManager, "source", SourceVectorStorePayload, sourceFields, sourceFunctions, sourceIndexSchema);
   }
 
-  payloadToChunk(c: SourceVectorStorePayload): RowData 
+  payloadToChunk(c: SourceVectorStorePayload): RowData
   payloadToChunk(c: SourceVectorStorePayload[]): RowData[]
   payloadToChunk(c: SourceVectorStorePayload | SourceVectorStorePayload[]): RowData | RowData[] {
     const mapper = (payload: SourceVectorStorePayload): RowData => ({
-      id: payload.id,
-      content: payload.content,
-      fullContent: payload.fullContent,
-      dense: payload.dense,
+      ...payload,
       createdAt: payload.createdAt.getTime() ?? Date.now(),
       updatedAt: payload.updatedAt.getTime() ?? Date.now(),
-      metadata: payload.metadata,
-      seqId: payload.seqId,
-      knowledgeId: payload.knowledgeId,
-      connectorId: payload.connectorId,
-      externalId: payload.externalId,
     });
-    
+
     if (Array.isArray(c)) return c.map(mapper);
     return mapper(c);
   }
@@ -41,17 +33,9 @@ export class MilvusSourceVectorStoreService extends MilvusService<SourceVectorSt
   chunkToPayload(data: RowData[]): SourceVectorStorePayload[]
   chunkToPayload(data: RowData | RowData[]): SourceVectorStorePayload | SourceVectorStorePayload[] {
     const mapper = (chunk: RowData): SourceVectorStorePayload => new SourceVectorStorePayload({
-      id: chunk.id as string,
-      content: chunk.content as string,
-      fullContent: chunk.fullContent as string,
-      dense: chunk.dense as number[],
+      ...chunk as any,
       createdAt: moment(Number(chunk.createdAt)).toDate(),
       updatedAt: moment(Number(chunk.updatedAt)).toDate(),
-      metadata: chunk.metadata as any,
-      seqId: chunk.seqId as number,
-      knowledgeId: chunk.knowledgeId as string,
-      connectorId: chunk.connectorId as string,
-      externalId: chunk.externalId as string,
     });
     if (Array.isArray(data)) return data.map(mapper);
     return mapper(data);

@@ -1,7 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 import { Field } from "../shared/model";
-import { BaseEntity } from "./entity";
 import { KnowledgeEntity } from "./knowledge.entity";
 import { ApiKeyConnectorPermissionEntity } from "./api-key-connector-permission.entity";
 import { ApiKeyEntity } from "./api-key.entity";
@@ -13,7 +12,13 @@ export enum KbPermission {
 }
 
 @Entity("api_key_assignments")
-export class ApiKeyAssignmentEntity extends BaseEntity {
+export class ApiKeyAssignmentEntity {
+
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
+  
   @Field({ type: "string", required: true, uuid: true, description: "The id of the api key" })
   @Column({ type: "uuid", name: "api_key_id" })
   apiKeyId: string;
@@ -40,8 +45,15 @@ export class ApiKeyAssignmentEntity extends BaseEntity {
   @OneToMany(() => ApiKeyConnectorPermissionEntity, (c) => c.apiKeyAssignment, { cascade: [ "insert", "update" ], eager: true })
   connectorPermissions?: ApiKeyConnectorPermissionEntity[];
 
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
   constructor(data: Partial<ApiKeyAssignmentEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

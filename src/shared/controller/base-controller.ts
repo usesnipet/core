@@ -16,6 +16,7 @@ import {
 import { GenericResponse } from "./generic-response";
 import { ControllerResponses, RequiredPermissions } from "./types";
 import { HTTPData } from "../http-data/http-data.decorator";
+import type { ICRUDService } from "../service.interface";
 
 export function BaseController<
   TEntity extends ObjectLiteral,
@@ -52,7 +53,7 @@ export function BaseController<
   if (!updateDto) updateDto = entity as unknown as Constructor<TUpdateDto>;
   @ControllerFilter({ allowedFilters, allowedRelations })
   abstract class Base {
-    constructor(public readonly service: Service<TEntity>) {}
+    constructor(public readonly service: ICRUDService<TEntity, TCreateDto, TUpdateDto>) {}
 
     @ApiFilterQuery([], allowedRelations, false)
     @HttpGet(":id", { ignore: ignore.includes("findByID"), responses: responses.findByID })
@@ -72,14 +73,14 @@ export function BaseController<
     @ApiBody({ type: createDto })
     @Permissions(requiredPermissions?.create)
     async create(@HTTPData(createDto ?? entity) body: TCreateDto): Promise<TEntity> {
-      return this.service.create(body as unknown as TEntity);
+      return this.service.create(body);
     }
 
     @HttpPut(":id", { ignore: ignore.includes("update"), responses: responses.update })
     @ApiBody({ type: updateDto })
     @Permissions(requiredPermissions?.update)
     async update(@Param("id", ParseUUIDPipe) id: string, @HTTPData(updateDto ?? entity) body: TUpdateDto) {
-      await this.service.update(id, body as unknown as TEntity);
+      await this.service.update(id, body);
       return new GenericResponse("Update successful");
     }
 

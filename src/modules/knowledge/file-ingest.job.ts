@@ -2,29 +2,14 @@ import { FileProcessorService } from "@/infra/file-processor/file-processor.serv
 import { StorageService } from "@/infra/storage/storage.service";
 import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.service";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
-import { Inject, Logger } from "@nestjs/common";
+import { forwardRef, Inject, Logger, NotFoundException } from "@nestjs/common";
 import { Job } from "bullmq";
-import * as fs from "fs/promises";
-import { Readable } from "stream";
-import streamToBlob from "stream-to-blob";
+import { KnowledgeAssetEntity, KnowledgeAssetStatus } from "./asset/knowledge-asset.entity";
 import { KnowledgeAssetService } from "./knowledge-asset.service";
+import { FILE_INGEST_QUEUE } from "./file-ingest.constants";
 
-export type FileIngestJobData = {
-  metadata: Record<string, any>;
-  knowledgeId: string;
-  connectorId?: string;
-  externalId?: string;
-  path: string;
-  extension: string;
-  mimetype: string;
-  originalname: string;
-  saveFile: boolean;
-  size: number;
-};
-
-@Processor(FileIngestJob.INGEST_KEY, { concurrency: 1 })
+@Processor(FILE_INGEST_QUEUE, { concurrency: 1 })
 export class FileIngestJob extends WorkerHost {
-  static INGEST_KEY = "file-ingest";
   private readonly logger = new Logger(FileIngestJob.name);
 
   @Inject() private readonly fileIndexer:           FileProcessorService;
@@ -32,47 +17,42 @@ export class FileIngestJob extends WorkerHost {
   @Inject() private readonly storageService:        StorageService;
   @Inject() private readonly knowledgeAssetService: KnowledgeAssetService;
 
-  async process(job: Job<FileIngestJobData>): Promise<any> {
+  async process(job: Job<KnowledgeAssetEntity>): Promise<any> {
     const { data } = job;
-    this.logger.debug(`Processing file "${data.path}"`);
-    const readableStream = await this.storageService.getObject(data.path, { temp: true });
-    if (!readableStream) return;
+    if (!data.storage || !data.storage.path) throw new NotFoundException("File not found");
+    const tempPath = data.storage.path;
+    this.logger.debug(`Processing file "${tempPath}"`);
+    const file = await this.storageService.getObject(tempPath, { temp: true });
+    if (!file) return;
 
-    const payloads = await this.fileIndexer.process(
-      await streamToBlob(readableStream),
-      {
-        type: "file",
-        size: data.size,
-        extension: data.extension,
-        mimeType: data.mimetype,
-        originalName: data.originalname,
-        fileMetadata: data.metadata,
-      },
-      data.knowledgeId,
-      data.connectorId,
-      data.externalId
-    );
+    const payloads = await this.fileIndexer.process(file, data);
 
     if (payloads.length > 0) await this.vectorStore.add(payloads);
-    const path = await this.storageService.confirmTempUpload(data.path);
-    data.path = path;
 
-    await this.knowledgeAssetService.saveFile(data);
-    this.logger.log(`File "${data.path}" processed`);
-  }
-
-  @OnWorkerEvent("active")
-  async onStart(job: Job<FileIngestJobData>) {
-    this.logger.log("ingest started");
+    if (data.storage.persisted) data.storage.path = await this.storageService.confirmTempUpload(tempPath);
+    else data.storage.path = undefined;
+    await this.knowledgeAssetService.update(data.id, data);
   }
 
   @OnWorkerEvent("completed")
-  async onCompleted(job: Job<FileIngestJobData>) {
-    this.logger.log("ingest completed");
+  async onCompleted(job: Job<KnowledgeAssetEntity>) {
+    const id = job.data.id;
+    const asset = await this.knowledgeAssetService.findByID(id);
+    if (!asset) return;
+    asset.status = KnowledgeAssetStatus.INDEXED;
+    await this.knowledgeAssetService.update(id, asset);
+
+    this.logger.debug(`File "${id}" processed`);
   }
 
   @OnWorkerEvent("failed")
-  async onFailed(job: Job<FileIngestJobData>, error: Error) {
-    this.logger.log(error);
+  async onFailed(job: Job<KnowledgeAssetEntity>, error: Error) {
+    const id = job.data.id;
+    const asset = await this.knowledgeAssetService.findByID(id);
+    if (!asset) return;
+    asset.status = KnowledgeAssetStatus.FAILED;
+    await this.knowledgeAssetService.update(id, asset);
+
+    this.logger.error(error);
   }
 }

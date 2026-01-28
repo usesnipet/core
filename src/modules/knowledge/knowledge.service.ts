@@ -5,19 +5,11 @@ import { SourceVectorStoreService } from "@/infra/vector/source-vector-store.ser
 import { FilterOptions } from "@/shared/filter-options";
 import { Service } from "@/shared/service";
 import { buildOptions } from "@/utils/build-options";
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { EntityManager, FindOneOptions } from "typeorm";
-import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
 import { ApiKeyService } from "../api-key/api-key.service";
 import { KnowledgeBaseApiKeyConfig } from "../api-key/dto/knowledge-base-api-key-config.dto";
-import { InjectQueue } from "@nestjs/bullmq";
-import { FileIngestJob, FileIngestJobData } from "./file-ingest.job";
-import { Queue } from "bullmq";
-import { IngestJobState, IngestJobStateResponseDto } from "./dto/job-state.dto";
-import { randomUUID } from "crypto";
-import { FileIngestDto, FileIngestResponseDto } from "./dto/ingest.dto";
-import { StorageService } from "@/infra/storage/storage.service";
-import { KnowledgeAssetDto } from "./dto/knowledge-asset.dto";
+import { CreateKnowledgeDto } from "./dto/create-knowledge.dto";
 
 export type SearchOptions = {
   knowledgeId: string;
@@ -34,13 +26,9 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
   logger = new Logger(KnowledgeService.name);
   entity = KnowledgeEntity;
 
-
-  @InjectQueue(FileIngestJob.INGEST_KEY) private readonly ingestQueue: Queue<FileIngestJobData>;
-
   @Inject() private readonly embeddingService: EmbeddingService;
   @Inject() private readonly vectorStore:      SourceVectorStoreService;
   @Inject() private readonly apiKeyService:    ApiKeyService;
-  @Inject() private readonly storageService:   StorageService;
 
   private getApiKey() {
     const apiKey = this.context.apiKey;
@@ -57,52 +45,6 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       } as KnowledgeBaseApiKeyConfig;
     }
     return Array.isArray(knowledge) ? knowledge.map(toApiConfig) : [toApiConfig(knowledge)];
-  }
-
-  async ingestFile(
-    { buffer, originalname, mimetype }: Express.Multer.File,
-    { knowledgeId, metadata, saveFile, externalId }: FileIngestDto
-  ): Promise<FileIngestResponseDto> {
-    const extension = originalname.split('.').pop();
-    if (!extension) throw new BadRequestException("Failed to ingest content");
-    const path = `source/${knowledgeId}/${randomUUID()}.${extension}`;
-    await this.storageService.putObject(path, buffer, mimetype, { temp: true });
-    const job = await this.ingestQueue.add("", {
-      path,
-      extension,
-      knowledgeId,
-      metadata,
-      mimetype,
-      originalname,
-      externalId,
-      saveFile,
-      size: buffer.byteLength
-    }, { jobId: randomUUID() });
-    if (!job.id) throw new BadRequestException("Failed to ingest content");
-    return new FileIngestResponseDto(job.id);
-  }
-
-  async getStatus(id: string): Promise<IngestJobStateResponseDto> {
-    const state = await this.ingestQueue.getJobState(id);
-    let jobState: IngestJobState;
-    switch (state) {
-      case "waiting":
-      case "waiting-children":
-      case "delayed":
-      case "unknown":
-        jobState = IngestJobState.PENDING;
-      case "active":
-      case "prioritized":
-        jobState = IngestJobState.IN_PROGRESS;
-      case "completed":
-        jobState = IngestJobState.COMPLETED;
-      case "failed":
-        jobState = IngestJobState.FAILED;
-      default:
-        jobState = IngestJobState.FAILED;
-    }
-
-    return new IngestJobStateResponseDto(jobState);
   }
 
   //#region Override crud methods
@@ -130,6 +72,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
       return kns;
     }, manager);
   }
+
   override find(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -140,6 +83,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).find(filterOptions);
   }
+
   override findByID(
     id: string,
     opts?: (Omit<FindOneOptions<KnowledgeEntity>, "where"> & { manager?: EntityManager; })
@@ -149,6 +93,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     }
     throw new UnauthorizedException("You do not have permission to access this knowledge");
   }
+
   override findFirst(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -158,6 +103,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     if (!this.getApiKey().root) filterOptions.where.apiKeyAssignments = { apiKeyId: this.getApiKey().id };
     return this.repository(manager).findOne(filterOptions);
   }
+
   override findUnique(
     filterOptions: FilterOptions<KnowledgeEntity>,
     manager?: EntityManager
@@ -184,7 +130,7 @@ export class KnowledgeService extends Service<KnowledgeEntity> {
     return this.vectorStore.search(
       knowledgeId,
       SourceVectorStoreService.withFilters({ ...opts.metadata }),
-      SourceVectorStoreService.withDense({ vector: queryEmbedding.embeddings, topK: 100 }),
+      SourceVectorStoreService.withDense({ vector: queryEmbedding.data.embeddings, topK: 100 }),
       SourceVectorStoreService.withSparse({ query: query, topK: 100 }),
       SourceVectorStoreService.withTopK(opts.topK ?? 10),
     );

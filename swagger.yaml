@@ -44,11 +44,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - apiKeyId
         - kbPermissions
         - knowledgeId
+        - createdAt
+        - updatedAt
       type: object
     ApiKeyConnectorPermissionEntity:
       properties:
@@ -115,8 +115,6 @@ components:
           type: array
       required:
         - id
-        - createdAt
-        - updatedAt
         - connectorId
         - apiKeyAssignmentId
         - policyMode
@@ -125,6 +123,8 @@ components:
         - webhookEvents
         - manifestSnapshot
         - manifestVersion
+        - createdAt
+        - updatedAt
       type: object
     ApiKeyEntity:
       properties:
@@ -161,11 +161,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - name
         - rateLimit
         - expiresAt
+        - createdAt
+        - updatedAt
       type: object
     AssetEntity:
       properties:
@@ -197,6 +197,10 @@ components:
           description: The unique identifier for the execution asset
           format: uuid
           type: string
+        extraData:
+          additionalProperties: true
+          description: Extra data of the asset
+          type: object
         id:
           description: The unique identifier for the entity
           format: uuid
@@ -232,13 +236,6 @@ components:
         type:
           description: Indicates the type of the asset, if it is a file, text, user
             question, ai response...
-          enum:
-            - FILE
-            - TEXT
-            - USER_INPUT
-            - AI_RESPONSE
-            - CONTEXT
-            - ACTION
           type: string
         updatedAt:
           description: The timestamp when the entity was last updated
@@ -246,8 +243,6 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - domain
         - type
         - source
@@ -256,6 +251,8 @@ components:
         - executionId
         - createdById
         - deletedAt
+        - createdAt
+        - updatedAt
       type: object
     ChatDto:
       properties:
@@ -342,14 +339,14 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledgeId
         - integrationId
         - name
         - type
         - capabilities
         - config
+        - createdAt
+        - updatedAt
       type: object
     ConnectorMetrics:
       properties: {}
@@ -409,8 +406,6 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - connectorId
         - lastHeartbeatAt
         - lastSyncAt
@@ -421,6 +416,8 @@ components:
         - throttleStatus
         - metrics
         - syncCursor
+        - createdAt
+        - updatedAt
       type: object
     ConnectorThrottleStatus:
       properties: {}
@@ -566,13 +563,8 @@ components:
         topK:
           type: number
         use:
-          description: force/ignore/auto policy for knowledge, this indicates if should
-            filter the knowledge
-          enum:
-            - force
-            - ignore
-            - auto
-          type: string
+          description: This indicates if should search in the knowledge base
+          type: boolean
       required:
         - searchTypes
         - use
@@ -604,13 +596,8 @@ components:
         topK:
           type: number
         use:
-          description: force/ignore/auto policy for snipet memory, this indicates if
-            should filter the memories
-          enum:
-            - force
-            - ignore
-            - auto
-          type: string
+          description: This indicates if should search in the snipet
+          type: boolean
       required:
         - searchTypes
         - use
@@ -693,10 +680,10 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledge
         - options
+        - createdAt
+        - updatedAt
       type: object
     ExecutionResult:
       properties:
@@ -779,13 +766,83 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - name
         - type
         - authMethods
         - manifest
         - connectors
+        - createdAt
+        - updatedAt
+      type: object
+    KnowledgeAssetEntity:
+      properties:
+        connectorId:
+          format: uuid
+          type: string
+        content:
+          $ref: "#/components/schemas/ContentInfo"
+        createdAt:
+          description: The timestamp when the entity was created
+          format: date-time
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/ApiKeyEntity"
+        createdById:
+          description: The unique identifier for the api key who created the asset
+          format: uuid
+          type: string
+        deletedAt:
+          description: The timestamp of the deletion
+          format: date-time
+          type: string
+        error:
+          type: string
+        externalId:
+          format: uuid
+          type: string
+        id:
+          description: The unique identifier for the entity
+          format: uuid
+          type: string
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeEntity"
+        knowledgeId:
+          description: The unique identifier for the knowledge asset
+          format: uuid
+          type: string
+        metadata:
+          additionalProperties: true
+          description: The metadata of the asset
+          type: object
+        model:
+          $ref: "#/components/schemas/ModelInfo"
+        status:
+          enum:
+            - PENDING
+            - INDEXING
+            - INDEXED
+            - FAILED
+          type: string
+        storage:
+          $ref: "#/components/schemas/StorageInfo"
+        type:
+          enum:
+            - FILE
+            - TEXT
+          type: string
+        updatedAt:
+          description: The timestamp when the entity was last updated
+          format: date-time
+          type: string
+      required:
+        - id
+        - knowledgeId
+        - createdById
+        - deletedAt
+        - createdAt
+        - updatedAt
+        - type
+        - status
       type: object
     KnowledgeBaseApiKeyConfig:
       properties:
@@ -873,12 +930,12 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - name
         - connectors
         - apiKeyAssignments
         - assets
+        - createdAt
+        - updatedAt
       type: object
     MCPIntegrationManifest:
       properties:
@@ -1068,11 +1125,11 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - knowledgeId
         - assets
         - memory
+        - createdAt
+        - updatedAt
       type: object
     SnipetMemoryEntity:
       properties:
@@ -1114,19 +1171,18 @@ components:
           type: string
       required:
         - id
-        - createdAt
-        - updatedAt
         - snipetId
         - knowledgeId
         - type
         - intent
         - payload
+        - createdAt
+        - updatedAt
       type: object
     StorageInfo:
       properties:
-        key:
-          description: The key of the storage, where the asset is stored
-          nullable: true
+        path:
+          description: The path of the storage, where the asset is stored
           type: string
         persisted:
           description: Indicates if the asset is persisted
@@ -1137,7 +1193,6 @@ components:
           type: string
       required:
         - provider
-        - key
         - persisted
       type: object
     StreamDto:
@@ -1763,45 +1818,6 @@ paths:
         - access-token: []
       tags:
         - Knowledge
-  /api/knowledge/status/{id}:
-    get:
-      operationId: KnowledgeController_getStatus
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IngestJobStateResponseDto"
-          description: Record found successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Record not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Knowledge
   /api/knowledge/{id}:
     delete:
       operationId: KnowledgeController_delete
@@ -1923,6 +1939,245 @@ paths:
         - access-token: []
       tags:
         - Knowledge
+  /api/knowledge/{knowledgeId}/asset:
+    get:
+      operationId: KnowledgeAssetController_findMany
+      parameters:
+        - description: Maximum number of records to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            example: 10
+            type: number
+        - description: Number of records to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            example: 0
+            type: number
+        - description: 'Sort order. Use "-" to DESC. Allowed fields: '
+          in: query
+          name: sort
+          required: false
+          schema:
+            items:
+              type: string
+            type: array
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/KnowledgeAssetEntity"
+                type: array
+          description: Records found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+  /api/knowledge/{knowledgeId}/asset/ingest-file:
+    post:
+      operationId: KnowledgeAssetController_ingestFile
+      parameters:
+        - in: path
+          name: knowledgeId
+          required: true
+          schema: {}
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                externalId:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
+                metadata:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
+                saveFile:
+                  $ref: "#/components/schemas/FileIngestDto#/properties/saveFile"
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileIngestResponseDto"
+          description: Record created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Conflict - duplicate record
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+  /api/knowledge/{knowledgeId}/asset/ingest/{id}:
+    get:
+      operationId: KnowledgeAssetController_getStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestJobStateResponseDto"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+  /api/knowledge/{knowledgeId}/asset/{id}:
+    delete:
+      operationId: KnowledgeAssetController_delete
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeAssetEntity"
+          description: Record deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
+    get:
+      operationId: KnowledgeAssetController_findByID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: knowledgeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeAssetEntity"
+          description: Record found successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Record not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal server error
+      security:
+        - x-api-key: []
+        - access-token: []
+      tags:
+        - KnowledgeAsset
   /api/knowledge/{knowledgeId}/connector:
     get:
       operationId: ConnectorController_findMany
@@ -2160,57 +2415,6 @@ paths:
         - access-token: []
       tags:
         - Connector
-  /api/knowledge/{knowledgeId}/ingest-file:
-    post:
-      operationId: KnowledgeController_ingestFile
-      parameters:
-        - in: path
-          name: knowledgeId
-          required: true
-          schema: {}
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                externalId:
-                  $ref: "#/components/schemas/FileIngestDto#/properties/externalId"
-                metadata:
-                  $ref: "#/components/schemas/FileIngestDto#/properties/metadata"
-                saveFile:
-                  $ref: "#/components/schemas/FileIngestDto#/properties/saveFile"
-              type: object
-        required: true
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/FileIngestResponseDto"
-          description: Record created successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Bad request
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Conflict - duplicate record
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: Internal server error
-      security:
-        - x-api-key: []
-        - access-token: []
-      tags:
-        - Knowledge
   /api/knowledge/{knowledgeId}/snipet:
     get:
       operationId: SnipetController_findMany

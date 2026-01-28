@@ -1,11 +1,10 @@
-import { Column, Entity, OneToMany } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
+import { ApiExtraModels } from "@nestjs/swagger";
 import { Field } from "../shared/model";
 import { Capability } from "./capability";
 import { ConnectorEntity } from "./connector.entity";
-import { BaseEntity } from "./entity";
 import { Feature } from "./feature";
-import { ApiExtraModels } from "@nestjs/swagger";
 
 export class MCPTool {
   @Field({
@@ -201,11 +200,15 @@ export enum IntegrationAuthType {
 
 @ApiExtraModels(MCPIntegrationManifest, ManualIntegrationManifest, Webhook, MCPResource, MCPTool)
 @Entity("integrations")
-export class IntegrationEntity extends BaseEntity {
+export class IntegrationEntity {
+  @Field({ type: "string", uuid: true, description: "The unique identifier for the entity" })
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+  
   @Field({ type: "string", required: true, description: "The name of the integration" })
   @Column({ type: "varchar", length: 255 })
   name: string;
-
+  
   @Field({ type: "enum", enum: IntegrationType, required: true, description: "The type of the integration" })
   @Column({ type: "enum", enum: IntegrationType })
   type: IntegrationType;
@@ -213,7 +216,7 @@ export class IntegrationEntity extends BaseEntity {
   @Field({ type: "enum", enum: IntegrationAuthType, isArray: true, required: true, description: "The authentication methods of the integration" })
   @Column({ type: "jsonb", name: "auth_methods" })
   authMethods: IntegrationAuthType[];
-
+  
   @Field({
     type: "oneOf",
     classes: [
@@ -230,8 +233,15 @@ export class IntegrationEntity extends BaseEntity {
   @OneToMany(() => ConnectorEntity, (c) => c.integration)
   connectors: ConnectorEntity[];
 
+  @Field({ type: "date", description: "The timestamp when the entity was created" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  createdAt: Date;
+
+  @Field({ type: "date", description: "The timestamp when the entity was last updated" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  updatedAt: Date;
+
   constructor(data: Partial<IntegrationEntity>) {
-    super(data);
     Object.assign(this, data);
   }
 }

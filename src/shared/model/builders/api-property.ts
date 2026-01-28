@@ -45,6 +45,5 @@ export const buildApiProperty = (opts: FieldOptions): PropertyDecorator => {
       break;
   }
 
-  if (opts.debug) console.log(baseConfig);
   return isRequired ? ApiProperty(baseConfig) : ApiPropertyOptional(baseConfig);
 };
