@@ -82,7 +82,6 @@ const envSchema = z.object({
 
   // DATABASE
   DATABASE_URL: z.string(),
-  CREATE_DATABASE: z.coerce.boolean().optional().default(false),
 
   // REDIS
   REDIS_HOST: z.string().optional().default("localhost"),
