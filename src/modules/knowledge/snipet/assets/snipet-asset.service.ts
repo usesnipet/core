@@ -118,10 +118,11 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
     );
   }
   async checkAndSaveContext(
-    { id, knowledgeId, snipetId }: ExecutionEntity,
+    { id, knowledgeId, snipetId, options }: ExecutionEntity,
     context: SnipetResolvedContext,
     manager?: EntityManager
   ) {
+    if (options.persistenceType === PersistenceType.STATELESS) return;
     const contextAsset = new SnipetAssetDto({
       type: SnipetAssetType.CONTEXT,
       knowledgeId,
@@ -142,6 +143,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
     output: OutputParserResult,
     manager?: EntityManager
   ) {
+    if (options.persistenceType === PersistenceType.STATELESS) return;
     const text = ASSET_POLICIES[options.intent](output);
     const asset = new SnipetAssetDto({
       type: SnipetAssetType.AI_RESPONSE,

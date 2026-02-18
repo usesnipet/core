@@ -1086,9 +1086,6 @@ components:
           description: Temperature for text generation (0.0 to 1.0)
           type: number
       type: object
-    Set:
-      properties: {}
-      type: object
     SnipetEntity:
       properties:
         assets:
