@@ -13,13 +13,14 @@ export class SnipetContextResolver {
 
   resolve(
     knowledgeId: string,
+    snipetId: string,
     opts?: SnipetContextResolverOptions
   ): ReturnType<SnipetAssetService['search']> {
     const query = typeof opts?.query === "string" ? opts.query : opts?.query?.query;
     if (!query) throw new BadRequestException("Query not found");
     return this.snipetMemoryService.search(
       knowledgeId,
-      query,
+      snipetId,
       SnipetAssetService.withFilters(opts?.filters),
       SnipetAssetService.withLastNMemories(opts?.lastNMemories),
       SnipetAssetService.withQuery(opts?.query)

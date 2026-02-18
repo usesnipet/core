@@ -1,8 +1,9 @@
+import { BaseEmbeddingLLMConfig } from "@/types";
 import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 
-import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
 import { ProviderInfo } from "../types";
-import { BaseEmbeddingLLMConfig } from "@/types";
+
+import { EmbeddingProvider, MultipleEmbeddingResult, SingleEmbeddingResult } from "./base";
 
 type GeminiOptions = BaseEmbeddingLLMConfig<{
   apiKey: string;
@@ -22,38 +23,65 @@ export class GeminiLLMEmbeddingAdapter extends EmbeddingProvider {
     return { name: this.model.model }
   }
 
+  private sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
   embed(text: string): Promise<SingleEmbeddingResult>;
   embed(texts: string[]): Promise<MultipleEmbeddingResult>;
-  async embed(texts: string | string[]): Promise<SingleEmbeddingResult | MultipleEmbeddingResult> {
-    const start = Date.now();
-    const inputs = Array.isArray(texts) ? texts : [ texts ];
+  async embed(
+    texts: string | string[],
+    batchSize = 10
+  ): Promise<SingleEmbeddingResult | MultipleEmbeddingResult> {
 
-    const embeddings = await Promise.all(
-      inputs.map(async (text) => {
-        const result = await this.model.embedContent(text);
-        return result.embedding?.values ?? [];
-      })
-    );
+    const start = Date.now();
+    const inputs = Array.isArray(texts) ? texts : [texts];
+
+    const allEmbeddings: number[][] = [];
+
+    for (let i = 0; i < inputs.length; i += batchSize) {
+      const batch = inputs.slice(i, i + batchSize);
+
+      const batchResults = await Promise.all(
+        batch.map(async (text) => {
+          const result = await this.model.embedContent(text);
+          return result.embedding?.values ?? [];
+        })
+      );
+
+      allEmbeddings.push(...batchResults);
+
+      if (i + batchSize < inputs.length) {
+        console.log("waiting....");
+
+        await this.sleep(60_000);
+        console.log("going to next....");
+      }
+    }
+
+    const latency = Date.now() - start;
+
     if (Array.isArray(texts)) {
       return {
         cost: null,
-        data: embeddings.map((d, i) => ({
-          embeddings: d,
-          content: texts[i]
+        data: allEmbeddings.map((embedding, index) => ({
+          embeddings: embedding,
+          content: texts[index],
         })),
-        latency: Date.now() - Date.now(),
-        model: this.model.model
-      }
+        latency,
+        model: this.model.model,
+      };
     }
+
     return {
       cost: null,
       data: {
-        embeddings: embeddings[0],
-        content: texts
+        embeddings: allEmbeddings[0],
+        content: texts,
       },
-      latency: Date.now() - start,
-      model: this.model.model
-    }
+      latency,
+      model: this.model.model,
+    };
   }
+
 }

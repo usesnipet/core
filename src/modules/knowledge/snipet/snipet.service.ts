@@ -1,26 +1,26 @@
-import { SnipetEntity, SnipetMemoryEntity } from "@/entities";
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
-
-import { SubKnowledgeService } from "@/shared/services/sub-knowledge.service";
-import { ExecuteSnipetDto, ExecuteSnipetResponseDto } from "./dto/execute-snipet.dto";
-import { ContextResolver } from "./context-resolver/context-resolver.service";
-import { Observable } from "rxjs";
-import { ExecutionEvent } from "./types/execution-event";
-import { OutputParserService } from "./output-parser/output-parser.service";
-import { ExecutionService } from "./execution.service";
+import { SnipetEntity } from "@/entities";
 import { ExecutionEntity, ExecutionState } from "@/entities/execution.entity";
+import { SubKnowledgeService } from "@/shared/services/sub-knowledge.service";
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Observable } from "rxjs";
+
 import { SnipetAssetService } from "./assets/snipet-asset.service";
+import { ContextResolver } from "./context-resolver/context-resolver.service";
+import { ExecuteSnipetDto, ExecuteSnipetResponseDto } from "./dto/execute-snipet.dto";
+import { ExecutionService } from "./execution.service";
+import { OutputParserService } from "./output-parser/output-parser.service";
+import { ExecutionEvent } from "./types/execution-event";
 
 @Injectable()
 export class SnipetService extends SubKnowledgeService<SnipetEntity> {
   logger = new Logger(SnipetService.name);
   entity = SnipetEntity;
 
-  @Inject() private readonly contextResolver: ContextResolver;
-  @Inject() private readonly outputParser: OutputParserService;
+  @Inject() private readonly contextResolver!: ContextResolver;
+  @Inject() private readonly outputParser!: OutputParserService;
 
-  @Inject() private readonly assetService: SnipetAssetService;
-  @Inject() private readonly executionService: ExecutionService;
+  @Inject() private readonly assetService!: SnipetAssetService;
+  @Inject() private readonly executionService!: ExecutionService;
 
   async execute(data: ExecuteSnipetDto) {
     const execution = await this.executionService.create(new ExecutionEntity(data));
@@ -52,6 +52,7 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
             snipet,
             executeSnipetOptions: options?.contextOptions
           }, subscriber);
+
           await this.assetService.checkAndSaveContext(execution, context);
 
           // TODO run action resolver
@@ -64,8 +65,6 @@ export class SnipetService extends SubKnowledgeService<SnipetEntity> {
 
           await this.executionService.updateState(executionId, ExecutionState.FINISHED);
         } catch (error) {
-          console.error(error);
-
           await this.executionService.updateState(executionId, ExecutionState.ERROR, error.message);
           subscriber.error(error);
         }

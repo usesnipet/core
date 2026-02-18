@@ -22,7 +22,7 @@ export const HTTPData = (DtoClass: Constructor<any>) =>
       whitelist: true,
       forbidNonWhitelisted: true,
       skipMissingProperties: false,
-      validationError: { target: false },
+      validationError: { target: false, value: true },
     });
 
     if (errors.length > 0) throw new BadRequestException(errors);

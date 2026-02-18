@@ -15,22 +15,22 @@ RUN apk add --no-cache libc6-compat
 FROM base AS builder
 WORKDIR /app
 
+# COPY package.json pnpm-lock.yaml ./
 COPY . .
-
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm generate:prompts
 RUN pnpm build
+
+RUN pnpm prune --prod
 
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prompts ./prompts
-COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 EXPOSE ${APP_PORT}
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/src/main.js"]

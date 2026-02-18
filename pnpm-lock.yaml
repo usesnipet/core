@@ -70,7 +70,7 @@ importers:
         version: 11.0.0(@nestjs/common@11.1.9(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.27(ioredis@5.8.2)(pg@8.16.3)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.19.1)(typescript@5.9.3)))
       '@scalar/nestjs-api-reference':
         specifier: ^1.0.8
-        version: 1.0.8
+        version: 1.0.21
       '@snipet/nest-prompt':
         specifier: ^1.0.3
         version: 1.0.3(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -2012,16 +2012,20 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@scalar/core@0.3.23':
-    resolution: {integrity: sha512-hop7LVR3MKB2VpS8dly3gmmbB3lBGxQRtL0pBaC77zFMRHoBv1DuB2bj8l4gxd5grzitJ1LsYduvywLAMY9F6g==}
+  '@scalar/core@0.3.35':
+    resolution: {integrity: sha512-VdqJ5I8mDubiS8sWBoFxiTlAi4xWBDOchXRLX0GkzRkwR4zjyS51WRqjWETLj+NfP/mKIGxGabkRuelSmvHEDg==}
     engines: {node: '>=20'}
 
-  '@scalar/nestjs-api-reference@1.0.8':
-    resolution: {integrity: sha512-oglPln0zgTRK9kXGl0kR+QzGAwTjRmEvzYV+9RAx7faNS/PoXw+wO3jlWaRTU1tORUEqZpyC9l3JNF++29a9UA==}
+  '@scalar/helpers@0.2.9':
+    resolution: {integrity: sha512-Y4ffJF0yELdwZ0BKgonqn3SumIgRn1WKyYCVHD+TDM7qRFChdGRypyt20+efHs26fmJeyBAIIv2laICj5uimiw==}
     engines: {node: '>=20'}
 
-  '@scalar/types@0.5.0':
-    resolution: {integrity: sha512-imDMuTieOc5kHM9/Kt/1lmiI5ZtusuaYlzsXTP99IsWvD8mJ7ivF73lPBRj4PKtg4vY+ta5CO/vJpvnCYandRg==}
+  '@scalar/nestjs-api-reference@1.0.21':
+    resolution: {integrity: sha512-cR92M8zot/Sx9/foQ+groCEq7x0zUrJLmkhKtTTyzRG3IQjKOpIa8Eb9zIW7tM5/y8AXIRXSw3KsRUTeL0DbTw==}
+    engines: {node: '>=20'}
+
+  '@scalar/types@0.6.0':
+    resolution: {integrity: sha512-s+KRRM1NBC/6q74DtxhlkJQgO/POQQXj1k3PuJ54V1IrsS9R6eloxed1uDJLYcG2qKugZdyyDYaEU90lzJB8uw==}
     engines: {node: '>=20'}
 
   '@scarf/scarf@1.4.0':
@@ -4337,8 +4341,8 @@ packages:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  nanoid@5.1.5:
-    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+  nanoid@5.1.6:
+    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
     engines: {node: ^18 || >=20}
     hasBin: true
 
@@ -5236,8 +5240,8 @@ packages:
     resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
     engines: {node: '>=16'}
 
-  type-fest@5.0.0:
-    resolution: {integrity: sha512-GeJop7+u7BYlQ6yQCAY1nBQiRSHR+6OdCEtd8Bwp9a3NK3+fWAVjOaPKJDteB9f6cIJ0wt4IfnScjLG450EpXA==}
+  type-fest@5.4.2:
+    resolution: {integrity: sha512-FLEenlVYf7Zcd34ISMLo3ZzRE1gRjY1nMDTp+bQRBiPsaKyIW8K3Zr99ioHDUgA9OGuGGJPyYpNcffGmBhJfGg==}
     engines: {node: '>=20'}
 
   type-is@1.6.18:
@@ -5573,11 +5577,11 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.1.11:
-    resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
-
   zod@4.1.13:
     resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
+
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
 
@@ -7459,19 +7463,22 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@scalar/core@0.3.23':
+  '@scalar/core@0.3.35':
     dependencies:
-      '@scalar/types': 0.5.0
+      '@scalar/types': 0.6.0
 
-  '@scalar/nestjs-api-reference@1.0.8':
-    dependencies:
-      '@scalar/core': 0.3.23
+  '@scalar/helpers@0.2.9': {}
 
-  '@scalar/types@0.5.0':
+  '@scalar/nestjs-api-reference@1.0.21':
     dependencies:
-      nanoid: 5.1.5
-      type-fest: 5.0.0
-      zod: 4.1.11
+      '@scalar/core': 0.3.35
+
+  '@scalar/types@0.6.0':
+    dependencies:
+      '@scalar/helpers': 0.2.9
+      nanoid: 5.1.6
+      type-fest: 5.4.2
+      zod: 4.3.6
 
   '@scarf/scarf@1.4.0': {}
 
@@ -10262,7 +10269,7 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  nanoid@5.1.5: {}
+  nanoid@5.1.6: {}
 
   napi-postinstall@0.3.4: {}
 
@@ -11124,7 +11131,7 @@ snapshots:
 
   type-fest@4.41.0: {}
 
-  type-fest@5.0.0:
+  type-fest@5.4.2:
     dependencies:
       tagged-tag: 1.0.0
 
@@ -11470,6 +11477,6 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zod@4.1.11: {}
-
   zod@4.1.13: {}
+
+  zod@4.3.6: {}

@@ -51,6 +51,7 @@ export class ContextResolver {
       subscriber.next({ event: "context.read-snipet" });
       const snipetContext = await this.snipetContextResolver.resolve(
         req.snipet.knowledgeId,
+        req.snipet.id,
         {
           query: { query: req.query, topK: req.executeSnipetOptions?.snipetOptions?.topK ?? 10 },
           filters: req.executeSnipetOptions?.snipetOptions?.filters,
@@ -83,7 +84,7 @@ export class ContextResolver {
       } as Memory)));
       subscriber.next({ event: "context.retrieved-snipet", payload: [...res.snipet, ...res.lastNMemories] });
     }
-
+    console.log(res);
     return res;
   }
 }
