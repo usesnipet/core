@@ -15,8 +15,12 @@ export const buildNumberDecorators = (opts: FieldNumberOptions): PropertyDecorat
   decorators.push(buildApiProperty(opts));
   if (isOptional) decorators.push(IsOptional());
 
-
-  decorators.push(Transform(({ value }) => Number(value)));
+  decorators.push(
+    Transform(({ value }) => {
+      if (value === null || value === undefined || value === "") return undefined;
+      return Number(value);
+    })
+  );
 
   decorators.push(IsNumber());
 

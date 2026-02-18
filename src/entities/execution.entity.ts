@@ -52,7 +52,7 @@ export class ExecuteSnipetContextSnipetOptions {
     enum: SearchType,
     isArray: true
   })
-  searchTypes?: Set<SearchType>;
+  searchTypes?: Array<SearchType>;
 
   @Field({ type: "number", required: false })
   lastNMemories?: number;
@@ -172,7 +172,7 @@ export class ExecutionEntity {
   @Field({ type: "string", uuid: true, source: "params" })
   @Column({ name: "snipet_id", type: "uuid" })
   snipetId: string;
-  
+
   @Field({ type: "class", class: () => SnipetEntity, required: false })
   @ManyToOne(() => SnipetEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "snipet_id" })
@@ -193,7 +193,7 @@ export class ExecutionEntity {
   @Field({ type: "class", class: () => AssetEntity, isArray: true, required: false })
   @OneToMany(() => AssetEntity, asset => asset.execution, { onDelete: "CASCADE" })
   assets?: AssetEntity[];
-  
+
   @Field({ type: "date", description: "The timestamp when the entity was created" })
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
@@ -201,7 +201,7 @@ export class ExecutionEntity {
   @Field({ type: "date", description: "The timestamp when the entity was last updated" })
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt: Date;
-  
+
   constructor(data: Partial<ExecutionEntity>) {
     Object.assign(this, data);
   }

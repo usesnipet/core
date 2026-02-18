@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from "class-validator";
+import { IsEnum, IsOptional, ValidateIf } from "class-validator";
 
 import { FieldEnumOptions } from "../types";
 import { buildApiProperty } from "./api-property";
@@ -12,7 +12,16 @@ export const buildEnumDecorators = (opts: FieldEnumOptions): PropertyDecorator[]
 
   decorators.push(buildApiProperty(opts));
 
-  if (opts.required === false) decorators.push(IsOptional());
+  if (opts.required === false) {
+    decorators.push(
+      ValidateIf((_, value) => {
+        if (value === undefined || value === null) return false;
+        if (Array.isArray(value) && value.length === 0) return false;
+        return true;
+      })
+    );
+    decorators.push(IsOptional());
+  }
 
   decorators.push(IsEnum(enumValues, { each: opts.isArray }));
   if (opts.source === "params") decorators.push(FromParams(opts.sourceKey));
