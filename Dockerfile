@@ -31,6 +31,10 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prompts ./prompts
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY docker/entrypoint.sh docker/wait-for-db.js ./docker/
+
+RUN chmod +x docker/entrypoint.sh
 
 EXPOSE ${APP_PORT}
+ENTRYPOINT ["./docker/entrypoint.sh"]
 CMD ["node", "dist/src/main.js"]

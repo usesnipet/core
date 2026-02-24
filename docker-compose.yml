@@ -1,6 +1,6 @@
 services:
   app:
-    image: snipet/core:0.1.0
+    build: .
     container_name: app
     ports:
       - "${APP_PORT:-3100}:3100"
@@ -42,11 +42,16 @@ services:
       MILVUS_COLLECTION_PREFIX: ${MILVUS_COLLECTION_PREFIX:-snipet}
       MULVUS_RECREATE_COLLECTION: ${MULVUS_RECREATE_COLLECTION:-false}
     depends_on:
-      - database
-      - redis
-      - minio
-      - etcd
-      - milvus
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      etcd:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
     restart: unless-stopped
 
   # Redis
