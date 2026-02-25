@@ -1,11 +1,19 @@
-import { IntegrationEntity, ManualIntegrationManifest, MCPIntegrationManifest } from "@/entities";
+import { IntegrationAuthType, IntegrationType, ManualIntegrationManifest, MCPIntegrationManifest } from "@/entities";
 import { Field } from "@/shared/model";
-import { PickType } from "@nestjs/swagger";
 
-export class CreateIntegrationDto extends PickType(IntegrationEntity, ["name", "type", "authMethods"]) {
+export class CreateIntegrationDto {
+  @Field({ type: "string", required: true, description: "The name of the integration" })
+  name: string;
+
+  @Field({ type: "enum", enum: IntegrationType, required: true, description: "The type of the integration" })
+  type: IntegrationType;
+
+  @Field({ type: "enum", enum: IntegrationAuthType, isArray: true, required: true, description: "The authentication methods of the integration" })
+  authMethods: IntegrationAuthType[];
+
   @Field({
-    type: "class", 
-    class: () => ManualIntegrationManifest, 
+    type: "class",
+    class: () => ManualIntegrationManifest,
     required: false,
     description: "Manual integration configuration"
   })
@@ -13,7 +21,7 @@ export class CreateIntegrationDto extends PickType(IntegrationEntity, ["name", "
 
   @Field({
     type: "class",
-    class: () => MCPIntegrationManifest, 
+    class: () => MCPIntegrationManifest,
     required: false,
     description: "MCP integration configuration"
   })

@@ -151,7 +151,7 @@ export class KnowledgeAssetService
     } catch (error) {
       asset.status = KnowledgeAssetStatus.FAILED;
       asset.error = error.message;
-      await this.update(asset.id, asset);
+      if (asset.id) await this.update(asset.id, asset);
       throw error;
     }
   }

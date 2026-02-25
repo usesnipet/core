@@ -1,19 +1,17 @@
 import { KnowledgeBaseApiKeyConfig } from "./knowledge-base-api-key-config.dto";
 import { KnowledgeBaseApiKeyConnectorConfig } from "./knowledge-base-api-key-connector-config.dto";
-import { ApiExtraModels, PickType } from "@nestjs/swagger";
+import { ApiExtraModels } from "@nestjs/swagger";
 import { Field } from "@/shared/model";
 import { ApiKeyEntity } from "@/entities";
 
 @ApiExtraModels(KnowledgeBaseApiKeyConfig, KnowledgeBaseApiKeyConnectorConfig)
-export class CreateOrUpdateApiKeyDto extends PickType(ApiKeyEntity, ["name"]) {
+export class CreateOrUpdateApiKeyDto {
+
+  @Field({ type: "string", description: "The name of the api key" })
+  name: string;
 
   @Field({ type: "class", class: () => KnowledgeBaseApiKeyConfig, isArray: true, required: false })
   knowledgeBases?: Array<KnowledgeBaseApiKeyConfig>;
-
-  /**
-   * Allow to create/update a api key with a higher permission than the one you have
-   */
-  skipAccessValidation?: boolean;
 }
 
 

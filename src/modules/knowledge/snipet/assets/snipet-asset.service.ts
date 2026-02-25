@@ -54,7 +54,7 @@ export class SnipetAssetService extends AssetService<SnipetAssetDto> {
       snipetId: entity.snipetId!,
       snipet: entity.snipet,
       source: entity.source,
-      executionId: entity.executionId,
+      executionId: entity.executionId ?? undefined,
       execution: entity.execution
     })
   }

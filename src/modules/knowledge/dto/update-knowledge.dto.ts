@@ -1,4 +1,6 @@
-import { KnowledgeEntity } from "@/entities";
-import { PickType } from "@nestjs/swagger";
+import { Field } from "@/shared/model";
 
-export class UpdateKnowledgeDto extends PickType(KnowledgeEntity, ["name"]) {}
+export class UpdateKnowledgeDto {
+  @Field({ type: "string", min: 10, description: "The name of the knowledge base", required: true })
+  name: string;
+}

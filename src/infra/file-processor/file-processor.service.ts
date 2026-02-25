@@ -34,7 +34,7 @@ export class FileProcessorService {
         connectorId: knowledgeAsset.connectorId,
         knowledgeId: knowledgeAsset.knowledgeId,
         externalId: knowledgeAsset.externalId,
-        assetId: knowledgeAsset.id,
+        assetId: knowledgeAsset.id!,
         content,
         fullContent: content,
         seqId: index,

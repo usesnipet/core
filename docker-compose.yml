@@ -1,6 +1,6 @@
 services:
   app:
-    build: .
+    image: snipet/core:0.1.2
     container_name: app
     ports:
       - "${APP_PORT:-3100}:3100"

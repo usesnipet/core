@@ -117,7 +117,7 @@ export class ApiKeyService extends Service<ApiKeyEntity> implements OnModuleInit
 
   override async update(
     id: string | FindOptionsWhere<ApiKeyEntity>,
-    input: CreateOrUpdateApiKeyDto,
+    input: CreateOrUpdateApiKeyDto & { skipAccessValidation?: boolean },
     manager?: EntityManager
   ): Promise<void> {
     // Busca a(s) chave(s) API pelo ID fornecido

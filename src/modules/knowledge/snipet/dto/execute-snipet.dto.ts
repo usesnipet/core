@@ -8,7 +8,7 @@ export class ExecuteSnipetDto {
   @Field({ type: "string", uuid: true, source: "params" })
   snipetId: string;
 
-  @Field({ type: "class", class: () => ExecuteSnipetOptions })
+  @Field({ type: "class", class: () => ExecuteSnipetOptions, source: "body" })
   options: ExecuteSnipetOptions;
 }
 
