@@ -1,8 +1,9 @@
-import { ConnectorEntity } from "@/entities";
 import { Field } from "@/shared/model";
-import { PickType } from "@nestjs/swagger";
 
-export class UpdateConnectorDto extends PickType(ConnectorEntity, ["name"]) {
+export class UpdateConnectorDto {
+  @Field({ type: "string", required: true, description: "The name of the connector", max: 255 })
+  name: string;
+
   @Field({ type: "string", required: true, uuid: true, source: "params" })
   knowledgeId: string;
 }

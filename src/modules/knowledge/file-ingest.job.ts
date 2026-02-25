@@ -19,6 +19,7 @@ export class FileIngestJob extends WorkerHost {
 
   async process(job: Job<KnowledgeAssetEntity>): Promise<any> {
     const { data } = job;
+    if (!data.id) throw new NotFoundException("Asset id is required");
     if (!data.storage || !data.storage.path) throw new NotFoundException("File not found");
     const tempPath = data.storage.path;
     this.logger.debug(`Processing file "${tempPath}"`);
@@ -37,6 +38,7 @@ export class FileIngestJob extends WorkerHost {
   @OnWorkerEvent("completed")
   async onCompleted(job: Job<KnowledgeAssetEntity>) {
     const id = job.data.id;
+    if (!id) return;
     const asset = await this.knowledgeAssetService.findByID(id);
     if (!asset) return;
     asset.status = KnowledgeAssetStatus.INDEXED;
@@ -48,6 +50,7 @@ export class FileIngestJob extends WorkerHost {
   @OnWorkerEvent("failed")
   async onFailed(job: Job<KnowledgeAssetEntity>, error: Error) {
     const id = job.data.id;
+    if (!id) return;
     const asset = await this.knowledgeAssetService.findByID(id);
     if (!asset) return;
     asset.status = KnowledgeAssetStatus.FAILED;

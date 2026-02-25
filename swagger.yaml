@@ -461,8 +461,8 @@ components:
           description: The name of the connector
           type: string
       required:
-        - integrationId
         - name
+        - integrationId
       type: object
     CreateIntegrationDto:
       properties:
@@ -788,7 +788,6 @@ components:
         createdBy:
           $ref: "#/components/schemas/ApiKeyEntity"
         createdById:
-          description: The unique identifier for the api key who created the asset
           format: uuid
           type: string
         deletedAt:
@@ -835,14 +834,8 @@ components:
           format: date-time
           type: string
       required:
-        - id
         - knowledgeId
-        - createdById
-        - deletedAt
-        - createdAt
-        - updatedAt
         - type
-        - status
       type: object
     KnowledgeBaseApiKeyConfig:
       properties:
