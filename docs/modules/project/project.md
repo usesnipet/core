@@ -112,7 +112,6 @@
 - delete
   - Description: Delete a project (returns void)
   - Logic:
-    - Delete the project from the database
     - Check if has any resource associated with the project
     - If has any resource associated with the project, and not force, return an error
     - If has any resource associated with the project, and force, delete the resources associated with the project
