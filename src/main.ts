@@ -10,36 +10,12 @@ import cookieParser from "cookie-parser";
 import "reflect-metadata";
 
 import { AppModule } from "./app.module";
-import { env } from "./env";
-import { generateApi } from "./generate-api";
-import { ErrorsInterceptor } from "./interceptors/error.interceptor";
-import { FileLogger } from "./lib/file-logger";
 import "./utils/$log";
+import { env } from "./env";
 
-/**
- * Bootstraps and runs the NestJS application.
- *
- * This function performs the following steps:
- * 1.  Creates a NestJS application instance, optionally using a `FileLogger`.
- * 2.  Applies global interceptors (`ErrorsInterceptor`) and pipes (`ValidationPipe`).
- * 3.  Sets a global prefix for all API routes (`/api`).
- * 4.  Configures Cross-Origin Resource Sharing (CORS) based on environment variables.
- * 5.  Builds the OpenAPI (Swagger) documentation configuration.
- * 6.  Creates the OpenAPI document.
- * 7.  Sets up two API documentation UIs:
- *     - `@scalar/nestjs-api-reference` at the `/scalar` endpoint.
- *     - `SwaggerModule` at the `/swagger` endpoint.
- * 8.  Applies `cookie-parser` middleware.
- * 9.  Calls `generateApi` to write the `swagger.yaml` file if changes are detected.
- * 10. Starts the application server on the port defined by `env.APP_PORT`.
- * 11. Logs a message indicating that the server is running.
- */
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, {
-    logger: env.FILE_LOGGER_ENABLED ? new FileLogger() : undefined
-  });
+  const app = await NestFactory.create(AppModule);
 
-  app.useGlobalInterceptors(new ErrorsInterceptor());
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: false }));
 
   app.setGlobalPrefix("api");
@@ -63,7 +39,6 @@ async function bootstrap(): Promise<void> {
 
   app.use(cookieParser());
 
-  await generateApi(document);
   await app.listen(env.APP_PORT);
   const logger = new Logger("Bootstrap");
   logger.log(`Server running on [${await app.getUrl()}]`);
