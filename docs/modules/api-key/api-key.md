@@ -93,7 +93,6 @@
   - Returns: `{ plainKey: string; keyHash: string }` (plainKey shown only to callers that must persist or log it once)
 - create
   - Description: Create an API key from input (non-bootstrap; always tied to a project)
-  - Authentication (service layer): Enforced by guard at controller; service assumes caller authorization was validated
   - Logic:
     - Enforce invariant: at most one API key may exist with null projectId (the root); this method always persists projectId, so it cannot create a second root
     - Call generateKey; store keyHash and metadata; return safe entity plus one-time plainKey
