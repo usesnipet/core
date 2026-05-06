@@ -4,6 +4,9 @@
 import { ClassSerializerInterceptor, Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
+import { DatabaseModule } from "./modules/database/database.module";
+import { env } from "./env";
+import { schema } from "./db";
 
 /**
  * The root module of the application.
@@ -25,6 +28,10 @@ import { ScheduleModule } from "@nestjs/schedule";
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    DatabaseModule.register({
+      pg: { connection: "pool", config: { connectionString: env.DATABASE_URL } },
+      config: { schema }
+    })
   ],
   providers: [
     {
