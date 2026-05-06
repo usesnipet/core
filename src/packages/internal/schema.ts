@@ -1,4 +1,4 @@
-import { Package } from "@/modules/node/schema";
+import { Package } from "@/core/schemas/package";
 
 export const schema: Package = {
   "nodeTypes": [
@@ -65,7 +65,7 @@ export const schema: Package = {
           "type": "void",
           "description": "A void output"
         }
-      }
+      },
     }
   ],
   "configs": [

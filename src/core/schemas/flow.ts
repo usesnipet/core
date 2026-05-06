@@ -1,22 +1,57 @@
-import z from "zod";
-import { BaseSchema } from "./base";
+import { Type } from "class-transformer";
+import { IsArray, IsBoolean, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
 
-export const FlowSchema = BaseSchema.extend({
-  nodes: z.array(z.object({
-    instanceId: z.string(),
-    nodeId: z.string(),
-    config: z.record(z.string(), z.unknown()).optional(),
-  })),
-  connections: z.array(z.object({
-    source: z.object({
-      instanceId: z.string(),
-      outputId: z.string(),
-    }),
-    target: z.object({
-      instanceId: z.string(),
-      inputId: z.string(),
-    }),
-    active: z.boolean(),
-  }))
-});
-export type Flow = z.infer<typeof FlowSchema>;
+import { Base } from "./base";
+
+export class FlowNodeRef {
+  @IsString()
+  instanceId!: string;
+
+  @IsString()
+  nodeId!: string;
+
+  @IsOptional()
+  @IsObject()
+  config?: Record<string, unknown>;
+}
+
+export class FlowConnectionOut {
+  @IsString()
+  instanceId!: string;
+
+  @IsString()
+  outputId!: string;
+}
+
+export class FlowConnectionIn {
+  @IsString()
+  instanceId!: string;
+
+  @IsString()
+  inputId!: string;
+}
+
+export class FlowConnection {
+  @ValidateNested()
+  @Type(() => FlowConnectionOut)
+  source!: FlowConnectionOut;
+
+  @ValidateNested()
+  @Type(() => FlowConnectionIn)
+  target!: FlowConnectionIn;
+
+  @IsBoolean()
+  active!: boolean;
+}
+
+export class Flow extends Base {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowNodeRef)
+  nodes!: FlowNodeRef[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowConnection)
+  connections!: FlowConnection[];
+}

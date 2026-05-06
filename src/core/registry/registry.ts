@@ -1,6 +1,7 @@
 import { Result, err, ok } from "neverthrow";
 import { RegistryError } from "./errors/registry.error";
-import z from "zod";
+import { Validator } from "../validation/validator";
+import { ClassValidator } from "../validation/class-validator";
 
 /**
  * Abstract base class for registries that manage collections of items identified by string ids.
@@ -14,15 +15,17 @@ export abstract class Registry<T extends { id: string }> {
    */
   private items: Record<string, T> = {};
 
+  private validator: Validator<T>;
+  private name: string;
   /**
    * Creates a new registry.
-   * @param schema - A Zod schema to validate registered items.
+   * @param validator - A runtime validator to validate registered items.
    * @param name - The name of the registry type, used in error messages.
    */
-  constructor(
-    private readonly schema: z.ZodSchema<T>,
-    private readonly name: string
-  ) {}
+  constructor(cls: new () => T) {
+    this.validator = new ClassValidator(cls);
+    this.name = cls.name;
+  }
 
   /**
    * Registers a new item after schema validation.
@@ -30,10 +33,11 @@ export abstract class Registry<T extends { id: string }> {
    * @param item - The item to register.
    * @returns An error result if validation fails, otherwise void.
    */
-  register(item: T) {
-    const result = this.schema.safeParse(item);
-    if (!result.success) return err(new RegistryError(`${this.name} is invalid: ${result.error.message}`));
-    this.items[item.id] = item;
+  async register(item: unknown): Promise<Result<void, RegistryError>> {
+    const result = await this.validator.validate(item);
+    if (!result.ok) return err(new RegistryError(`${this.name} is invalid: ${result.message}`));
+    this.items[result.value.id] = result.value;
+    return ok(undefined);
   }
 
   /**

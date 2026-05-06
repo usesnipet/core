@@ -1,4 +1,5 @@
-import { INode, IRuntime } from "@/modules/node/types";
+import { INode } from "@/core/types/node";
+import { IRuntime } from "@/core/types/runtime";
 import * as fs from "fs";
 import * as path from "path";
 

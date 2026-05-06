@@ -1,8 +1,11 @@
-import { z } from "zod";
-import { BaseSchema } from "./base";
-import { FieldSchema } from "./field";
+import { Type } from "class-transformer";
 
-export const ConfigSchema = BaseSchema.extend({
-  fields: z.record(z.string(), FieldSchema),
-});
-export type Config = z.infer<typeof ConfigSchema>;
+import { IsRecordOf } from "../validation/decorators/is-record-of";
+import { Base } from "./base";
+import { Field } from "./field";
+
+export class Config extends Base {
+  @IsRecordOf(Field)
+  @Type(() => Field)
+  fields!: Record<string, Field>;
+}

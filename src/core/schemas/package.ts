@@ -1,11 +1,23 @@
-import z from "zod";
-import { NodeSchema } from "./node";
-import { ConfigSchema } from "./config";
-import { NodeTypeSchema } from "./node-type";
+import { Type } from "class-transformer";
+import { IsArray, ValidateNested } from "class-validator";
 
-export const PackageSchema = z.object({
-  nodeTypes: z.array(NodeTypeSchema),
-  configs: z.array(ConfigSchema),
-  nodes: z.array(NodeSchema),
-});
-export type Package = z.infer<typeof PackageSchema>;
+import { Config } from "./config";
+import { Node } from "./node";
+import { NodeType } from "./node-type";
+
+export class Package {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => NodeType)
+  nodeTypes!: NodeType[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Config)
+  configs!: Config[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Node)
+  nodes!: Node[];
+}

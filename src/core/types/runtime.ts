@@ -14,5 +14,4 @@ export interface IRuntime {
 
 export type ExecutionContext = {
   outputs: Record<string, unknown>;
-  trace: TraceNode;
 }

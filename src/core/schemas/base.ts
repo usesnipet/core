@@ -1,13 +1,37 @@
-import { z } from "zod";
+import { Type } from "class-transformer";
+import { IsArray, IsOptional, IsString, ValidateNested } from "class-validator";
 
-export const BaseSchema = z.object({
-  id: z.string(),
-  metadata: z.object({
-    name: z.string(),
-    description: z.string(),
-    docs: z.string().optional(),
-    icon: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    author: z.string().optional(),
-  })
-});
+export class Metadata {
+  @IsString()
+  name!: string;
+
+  @IsString()
+  description!: string;
+
+  @IsOptional()
+  @IsString()
+  docs?: string;
+
+  @IsOptional()
+  @IsString()
+  icon?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
+
+  @IsOptional()
+  @IsString()
+  author?: string;
+}
+
+export class Base {
+  @IsString()
+  id!: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Metadata)
+  metadata?: Metadata;
+}

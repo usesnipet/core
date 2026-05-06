@@ -1,4 +1,5 @@
-import { INode, IRuntime } from "@/modules/node/types";
+import { INode } from "@/core/types/node";
+import { IRuntime } from "@/core/types/runtime";
 
 export class LogNode implements INode {
   id = "internal:node:log";

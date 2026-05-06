@@ -1,11 +1,12 @@
-import z from "zod";
-import { BaseSchema } from "./base";
+import { IsOptional, IsString } from "class-validator";
 
-export const NodeSchema = BaseSchema
-  .omit({ metadata: true })
-  .extend({ metadata: BaseSchema.shape.metadata.optional() })
-  .extend({
-    type: z.string(),
-    config: z.string().optional(),
-  });
-export type Node = z.infer<typeof NodeSchema>;
+import { Base } from "./base";
+
+export class Node extends Base {
+  @IsString()
+  type!: string;
+
+  @IsOptional()
+  @IsString()
+  config?: string;
+}

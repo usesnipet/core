@@ -1,23 +1,33 @@
-import z from "zod";
+import { Type } from "class-transformer";
+import { IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
 
-export type Field = {
-  type: string;
-  description: string;
+import { IsRecordOf } from "../validation/decorators/is-record-of";
+
+export class Field {
+  @IsString()
+  type!: string;
+
+  @IsString()
+  description!: string;
+
+  @IsOptional()
+  @IsBoolean()
   required?: boolean;
-  defaultValue?: unknown;
-  items?: Field;
-  properties?: Record<string, Field>;
-  encrypted?: boolean;
-};
 
-export const FieldSchema: z.ZodType<Field> = z.lazy(() =>
-  z.object({
-    type: z.string(),
-    description: z.string(),
-    required: z.boolean().optional(),
-    defaultValue: z.unknown().optional(),
-    items: FieldSchema.optional(),
-    properties: z.record(z.string(), FieldSchema).optional(),
-    encrypted: z.boolean().optional(),
-  })
-);
+  @IsOptional()
+  defaultValue?: unknown;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Field)
+  items?: Field;
+
+  @IsOptional()
+  @IsRecordOf(Field)
+  @Type(() => Field)
+  properties?: Record<string, Field>;
+
+  @IsOptional()
+  @IsBoolean()
+  encrypted?: boolean;
+}
