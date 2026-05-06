@@ -4,6 +4,10 @@ import { IsArray, IsBoolean, IsObject, IsOptional, IsString, ValidateNested } fr
 import { Base } from "./base";
 
 export class FlowNodeRef {
+  @IsOptional()
+  @IsBoolean()
+  start?: boolean;
+
   @IsString()
   instanceId!: string;
 
@@ -54,4 +58,12 @@ export class Flow extends Base {
   @ValidateNested({ each: true })
   @Type(() => FlowConnection)
   connections!: FlowConnection[];
+
+  readonly startNode?: FlowNodeRef;
+
+  constructor(flow: Flow) {
+    super();
+    Object.assign(this, flow);
+    this.startNode = flow.nodes.find(n => n.start);
+  }
 }

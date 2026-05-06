@@ -1,7 +1,7 @@
-import { INode } from "@/core/types/node";
+import { IRunner } from "@/core/types/node";
 import { IRuntime } from "@/core/types/runtime";
 
-export class LogNode implements INode {
+export class LogRunner implements IRunner {
   id = "internal:node:log";
 
   constructor(public readonly runtime: IRuntime) {}

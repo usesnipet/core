@@ -1,4 +1,4 @@
-import { INode } from "@/core/types/node";
+import { IRunner } from "@/core/types/node";
 import { IRuntime } from "@/core/types/runtime";
 import * as fs from "fs";
 import * as path from "path";
@@ -8,7 +8,7 @@ export interface FileBuffer {
   buffer: Buffer;
 }
 
-export class FileSystemStorageNode implements INode {
+export class FileSystemStorageRunner implements IRunner {
   id = "internal:node:file-system";
 
   constructor(public readonly runtime: IRuntime) {}

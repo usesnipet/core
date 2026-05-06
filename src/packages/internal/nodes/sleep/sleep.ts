@@ -1,7 +1,7 @@
-import { INode } from "@/core/types/node";
+import { IRunner } from "@/core/types/node";
 import { IRuntime } from "@/core/types/runtime";
 
-export class SleepNode implements INode {
+export class SleepRunner implements IRunner {
   id = "internal:node:sleep";
 
   constructor(public readonly runtime: IRuntime) {}

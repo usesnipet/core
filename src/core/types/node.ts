@@ -1,6 +1,6 @@
 import { IRuntime } from "./runtime";
 
-export interface INode {
+export interface IRunner {
   id: string;
   runtime: IRuntime;
 

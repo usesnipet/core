@@ -3,7 +3,7 @@ import { validateSync } from "class-validator";
 
 import { Package } from "@/core/schemas/package";
 import { schema } from "./schema";
-import { LogNode, SleepNode, FileSystemStorageNode } from "./nodes";
+import { LogRunner, SleepRunner, FileSystemStorageRunner } from "./nodes";
 
 const pkg = plainToInstance(Package, schema);
 const errors = validateSync(pkg as any, { whitelist: true, forbidUnknownValues: false });
@@ -13,7 +13,7 @@ if (errors.length) {
 
 export const InternalPackage = pkg;
 export const Nodes = [
-  LogNode,
-  SleepNode,
-  FileSystemStorageNode,
+  LogRunner,
+  SleepRunner,
+  FileSystemStorageRunner,
 ]

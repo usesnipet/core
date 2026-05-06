@@ -1,7 +1,7 @@
 import { Config } from "../schemas/config";
-import { Registry } from "./registry";
+import { BaseRegistry } from "./base-registry";
 
-export class ConfigRegistry extends Registry<Config> {
+export class ConfigRegistry extends BaseRegistry<Config> {
   constructor() {
     super(Config);
   }
