@@ -1,5 +1,4 @@
-import { IRunner } from "@/core/types/node";
-import { IRuntime } from "@/core/types/runtime";
+import { Runner, RunnerOptions } from "@/core/runtime/runner";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -8,17 +7,18 @@ export interface FileBuffer {
   buffer: Buffer;
 }
 
-export class FileSystemStorageRunner implements IRunner {
+export class FileSystemStorageRunner extends Runner<{ basePath: string }> {
   id = "internal:node:file-system";
 
-  constructor(public readonly runtime: IRuntime) {}
+  constructor(options: RunnerOptions<{ basePath: string }>) {
+    super(options);
+  }
 
   async execute(
     inputs: { files: FileBuffer[], path: string },
-    config: { basePath: string }
   ): Promise<void> {
     const { files, path: relativePath } = inputs;
-    const { basePath } = config;
+    const basePath = this.config.basePath;
 
     const destinationDir = path.join(basePath, relativePath);
 
@@ -29,7 +29,7 @@ export class FileSystemStorageRunner implements IRunner {
       await fs.promises.writeFile(filePath, file.buffer);
     }
 
-    await this.runtime.emit("void", undefined);
-    await this.runtime.finish();
+    await this.emit("void", undefined);
+    await this.finish();
   }
 }

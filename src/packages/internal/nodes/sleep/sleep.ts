@@ -1,13 +1,14 @@
-import { IRunner } from "@/core/types/runner";
-import { IRuntime } from "@/core/types/runtime";
+import { Runner, RunnerOptions } from "@/core/runtime/runner";
 
-export class SleepRunner implements IRunner {
+export class SleepRunner extends Runner {
   id = "internal:node:sleep";
 
-  constructor(public readonly runtime: IRuntime) {}
+  constructor(options: RunnerOptions) {
+    super(options);
+  }
 
   async execute(inputs: { milliseconds: number }): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, inputs.milliseconds));
-    await this.runtime.finish();
+    await this.finish();
   }
 }

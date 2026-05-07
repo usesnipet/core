@@ -1,19 +1,25 @@
 import { FlowNodeRef } from "../schemas/flow";
 
-export type RunnerOptions = {
+export type RunnerOptions<TConfig extends Record<string, unknown> = Record<string, unknown>> = {
   instanceId: string;
   emit: (name: string, data: unknown) => Promise<void>;
   finish: () => Promise<void>;
   executeNode: (nodeRef: FlowNodeRef) => Promise<void>;
-  config?: Record<string, unknown>;
+  config?: TConfig;
 }
 
-export abstract class Runner {
-  id: string;
+export abstract class Runner<TConfig extends Record<string, unknown> = Record<string, unknown>> {
+  abstract id: string;
 
-  constructor(private readonly options: RunnerOptions) {
-    this.id = options.instanceId;
+  get instanceId(): string {
+    return this.options.instanceId;
   }
+
+  get config(): TConfig {
+    return this.options.config ?? ({} as TConfig);
+  }
+
+  constructor(private readonly options: RunnerOptions<TConfig>) { }
 
   async emit(name: string, data: unknown): Promise<void> {
     await this.options.emit(name, data);

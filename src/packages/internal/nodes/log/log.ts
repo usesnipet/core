@@ -1,14 +1,15 @@
-import { IRunner } from "@/core/types/node";
-import { IRuntime } from "@/core/types/runtime";
+import { Runner, RunnerOptions } from "@/core/runtime/runner";
 
-export class LogRunner implements IRunner {
+export class LogRunner extends Runner {
   id = "internal:node:log";
 
-  constructor(public readonly runtime: IRuntime) {}
+  constructor(options: RunnerOptions) {
+    super(options);
+  }
 
   async execute(inputs: { message: string }): Promise<void> {
     console.log(inputs.message);
-    await this.runtime.emit("message", inputs.message);
-    await this.runtime.finish();
+    await this.emit("message", inputs.message);
+    await this.finish();
   }
 }
