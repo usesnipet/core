@@ -29,4 +29,8 @@ export class NodeType extends Base {
   @IsRecordOf(NodeTypeComponent)
   @Type(() => NodeTypeComponent)
   components?: Record<string, NodeTypeComponent>;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 }

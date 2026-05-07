@@ -1,4 +1,4 @@
-import { Flow } from "@/db/schema/flow";
+import { FlowRow } from "@/db/schema/flow";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsDate, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
 
@@ -38,7 +38,7 @@ export class FlowEntity {
   @IsNotEmpty({ message: "Updated at is required" })
   updatedAt: Date;
 
-  static fromDatabase(data: Flow): FlowEntity {
+  static fromDatabase(data: FlowRow): FlowEntity {
     const flow = new FlowEntity();
     flow.id = data.id;
     flow.name = data.name;

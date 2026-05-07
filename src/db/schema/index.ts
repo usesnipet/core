@@ -1,9 +1,27 @@
 import { apiKey } from "./api-key";
+import { config } from "./config";
+import {
+  configTag,
+  nodeTag,
+  nodeTypeTag,
+  packageTag,
+} from "./entity-tags";
 import { flow } from "./flow";
-import { variables } from "./variables";
+import { node } from "./node";
+import { nodeType } from "./node-type";
+import { packageTable } from "./package";
+import { tag } from "./tag";
 
 export const schema = {
   apiKey,
+  config,
+  configTag,
   flow,
-  variables,
-}
+  node,
+  nodeTag,
+  nodeType,
+  nodeTypeTag,
+  package: packageTable,
+  packageTag,
+  tag,
+};

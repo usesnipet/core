@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { InjectDatabase } from "../database/database.decorator";
-import { PgDatabase } from "drizzle-orm/pg-core";
 import { schema } from "@/db";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
@@ -13,5 +12,4 @@ export class FlowService {
   find() {
     return this.db.query.flow.findMany();
   }
-
 }

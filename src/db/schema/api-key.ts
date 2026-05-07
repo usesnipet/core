@@ -11,3 +11,5 @@ export const apiKey = pgTable('api_key', {
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
 });
+
+export type ApiKeyRow = typeof apiKey.$inferSelect;
