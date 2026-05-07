@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 
-import { IsRecordOf } from "../validation/decorators/is-record-of";
+import { IsRecordOf } from "../../validation/decorators/is-record-of";
 import { Base } from "./base";
 import { Field } from "./field";
 

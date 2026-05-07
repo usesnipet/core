@@ -1,10 +1,14 @@
 import { Flow, FlowNodeRef } from "../schemas/flow";
-import { Constructable } from "../types/constructable";
-import { IRunner } from "../types/node";
-import { NodeForFlow } from "../types/node-for-flow";
-import { ExecutionResult, IRuntime } from "../types/runtime";
+import { Constructable } from "../../types/constructable";
 import { RuntimeError } from "./errors/runtime.error";
-import { buildDependencies } from "./utils/build-dependencies";
+import { Node } from "../schemas/node";
+import { Runner, RunnerOptions } from "./runner";
+
+export type RuntimeOptions = {
+  flow: Flow;
+  nodes: Array<Node & { runner: Constructable<Runner, [RunnerOptions]> }>;
+  dependencies: Map<string, string[]>;
+}
 
 export enum RuntimeState {
   READY,
@@ -20,18 +24,23 @@ export type NodeState = {
   error?: Error;
 }
 
-export class Runtime implements IRuntime {
+export class Runtime {
   state = RuntimeState.READY;
   nodeState = new Map<string, NodeState>();
 
-  private dependencies = new Map<string, string[]>();
-
-  constructor(
-    private readonly flow: Flow,
-    private readonly nodeForFlow: NodeForFlow[],
-  ) {
-    this.dependencies = buildDependencies(this.flow);
+  get flow(): Flow {
+    return this.options.flow;
   }
+
+  get nodes(): Array<Node & { runner: Constructable<Runner> }> {
+    return this.options.nodes;
+  }
+
+  get dependencies(): Map<string, string[]> {
+    return this.options.dependencies;
+  }
+
+  constructor(private readonly options: RuntimeOptions) {}
 
   private buildInputs(nodeRef: FlowNodeRef): Record<string, unknown> {
     const inputs: Record<string, unknown> = {};
@@ -48,8 +57,8 @@ export class Runtime implements IRuntime {
     return inputs;
   }
 
-  private getRunner(nodeId: string): Constructable<IRunner> {
-    const node = this.nodeForFlow.find(node => node.node.id === nodeId);
+  private getRunner(nodeId: string): Constructable<Runner, [RunnerOptions]> {
+    const node = this.nodes.find(node => node.id === nodeId);
     if (!node) throw new RuntimeError(`Node not found: ${nodeId}`);
     return node.runner;
   }
@@ -61,7 +70,7 @@ export class Runtime implements IRuntime {
     return this.executeNode(startNode, true);
   }
 
-  async executeNode(nodeRef: FlowNodeRef, force: boolean = false): Promise<void> {
+  private async executeNode(nodeRef: FlowNodeRef, force: boolean = false): Promise<void> {
     const nodeState = this.nodeState.get(nodeRef.instanceId);
     if (nodeState?.status === "running") return nodeState.promise;
     if (nodeState?.status === "completed" && !force) return;
@@ -75,10 +84,18 @@ export class Runtime implements IRuntime {
         );
       }
       const runner = this.getRunner(nodeRef.nodeId);
-      const instance = new runner(this);
+      const instance = new runner({
+        emit: (name, data) => this.emitFor(nodeRef.instanceId, name, data),
+        finish: () => this.finishFor(nodeRef.instanceId),
+        executeNode: this.executeNode.bind(this),
+        instanceId: nodeRef.instanceId,
+        config: nodeRef.config,
+      });
+
       const inputs = this.buildInputs(nodeRef);
       try {
-        return instance.execute(inputs, nodeRef.config);
+        await instance.execute(inputs);
+        await this.finishFor(nodeRef.instanceId);
       } catch (error) {
         this.nodeState.set(nodeRef.instanceId, { status: "failed", error: error as Error });
       }
@@ -89,7 +106,7 @@ export class Runtime implements IRuntime {
     return promise;
   }
 
-  async emit(instanceId: string, name: string, data: unknown): Promise<void> {
+  private async emitFor(instanceId: string, name: string, data: unknown): Promise<void> {
     const nodeState = this.nodeState.get(instanceId);
     if (!nodeState) throw new RuntimeError(`Node not found: ${instanceId}`);
     if (nodeState.status !== "running") throw new RuntimeError(`Node is not running: ${instanceId}`);
@@ -99,10 +116,10 @@ export class Runtime implements IRuntime {
     );
   }
 
-  async finish(instanceId: string): Promise<void> {
+  private async finishFor(instanceId: string): Promise<void> {
     const nodeState = this.nodeState.get(instanceId);
     if (!nodeState) throw new RuntimeError(`Node not found: ${instanceId}`);
-    if (nodeState.status !== "running") throw new RuntimeError(`Node is not running: ${instanceId}`);
+    if (!["running", "completed"].includes(nodeState.status)) throw new RuntimeError(`Node is not running: ${instanceId}`);
     this.nodeState.set(instanceId, { status: "completed", promise: undefined });
   }
 }

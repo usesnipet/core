@@ -1,0 +1,1 @@
+export type Constructable<T, Args extends unknown[] = unknown[]> = new (...args: Args) => T;

@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { Base } from "./base";
 
@@ -13,6 +13,12 @@ export class FlowNodeRef {
   @IsOptional()
   @IsObject()
   config?: Record<string, unknown>;
+
+  @IsNumber()
+  x!: number;
+
+  @IsNumber()
+  y!: number;
 }
 
 export class FlowConnectionOut {

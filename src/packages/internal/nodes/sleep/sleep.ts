@@ -1,4 +1,4 @@
-import { IRunner } from "@/core/types/node";
+import { IRunner } from "@/core/types/runner";
 import { IRuntime } from "@/core/types/runtime";
 
 export class SleepRunner implements IRunner {

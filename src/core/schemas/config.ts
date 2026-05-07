@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 
-import { IsRecordOf } from "../validation/decorators/is-record-of";
+import { IsRecordOf } from "../../validation/decorators/is-record-of";
 import { Base } from "./base";
 import { Field } from "./field";
 

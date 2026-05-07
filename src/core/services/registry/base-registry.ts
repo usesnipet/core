@@ -1,7 +1,8 @@
 import { Result, err, ok } from "neverthrow";
 import { RegistryError } from "./errors/registry.error";
-import { Validator } from "../validation/validator";
-import { ClassValidator } from "../validation/class-validator";
+import { Validator } from "@/validation/validator";
+import { Constructable } from "@/types";
+import { ClassValidator } from "@/validation/class-validator";
 
 /**
  * Abstract base class for registries that manage collections of items identified by string ids.
@@ -22,7 +23,7 @@ export abstract class BaseRegistry<T extends { id: string }> {
    * @param validator - A runtime validator to validate registered items.
    * @param name - The name of the registry type, used in error messages.
    */
-  constructor(cls: new () => T) {
+  constructor(cls: Constructable<T>) {
     this.validator = new ClassValidator(cls);
     this.name = cls.name;
   }
