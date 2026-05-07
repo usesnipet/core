@@ -4,5 +4,5 @@ export interface IRunner {
   id: string;
   runtime: IRuntime;
 
-  execute(inputs: unknown, config?: unknown): Promise<void>;
+  execute(inputs: Record<string, unknown>, config?: unknown): Promise<void>;
 }

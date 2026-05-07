@@ -1,3 +1,5 @@
+import { FlowNodeRef } from "../schemas/flow";
+
 export type ExecutionRef = {
   id: string;
   kind: "node";
@@ -6,12 +8,8 @@ export type ExecutionRef = {
 export type ExecutionResult = { outputs: unknown };
 
 export interface IRuntime {
-  execute(ref: ExecutionRef, inputs: unknown): Promise<ExecutionResult>;
+  executeNode(nodeRef: FlowNodeRef, force?: boolean): Promise<void>
 
-  emit(name: string, data: unknown): Promise<void>;
-  finish(): Promise<void>;
-}
-
-export type ExecutionContext = {
-  outputs: Record<string, unknown>;
+  emit(instanceId: string, name: string, data: unknown): Promise<void>;
+  finish(instanceId: string): Promise<void>;
 }
