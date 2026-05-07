@@ -76,13 +76,8 @@ async function makeRegistry(
   return new Registry(config, node, nodeType, flowReg);
 }
 
-function flow(partial: ConstructorParameters<typeof Flow>[0]): Flow {
-  return new Flow({
-    id: "flow-1",
-    nodes: [],
-    connections: [],
-    ...partial,
-  });
+function flow(partial: Omit<ConstructorParameters<typeof Flow>[0], "id"> & { id?: string }): Flow {
+  return new Flow({ ...partial, id: partial.id ?? "flow-1" });
 }
 
 describe("RuntimeBuilderService", () => {
