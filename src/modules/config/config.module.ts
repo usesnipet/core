@@ -5,6 +5,7 @@ import { ConfigService } from "./config.service";
 @Module({
   controllers: [ConfigController],
   providers: [ConfigService],
+  exports: [ConfigService],
 })
 export class ConfigModule {}
 

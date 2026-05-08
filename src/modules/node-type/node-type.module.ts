@@ -5,6 +5,7 @@ import { NodeTypeService } from "./node-type.service";
 @Module({
   controllers: [NodeTypeController],
   providers: [NodeTypeService],
+  exports: [NodeTypeService],
 })
 export class NodeTypeModule {}
 

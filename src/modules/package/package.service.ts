@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { BaseCrudService, CreateOpts, type CrudIdentity } from "@/common/crud";
 import { addTags, removeTags, TagJoinSpec } from "@/common/tags";
 import { packageTable } from "@/db/schema/package";
@@ -8,7 +8,9 @@ import { UpdatePackageDto } from "./dto/update-package.dto";
 import { packageTag } from "@/db/schema/entity-tags";
 
 @Injectable()
-export class PackageService extends BaseCrudService<typeof packageTable, PackageEntity, CreatePackageDto, UpdatePackageDto> {
+export class PackageService
+ extends BaseCrudService<typeof packageTable, PackageEntity, CreatePackageDto, UpdatePackageDto>
+ implements OnModuleInit {
   protected readonly identity: CrudIdentity<typeof packageTable> = {
     table: packageTable,
     idColumn: packageTable.id,
@@ -22,6 +24,9 @@ export class PackageService extends BaseCrudService<typeof packageTable, Package
 
   constructor() {
     super("package", PackageEntity);
+  }
+  onModuleInit() {
+
   }
 
   async addTags(packageId: string, tags: string[], opts: CreateOpts): Promise<void> {

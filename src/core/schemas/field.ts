@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
 
-import { IsRecordOf } from "../../validation/decorators/is-record-of";
+import { IsRecordOf } from "../../decorators/is-record-of";
 
 export class Field {
   @IsString()
