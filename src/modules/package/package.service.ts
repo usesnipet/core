@@ -1,11 +1,14 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
-import { BaseCrudService, CreateOpts, type CrudIdentity } from "@/common/crud";
+import { BaseCrudService, CreateOpts, CrudIdentity } from "@/common/crud";
 import { addTags, removeTags, TagJoinSpec } from "@/common/tags";
+import { PackageSchema } from "@/core/schemas/package";
+import { packageTag } from "@/db/schema/entity-tags";
 import { packageTable } from "@/db/schema/package";
-import { PackageEntity } from "./package.entity";
+import { packages } from "@/packages";
+import { Injectable, OnModuleInit } from "@nestjs/common";
+
 import { CreatePackageDto } from "./dto/create-package.dto";
 import { UpdatePackageDto } from "./dto/update-package.dto";
-import { packageTag } from "@/db/schema/entity-tags";
+import { PackageEntity } from "./package.entity";
 
 @Injectable()
 export class PackageService
@@ -25,7 +28,34 @@ export class PackageService
   constructor() {
     super("package", PackageEntity);
   }
+
   onModuleInit() {
+    return this.syncPackages();
+  }
+
+  async syncPackages() {
+    const pkgIds = packages.map(({ schema }) => schema.id);
+    const pkgEntities = await this.findMany({
+      where: { id: { op: "in", value: pkgIds }},
+    });
+
+    const { toCreate, toUpdate } = packages.reduce((acc, cur) => {
+      const { schema } = cur;
+      if (pkgEntities.some((pkg) => pkg.id === schema.id)) {
+        acc.toUpdate.push(schema);
+      } else {
+        acc.toCreate.push(new CreatePackageDto({
+          name: schema.metadata.name,
+          version: schema.version,
+          description: schema.metadata.description,
+          author: schema.metadata.author ?? null,
+          docs: schema.metadata.docs ?? null,
+          icon: schema.metadata.icon ?? null,
+          tags: schema.metadata.tags,
+        }));
+      }
+      return acc;
+    }, { toCreate: [] as CreatePackageDto[], toUpdate: [] as PackageSchema[] });
 
   }
 
@@ -57,11 +87,7 @@ export class PackageService
 
       const { tags, ...rest } = dto;
       const entity = await super.create(rest as CreatePackageDto, txOpts);
-      console.log(tags);
-      if (tags?.length) {
-
-        await this.addTags(entity.id, tags, txOpts);
-      }
+      if (tags?.length) await this.addTags(entity.id, tags, txOpts);
       return entity;
     });
   }

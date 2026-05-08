@@ -1,12 +1,12 @@
 import { Type } from "class-transformer";
-import { IsBoolean, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { IsRecordOf } from "../../decorators/is-record-of";
 
-import { Base } from "./base";
-import { Field } from "./field";
+import { BaseSchema, MetadataSchema } from "./base";
+import { FieldSchema } from "./field";
 
-export class NodeTypeComponent {
+export class NodeTypeComponentSchema {
   @IsString()
   type!: string;
 
@@ -15,21 +15,26 @@ export class NodeTypeComponent {
   required?: boolean;
 }
 
-export class NodeType extends Base {
+export class NodeTypeSchema extends BaseSchema {
   @IsOptional()
-  @IsRecordOf(Field)
-  @Type(() => Field)
-  inputs?: Record<string, Field>;
+  @ValidateNested()
+  @Type(() => MetadataSchema)
+  metadata?: MetadataSchema;
 
   @IsOptional()
-  @IsRecordOf(Field)
-  @Type(() => Field)
-  outputs?: Record<string, Field>;
+  @IsRecordOf(FieldSchema)
+  @Type(() => FieldSchema)
+  inputs?: Record<string, FieldSchema>;
 
   @IsOptional()
-  @IsRecordOf(NodeTypeComponent)
-  @Type(() => NodeTypeComponent)
-  components?: Record<string, NodeTypeComponent>;
+  @IsRecordOf(FieldSchema)
+  @Type(() => FieldSchema)
+  outputs?: Record<string, FieldSchema>;
+
+  @IsOptional()
+  @IsRecordOf(NodeTypeComponentSchema)
+  @Type(() => NodeTypeComponentSchema)
+  components?: Record<string, NodeTypeComponentSchema>;
 
   @IsOptional()
   @IsString()

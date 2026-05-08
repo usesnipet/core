@@ -1,9 +1,10 @@
-import { NodeType } from "../../schemas/node-type";
+import { NodeTypeSchema } from "../../schemas/node-type";
+
 import { BaseRegistry } from "./base-registry";
 
-export class NodeTypeRegistry extends BaseRegistry<NodeType> {
+export class NodeTypeRegistry extends BaseRegistry<NodeTypeSchema> {
   constructor() {
-    super(NodeType);
+    super(NodeTypeSchema);
   }
 }
 

@@ -1,7 +1,8 @@
-import { RunnerDef } from "@/core/runtime/runner";
-import { Node } from "@/core/schemas/node";
-import { ok } from "neverthrow";
 import "reflect-metadata";
+
+import { RunnerDef } from "@/core/runtime/runner";
+import { NodeSchema } from "@/core/schemas/node";
+import { ok } from "neverthrow";
 
 import { RegistryError } from "./errors/registry.error";
 import { NodeRegistry } from "./node.registry";
@@ -23,7 +24,7 @@ describe("NodeRegistry", () => {
   test("registerRunner registers and getRunner returns it", async () => {
     const registry = new NodeRegistry();
 
-    const node: Node = { id: "node-1", type: "test" };
+    const node: NodeSchema = { id: "node-1", type: "test" };
     const regRes = await registry.register(node);
     expect(regRes).toEqual(ok(undefined));
 

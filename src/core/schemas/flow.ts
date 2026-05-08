@@ -1,9 +1,11 @@
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
+import {
+  IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString, ValidateNested
+} from "class-validator";
 
-import { Base } from "./base";
+import { BaseSchema, MetadataSchema } from "./base";
 
-export class FlowNodeRef {
+export class FlowNodeRefSchema {
   @IsString()
   instanceId!: string;
 
@@ -21,7 +23,7 @@ export class FlowNodeRef {
   y!: number;
 }
 
-export class FlowConnectionOut {
+export class FlowConnectionOutSchema {
   @IsString()
   instanceId!: string;
 
@@ -29,7 +31,7 @@ export class FlowConnectionOut {
   outputId!: string;
 }
 
-export class FlowConnectionIn {
+export class FlowConnectionInSchema {
   @IsString()
   instanceId!: string;
 
@@ -37,31 +39,36 @@ export class FlowConnectionIn {
   inputId!: string;
 }
 
-export class FlowConnection {
+export class FlowConnectionSchema {
   @ValidateNested()
-  @Type(() => FlowConnectionOut)
-  source!: FlowConnectionOut;
+  @Type(() => FlowConnectionOutSchema)
+  source!: FlowConnectionOutSchema;
 
   @ValidateNested()
-  @Type(() => FlowConnectionIn)
-  target!: FlowConnectionIn;
+  @Type(() => FlowConnectionInSchema)
+  target!: FlowConnectionInSchema;
 
   @IsBoolean()
   active!: boolean;
 }
 
-export class Flow extends Base {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => FlowNodeRef)
-  nodes!: FlowNodeRef[];
+export class FlowSchema extends BaseSchema {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MetadataSchema)
+  metadata?: MetadataSchema;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => FlowConnection)
-  connections!: FlowConnection[];
+  @Type(() => FlowNodeRefSchema)
+  nodes!: FlowNodeRefSchema[];
 
-  constructor(flow: Flow) {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowConnectionSchema)
+  connections!: FlowConnectionSchema[];
+
+  constructor(flow: FlowSchema) {
     super();
     Object.assign(this, flow);
   }

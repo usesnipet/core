@@ -1,8 +1,8 @@
 import "reflect-metadata";
 
-import { Flow } from "@/core/schemas/flow";
-import { Node } from "@/core/schemas/node";
-import { NodeType } from "@/core/schemas/node-type";
+import { FlowSchema } from "@/core/schemas/flow";
+import { NodeSchema } from "@/core/schemas/node";
+import { NodeTypeSchema } from "@/core/schemas/node-type";
 import { err } from "neverthrow";
 
 import { RunnerDef } from "../runtime/runner";
@@ -26,7 +26,7 @@ export const testRunner: RunnerDef = {
  * RuntimeBuilderService only reads types via registry.get().
  */
 class SeedableNodeTypeRegistry extends NodeTypeRegistry {
-  put(item: NodeType): void {
+  put(item: NodeTypeSchema): void {
     this.items[item.id] = item;
   }
 }
@@ -54,14 +54,14 @@ async function makeRegistry(
   const flowReg = new FlowRegistry();
 
   for (const nt of nodeTypes) {
-    const payload = { id: nt.id } as NodeType;
-    if (nt.outputs !== undefined) payload.outputs = nt.outputs as NodeType["outputs"];
-    if (nt.inputs !== undefined) payload.inputs = nt.inputs as NodeType["inputs"];
+    const payload = { id: nt.id } as NodeTypeSchema;
+    if (nt.outputs !== undefined) payload.outputs = nt.outputs as NodeTypeSchema["outputs"];
+    if (nt.inputs !== undefined) payload.inputs = nt.inputs as NodeTypeSchema["inputs"];
     nodeType.put(payload);
   }
 
   for (const n of nodes) {
-    const nodeObj = new Node();
+    const nodeObj = new NodeSchema();
     nodeObj.id = n.id;
     nodeObj.type = "test";
     const reg = await node.register(nodeObj);
@@ -75,8 +75,8 @@ async function makeRegistry(
   return new Registry(config, node, nodeType, flowReg);
 }
 
-function flow(partial: Omit<ConstructorParameters<typeof Flow>[0], "id"> & { id?: string }): Flow {
-  return new Flow({ ...partial, id: partial.id ?? "flow-1" });
+function flow(partial: Omit<ConstructorParameters<typeof FlowSchema>[0], "id"> & { id?: string }): FlowSchema {
+  return new FlowSchema({ ...partial, id: partial.id ?? "flow-1" });
 }
 
 describe("RuntimeBuilderService", () => {

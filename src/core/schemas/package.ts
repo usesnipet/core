@@ -1,29 +1,32 @@
 import { Type } from "class-transformer";
-import { IsArray, IsOptional, ValidateNested } from "class-validator";
+import { IsArray, IsSemVer, IsString, ValidateNested } from "class-validator";
 
-import { Metadata } from "./base";
-import { Config } from "./config";
-import { Node } from "./node";
-import { NodeType } from "./node-type";
+import { BaseSchema, MetadataSchema } from "./base";
+import { ConfigSchema } from "./config";
+import { NodeSchema } from "./node";
+import { NodeTypeSchema } from "./node-type";
 
-export class Package {
-  @IsOptional()
+export class PackageSchema extends BaseSchema {
   @ValidateNested()
-  @Type(() => Metadata)
-  metadata?: Metadata;
+  @Type(() => MetadataSchema)
+  metadata!: MetadataSchema;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => NodeType)
-  nodeTypes!: NodeType[];
+  @Type(() => NodeTypeSchema)
+  nodeTypes!: NodeTypeSchema[];
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Config)
-  configs!: Config[];
+  @Type(() => ConfigSchema)
+  configs!: ConfigSchema[];
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Node)
-  nodes!: Node[];
+  @Type(() => NodeSchema)
+  nodes!: NodeSchema[];
+
+  @IsString()
+  @IsSemVer({ message: "Version must be a valid semver" })
+  version!: string;
 }

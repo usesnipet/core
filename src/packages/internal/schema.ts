@@ -1,6 +1,12 @@
-import { Package } from "@/core/schemas/package";
+import { PackageSchema } from "@/core/schemas/package";
 
-export const schema: Package = {
+export const schema: PackageSchema = {
+  "id": "internal",
+  "version": "1.0.0",
+  "metadata": {
+    "name": "Internal",
+    "description": "Built-in nodes and runners for local development"
+  },
   "nodeTypes": [
     {
       "id": "internal:node-type:log",

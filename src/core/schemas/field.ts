@@ -3,7 +3,7 @@ import { IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator
 
 import { IsRecordOf } from "../../decorators/is-record-of";
 
-export class Field {
+export class FieldSchema {
   @IsString()
   type!: string;
 
@@ -19,13 +19,13 @@ export class Field {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => Field)
-  items?: Field;
+  @Type(() => FieldSchema)
+  items?: FieldSchema;
 
   @IsOptional()
-  @IsRecordOf(Field)
-  @Type(() => Field)
-  properties?: Record<string, Field>;
+  @IsRecordOf(FieldSchema)
+  @Type(() => FieldSchema)
+  properties?: Record<string, FieldSchema>;
 
   @IsOptional()
   @IsBoolean()
