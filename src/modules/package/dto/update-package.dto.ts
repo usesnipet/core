@@ -1,5 +1,5 @@
-import { PartialType } from "@nestjs/swagger";
-import { CreatePackageDto } from "./create-package.dto";
+import { OmitType, PartialType } from "@nestjs/swagger";
+import { PackageEntity } from "../package.entity";
 
-export class UpdatePackageDto extends PartialType(CreatePackageDto) {}
+export class UpdatePackageDto extends PartialType(OmitType(PackageEntity, ["id", "createdAt", "updatedAt"] as const))  {}
 

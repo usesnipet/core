@@ -31,5 +31,32 @@ export class NodeService extends BaseCrudService<typeof node, NodeEntity, Create
   async removeTags(nodeId: string, tags: string[], opts: CreateOpts): Promise<void> {
     await removeTags(this.db(opts), this.tagsSpec, nodeId, tags);
   }
+
+  override async create(dto: CreateNodeDto, opts?: CreateOpts): Promise<NodeEntity>;
+  override async create(dto: CreateNodeDto[], opts?: CreateOpts): Promise<NodeEntity[]>;
+  override async create(dto: CreateNodeDto | CreateNodeDto[], opts?: CreateOpts): Promise<NodeEntity | NodeEntity[]> {
+    return this.transactions.run(async (tx) => {
+      const txOpts: CreateOpts = { ...opts, tx };
+
+      if (Array.isArray(dto)) {
+        const tagsPerRow = dto.map((d) => d.tags ?? []);
+        const rowsForInsert = dto.map(({ tags: _t, ...rest }) => rest as CreateNodeDto);
+        const entities = await super.create(rowsForInsert, txOpts);
+        await Promise.all(
+          entities.map((entity, i) =>
+            tagsPerRow[i]?.length ? this.addTags(entity.id, tagsPerRow[i]!, txOpts) : Promise.resolve(),
+          ),
+        );
+        return entities;
+      }
+
+      const { tags, ...rest } = dto;
+      const entity = await super.create(rest as CreateNodeDto, txOpts);
+      if (tags?.length) {
+        await this.addTags(entity.id, tags, txOpts);
+      }
+      return entity;
+    });
+  }
 }
 

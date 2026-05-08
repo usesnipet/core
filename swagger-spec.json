@@ -1691,6 +1691,12 @@
             "type": "string",
             "format": "uuid",
             "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -1973,6 +1979,12 @@
           "author": {
             "type": "string",
             "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -2006,6 +2018,12 @@
           "author": {
             "type": "string",
             "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

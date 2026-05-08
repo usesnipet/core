@@ -31,5 +31,34 @@ export class PackageService extends BaseCrudService<typeof packageTable, Package
   async removeTags(packageId: string, tags: string[], opts: CreateOpts): Promise<void> {
     await removeTags(this.db(opts), this.tagsSpec, packageId, tags);
   }
+
+  override async create(dto: CreatePackageDto, opts?: CreateOpts): Promise<PackageEntity>;
+  override async create(dto: CreatePackageDto[], opts?: CreateOpts): Promise<PackageEntity[]>;
+  override async create(dto: CreatePackageDto | CreatePackageDto[], opts?: CreateOpts): Promise<PackageEntity | PackageEntity[]> {
+    return this.transactions.run(async (tx) => {
+      const txOpts: CreateOpts = { ...opts, tx };
+
+      if (Array.isArray(dto)) {
+        const tagsPerRow = dto.map((d) => d.tags ?? []);
+        const rowsForInsert = dto.map(({ tags: _t, ...rest }) => rest as CreatePackageDto);
+        const entities = await super.create(rowsForInsert, txOpts);
+        await Promise.all(
+          entities.map((entity, i) =>
+            tagsPerRow[i]?.length ? this.addTags(entity.id, tagsPerRow[i]!, txOpts) : Promise.resolve(),
+          ),
+        );
+        return entities;
+      }
+
+      const { tags, ...rest } = dto;
+      const entity = await super.create(rest as CreatePackageDto, txOpts);
+      console.log(tags);
+      if (tags?.length) {
+
+        await this.addTags(entity.id, tags, txOpts);
+      }
+      return entity;
+    });
+  }
 }
 

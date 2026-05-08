@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
+import { IsDate, IsNotEmpty, IsOptional, IsSemVer, IsString, IsUUID, MaxLength } from "class-validator";
 import { PackageRow } from "@/db/schema/package";
 
 export class PackageEntity {
@@ -11,6 +11,7 @@ export class PackageEntity {
   @IsString({ message: "Version must be a string" })
   @IsNotEmpty({ message: "Version is required" })
   @MaxLength(255, { message: "Version must be less than 255 characters" })
+  @IsSemVer({ message: "Version must be a valid semver" })
   version: string;
 
   @ApiProperty({ type: String, maxLength: 255, required: true })

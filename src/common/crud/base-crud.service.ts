@@ -64,33 +64,24 @@ export abstract class BaseCrudService<
     return new this.entityClass(row);
   }
 
+  async create(dto: TCreateDto, opts?: CreateOpts<TCreateExtra>): Promise<TEntity>;
+  async create(dto: TCreateDto[], opts?: CreateOpts<TCreateExtra>): Promise<TEntity[]>;
   async create(
-    dto: TCreateDto,
-    opts?: CreateOpts<TCreateExtra>,
-  ): Promise<TEntity> {
-    const rows = (await this.db(opts)
-      .insert(this.table)
-      .values(dto as never)
-      .returning()) as InferSelectModel<TTable>[];
-    const row = rows[0];
-    if (!row) {
-      throw new Error("create: expected exactly one row from returning()");
-    }
-    return this.mapFromRow(row);
-  }
-
-  async createMany(
-    dtos: TCreateDto[],
-    opts?: CreateOpts<TCreateExtra>,
-  ): Promise<TEntity[]> {
+    dto: TCreateDto | TCreateDto[],
+    opts?: CreateOpts<TCreateExtra>
+  ): Promise<TEntity | TEntity[]> {
+    const isArray = Array.isArray(dto);
+    const dtos = isArray ? dto : [dto];
     if (dtos.length === 0) {
-      return [];
+      return [] as TEntity[];
     }
     const rows = (await this.db(opts)
       .insert(this.table)
       .values(dtos as never)
       .returning()) as InferSelectModel<TTable>[];
-    return rows.map((r) => this.mapFromRow(r));
+
+    const mapped = rows.map((r) => this.mapFromRow(r));
+    return isArray ? mapped : mapped[0];
   }
 
   async findMany(
