@@ -1,15 +1,10 @@
-import { Runner, RunnerOptions } from "@/core/runtime/runner";
+import { RunnerContext, RunnerDef } from "@/core/runtime/runner";
 
-export class LogRunner extends Runner {
-  id = "internal:node:log";
-
-  constructor(options: RunnerOptions) {
-    super(options);
-  }
-
-  async execute(inputs: { message: string }): Promise<void> {
+export const logRunner: RunnerDef = {
+  id: "internal:node:log",
+  execute: async (inputs: { message: string }, ctx: RunnerContext) => {
     console.log(inputs.message);
-    await this.emit("message", inputs.message);
-    await this.finish();
+    await ctx.emit("message", inputs.message);
+    await ctx.finish();
   }
 }

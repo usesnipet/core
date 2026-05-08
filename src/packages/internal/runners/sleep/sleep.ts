@@ -1,14 +1,9 @@
-import { Runner, RunnerOptions } from "@/core/runtime/runner";
+import { RunnerContext, RunnerDef } from "@/core/runtime/runner";
 
-export class SleepRunner extends Runner {
-  id = "internal:node:sleep";
-
-  constructor(options: RunnerOptions) {
-    super(options);
-  }
-
-  async execute(inputs: { milliseconds: number }): Promise<void> {
+export const sleepRunner: RunnerDef = {
+  id: "internal:node:sleep",
+  execute: async (inputs: { milliseconds: number }, ctx: RunnerContext) => {
     await new Promise(resolve => setTimeout(resolve, inputs.milliseconds));
-    await this.finish();
+    await ctx.finish();
   }
 }

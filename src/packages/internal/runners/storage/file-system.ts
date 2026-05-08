@@ -1,4 +1,4 @@
-import { Runner, RunnerOptions } from "@/core/runtime/runner";
+import { RunnerContext, RunnerDef } from "@/core/runtime/runner";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -7,18 +7,11 @@ export interface FileBuffer {
   buffer: Buffer;
 }
 
-export class FileSystemStorageRunner extends Runner<{ basePath: string }> {
-  id = "internal:node:file-system";
-
-  constructor(options: RunnerOptions<{ basePath: string }>) {
-    super(options);
-  }
-
-  async execute(
-    inputs: { files: FileBuffer[], path: string },
-  ): Promise<void> {
+export const fileSystemStorageRunner: RunnerDef = {
+  id: "internal:node:file-system",
+  execute: async (inputs: { files: FileBuffer[], path: string }, ctx: RunnerContext) => {
     const { files, path: relativePath } = inputs;
-    const basePath = this.config.basePath;
+    const basePath = ctx.config?.basePath as string;
 
     const destinationDir = path.join(basePath, relativePath);
 
@@ -29,7 +22,7 @@ export class FileSystemStorageRunner extends Runner<{ basePath: string }> {
       await fs.promises.writeFile(filePath, file.buffer);
     }
 
-    await this.emit("void", undefined);
-    await this.finish();
+    await ctx.emit("void", undefined);
+    await ctx.finish();
   }
 }

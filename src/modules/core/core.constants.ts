@@ -1,2 +1,0 @@
-export const CORE_RUNNER_CATALOG = Symbol("CORE_RUNNER_CATALOG");
-

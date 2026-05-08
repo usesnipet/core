@@ -1,9 +1,9 @@
+import { Package } from "@/core/schemas/package";
 import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 
-import { Package } from "@/core/schemas/package";
+import { FileSystemStorageRunner, LogRunner, SleepRunner } from "./runners";
 import { schema } from "./schema";
-import { LogRunner, SleepRunner, FileSystemStorageRunner } from "./runners";
 
 const pkg = plainToInstance(Package, schema);
 const errors = validateSync(pkg as any, { whitelist: true, forbidUnknownValues: false });
@@ -18,4 +18,4 @@ export const InternalPackage = {
     SleepRunner,
     FileSystemStorageRunner,
   ],
-} as const;
+};

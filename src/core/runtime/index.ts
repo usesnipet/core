@@ -1,12 +1,12 @@
 import { Flow, FlowNodeRef } from "../schemas/flow";
-import { Constructable } from "../../types/constructable";
-import { RuntimeError } from "./errors/runtime.error";
 import { Node } from "../schemas/node";
-import { Runner, RunnerOptions } from "./runner";
+
+import { RuntimeError } from "./errors/runtime.error";
+import { RunnerDef } from "./runner";
 
 export type RuntimeOptions = {
   flow: Flow;
-  nodes: Array<Node & { runner: Constructable<Runner, [RunnerOptions]> }>;
+  nodes: Array<Node & { runner: RunnerDef }>;
   dependencies: Map<string, string[]>;
 }
 
@@ -32,7 +32,7 @@ export class Runtime {
     return this.options.flow;
   }
 
-  get nodes(): Array<Node & { runner: Constructable<Runner> }> {
+  get nodes(): Array<Node & { runner: RunnerDef }> {
     return this.options.nodes;
   }
 
@@ -57,7 +57,7 @@ export class Runtime {
     return inputs;
   }
 
-  private getRunner(nodeId: string): Constructable<Runner, [RunnerOptions]> {
+  private getRunner(nodeId: string): RunnerDef {
     const node = this.nodes.find(node => node.id === nodeId);
     if (!node) throw new RuntimeError(`Node not found: ${nodeId}`);
     return node.runner;
@@ -83,18 +83,20 @@ export class Runtime {
           )
         );
       }
-      const runner = this.getRunner(nodeRef.nodeId);
-      const instance = new runner({
-        emit: (name, data) => this.emitFor(nodeRef.instanceId, name, data),
-        finish: () => this.finishFor(nodeRef.instanceId),
-        executeNode: this.executeNode.bind(this),
-        instanceId: nodeRef.instanceId,
-        config: nodeRef.config,
-      });
 
       const inputs = this.buildInputs(nodeRef);
       try {
-        await instance.execute(inputs);
+        const runnerDef = this.getRunner(nodeRef.nodeId);
+        await runnerDef.execute(
+          inputs,
+          {
+            emit: (name, data) => this.emitFor(nodeRef.instanceId, name, data),
+            finish: () => this.finishFor(nodeRef.instanceId),
+            executeNode: this.executeNode.bind(this),
+            instanceId: nodeRef.instanceId,
+            config: nodeRef.config,
+          }
+        )
         await this.finishFor(nodeRef.instanceId);
       } catch (error) {
         this.nodeState.set(nodeRef.instanceId, { status: "failed", error: error as Error });

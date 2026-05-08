@@ -1,24 +1,23 @@
 import "reflect-metadata";
 
-import { err } from "neverthrow";
-import { Runner, RunnerOptions } from "@/core/runtime/runner";
 import { Flow } from "@/core/schemas/flow";
 import { Node } from "@/core/schemas/node";
 import { NodeType } from "@/core/schemas/node-type";
+import { err } from "neverthrow";
+
+import { RunnerDef } from "../runtime/runner";
+
 import { ConfigRegistry } from "./registry/config.registry";
+import { RegistryError } from "./registry/errors/registry.error";
 import { FlowRegistry } from "./registry/flow.registry";
-import { NodeRegistry } from "./registry/node.registry";
 import { NodeTypeRegistry } from "./registry/node-type.registry";
+import { NodeRegistry } from "./registry/node.registry";
 import { Registry } from "./registry/registry";
 import { RuntimeBuilderService } from "./runtime-builder.service";
-import { RegistryError } from "./registry/errors/registry.error";
 
-class TestRunner extends Runner {
-  id = "test-runner";
-  constructor(options: RunnerOptions) {
-    super(options);
-  }
-  async execute(): Promise<void> {}
+export const testRunner: RunnerDef = {
+  id: "test-runner",
+  execute: async () => {}
 }
 
 /**
@@ -68,7 +67,7 @@ async function makeRegistry(
     const reg = await node.register(nodeObj);
     expect(reg.isOk()).toBe(true);
     if (n.withRunner !== false) {
-      const rr = node.registerRunner(n.id, TestRunner);
+      const rr = node.registerRunner(n.id, testRunner);
       expect(rr.isOk()).toBe(true);
     }
   }
@@ -95,7 +94,7 @@ describe("RuntimeBuilderService", () => {
     expect(runtime.flow).toBe(f);
     expect(runtime.nodes).toHaveLength(1);
     expect(runtime.nodes[0].id).toBe("node-a");
-    expect(runtime.nodes[0].runner).toBe(TestRunner);
+    expect(runtime.nodes[0].runner).toBe(testRunner);
     expect(runtime.dependencies.get("i-a")).toEqual([]);
   });
 
