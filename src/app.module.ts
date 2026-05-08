@@ -8,6 +8,11 @@ import { DatabaseModule } from "./modules/database/database.module";
 import { env } from "./env";
 import { schemas } from "./db";
 import { FlowModule } from "./modules/flow/flow.module";
+import { ConfigModule } from "./modules/config/config.module";
+import { NodeModule } from "./modules/node/node.module";
+import { NodeTypeModule } from "./modules/node-type/node-type.module";
+import { PackageModule } from "./modules/package/package.module";
+import { TagModule } from "./modules/tag/tag.module";
 
 /**
  * The root module of the application.
@@ -33,7 +38,12 @@ import { FlowModule } from "./modules/flow/flow.module";
       pg: { connection: "pool", config: { connectionString: env.DATABASE_URL } },
       config: { schema: schemas }
     }),
-    FlowModule
+    FlowModule,
+    ConfigModule,
+    NodeModule,
+    NodeTypeModule,
+    PackageModule,
+    TagModule
   ],
   providers: [
     {
