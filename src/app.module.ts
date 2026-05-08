@@ -6,7 +6,8 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { DatabaseModule } from "./modules/database/database.module";
 import { env } from "./env";
-import { schema } from "./db";
+import { schemas } from "./db";
+import { FlowModule } from "./modules/flow/flow.module";
 
 /**
  * The root module of the application.
@@ -30,8 +31,9 @@ import { schema } from "./db";
     ScheduleModule.forRoot(),
     DatabaseModule.register({
       pg: { connection: "pool", config: { connectionString: env.DATABASE_URL } },
-      config: { schema }
-    })
+      config: { schema: schemas }
+    }),
+    FlowModule
   ],
   providers: [
     {

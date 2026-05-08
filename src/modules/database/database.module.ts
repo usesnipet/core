@@ -7,6 +7,7 @@ import {
 } from './database.definition';
 import { DatabaseService } from './database.service';
 import { DatabaseConfig } from './database.interface';
+import { TransactionManager } from './transaction-manager';
 
 @Global()
 export class DatabaseModule extends ConfigurableModuleClass {
@@ -17,6 +18,7 @@ export class DatabaseModule extends ConfigurableModuleClass {
       providers: [
         ...providers,
         DatabaseService,
+        TransactionManager,
         {
           provide: options?.tag || 'default',
           useFactory: async (drizzleService: DatabaseService) => {
@@ -25,7 +27,7 @@ export class DatabaseModule extends ConfigurableModuleClass {
           inject: [DatabaseService],
         },
       ],
-      exports: [...exports, options?.tag || 'default'],
+      exports: [...exports, options?.tag || 'default', TransactionManager],
     };
   }
   static registerAsync(options: typeof ASYNC_OPTIONS_TYPE): DynamicModule {
@@ -39,6 +41,7 @@ export class DatabaseModule extends ConfigurableModuleClass {
       providers: [
         ...providers,
         DatabaseService,
+        TransactionManager,
         {
           provide: options?.tag || 'default',
           useFactory: async (
@@ -50,7 +53,7 @@ export class DatabaseModule extends ConfigurableModuleClass {
           inject: [DatabaseService, MODULE_OPTIONS_TOKEN],
         },
       ],
-      exports: [...exports, options?.tag || 'default'],
+      exports: [...exports, options?.tag || 'default', TransactionManager],
     };
   }
 }

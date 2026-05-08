@@ -1,0 +1,334 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/flow": {
+      "get": {
+        "operationId": "FlowController_findMany",
+        "parameters": [
+          {
+            "name": "where",
+            "required": false,
+            "in": "query",
+            "description": "JSON object: each key is an entity field; value is a primitive or `{ \"op\": \"eq\"|\"ne\"|\"gt\"|\"gte\"|\"lt\"|\"lte\"|\"like\"|\"ilike\"|\"in\"|\"contains\", \"value\": ... }`. Must be URL-encoded when sent as a single query string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated field names, or a JSON array string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated `field:asc|desc`, or JSON array like `[{\"field\":\"name\",\"direction\":\"asc\"}]`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "relations",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated relation paths to load.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of rows (`take` is an alias).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "example": 20
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Alias for `limit`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of rows to skip (`skip` is an alias).",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "example": 0
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Alias for `offset`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flows found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlowEntity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Flow"
+        ]
+      },
+      "post": {
+        "operationId": "FlowController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Create flow",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFlowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Flow created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Flow"
+        ]
+      }
+    },
+    "/api/flow/{id}": {
+      "get": {
+        "operationId": "FlowController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Flow id",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flow found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Flow"
+        ]
+      },
+      "put": {
+        "operationId": "FlowController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update flow",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFlowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Flow updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Flow"
+        ]
+      },
+      "delete": {
+        "operationId": "FlowController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flow deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Flow"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Snipet core API",
+    "description": "The Snipet API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "x-api-key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API Key"
+      }
+    },
+    "schemas": {
+      "FlowEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "active",
+          "code",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateFlowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "code": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "code"
+        ]
+      },
+      "UpdateFlowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "code": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

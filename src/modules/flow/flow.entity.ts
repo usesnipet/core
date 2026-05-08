@@ -38,15 +38,13 @@ export class FlowEntity {
   @IsNotEmpty({ message: "Updated at is required" })
   updatedAt: Date;
 
-  static fromDatabase(data: FlowRow): FlowEntity {
-    const flow = new FlowEntity();
-    flow.id = data.id;
-    flow.name = data.name;
-    flow.description = data.description;
-    flow.active = data.active;
-    flow.code = data.code;
-    flow.createdAt = new Date(data.createdAt);
-    flow.updatedAt = new Date(data.updatedAt);
-    return flow;
+  constructor(data: FlowRow) {
+    this.id = data.id;
+    this.name = data.name;
+    this.description = data.description;
+    this.active = data.active;
+    this.code = data.code;
+    if (data.createdAt) this.createdAt = new Date(data.createdAt);
+    if (data.updatedAt) this.updatedAt = new Date(data.updatedAt);
   }
 }

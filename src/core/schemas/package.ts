@@ -1,14 +1,18 @@
 import { Exclude, Type } from "class-transformer";
-import { IsArray, ValidateNested } from "class-validator";
+import { IsArray, IsOptional, ValidateNested } from "class-validator";
 
 import { Config } from "./config";
 import { Node } from "./node";
 import { NodeType } from "./node-type";
-import { Base } from "./base";
+import { Metadata } from "./base";
 
-export class Package extends Base {
-  @Exclude()
-  declare id: never;
+export class Package {
+
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Metadata)
+  metadata?: Metadata;
 
   @IsArray()
   @ValidateNested({ each: true })

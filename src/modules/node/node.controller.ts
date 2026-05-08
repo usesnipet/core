@@ -1,6 +1,6 @@
 import { Controller } from "@nestjs/common";
 import { InjectDatabase } from "../database/database.decorator";
-import { schema } from "@/db";
+import { schemas } from "@/db";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { NodeService } from "./node.service";
 

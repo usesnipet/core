@@ -2,7 +2,7 @@ import { boolean, pgTable, text, uuid, timestamp } from 'drizzle-orm/pg-core';
 
 
 export const apiKey = pgTable('api_key', {
-  id: uuid('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   keyHash: text('key_hash').notNull(),
   lastUsedAt: timestamp('last_used_at', { withTimezone: true, mode: 'string' }),

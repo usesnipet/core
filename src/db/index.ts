@@ -1,2 +1,2 @@
-export * from './schema/index';
+export * from './schema';
 export * from './types';

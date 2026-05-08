@@ -34,7 +34,7 @@ dotenv.config({
 
 const envSchema = z.object({
   // APP
-  APP_PORT: z.coerce.number().default(3000),
+  APP_PORT: z.coerce.number().default(8852),
   NODE_ENV: z.enum([ "development", "production", "test" ]).default("development"),
 
   // API KEY
@@ -51,8 +51,12 @@ const envSchema = z.object({
   CORS_HEADERS: z.string().array().optional().default([ "*" ]),
   CORS_CREDENTIALS: z.boolean().optional().default(true),
 
+
+
   // DATABASE
   DATABASE_URL: z.string(),
+
+  MAX_FIND_LIMIT: z.coerce.number().optional().default(5000),
 })
 
 /**

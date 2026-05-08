@@ -12,7 +12,7 @@ import { nodeType } from "./node-type";
 import { packageTable } from "./package";
 import { tag } from "./tag";
 
-export const schema = {
+export const schemas = {
   apiKey,
   config,
   configTag,

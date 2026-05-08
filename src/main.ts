@@ -8,9 +8,8 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 import "reflect-metadata";
-
+import fs from "fs";
 import { AppModule } from "./app.module";
-import "./utils/$log";
 import { env } from "./env";
 
 async function bootstrap(): Promise<void> {
@@ -34,7 +33,7 @@ async function bootstrap(): Promise<void> {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-
+  fs.writeFileSync("swagger-spec.json", JSON.stringify(document, null, 2));
   SwaggerModule.setup("swagger", app, document);
 
   app.use(cookieParser());
