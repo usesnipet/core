@@ -1,6 +1,6 @@
-import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
-import { packageTable } from './package';
+import { packageTable } from "./package";
 
 /**
  * Node type definition: describes the class of node (e.g. “LLM”, “storage”) including port shapes.

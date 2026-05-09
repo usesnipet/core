@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client, Pool } from 'pg';
-import { DatabaseConfig } from './database.interface';
+import { Injectable } from "@nestjs/common";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Client, Pool } from "pg";
+
+import { DatabaseConfig } from "./database.interface";
 
 @Injectable()
 export class DatabaseService {

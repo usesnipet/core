@@ -49,7 +49,6 @@ export class FilterOptions<TEntity extends object = any> {
   order?: FilterOrder<TEntity>;
   limit?: number;
   take?: number;
-  relations?: string[];
   offset?: number;
   skip?: number;
 

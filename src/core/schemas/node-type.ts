@@ -23,17 +23,14 @@ export class NodeTypeSchema extends BaseSchema {
 
   @IsOptional()
   @IsRecordOf(FieldSchema)
-  @Type(() => FieldSchema)
   inputs?: Record<string, FieldSchema>;
 
   @IsOptional()
   @IsRecordOf(FieldSchema)
-  @Type(() => FieldSchema)
   outputs?: Record<string, FieldSchema>;
 
   @IsOptional()
   @IsRecordOf(NodeTypeComponentSchema)
-  @Type(() => NodeTypeComponentSchema)
   components?: Record<string, NodeTypeComponentSchema>;
 
   @IsOptional()

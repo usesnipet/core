@@ -1,19 +1,18 @@
+import { BaseService } from "@/common/crud";
+import { DrizzleFilterConverter, FilterOptions } from "@/common/filter";
+import { tag, TagRow } from "@/db/schema/tag";
 import { Injectable } from "@nestjs/common";
-import { BaseCrudService, type CrudIdentity } from "@/common/crud";
-import { tag } from "@/db/schema/tag";
-import { TagEntity } from "./tag.entity";
-import { CreateTagDto } from "./dto/create-tag.dto";
-import { UpdateTagDto } from "./dto/update-tag.dto";
+
+import { TagDto } from "./dto/tag.dto";
 
 @Injectable()
-export class TagService extends BaseCrudService<typeof tag, TagEntity, CreateTagDto, UpdateTagDto> {
-  protected readonly identity: CrudIdentity<typeof tag> = {
-    table: tag,
-    idColumn: tag.id,
-  };
-
+export class TagService extends BaseService {
   constructor() {
-    super("tag", TagEntity);
+    super();
+  }
+
+  async find(filter: FilterOptions<TagRow>): Promise<TagDto[]> {
+    return this.db().query.tag.findMany(DrizzleFilterConverter.toFindMany(filter));
   }
 }
 

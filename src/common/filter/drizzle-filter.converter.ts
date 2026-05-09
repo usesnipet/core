@@ -1,5 +1,6 @@
-import { inArray } from 'drizzle-orm';
-import { FilterOptions, type FilterCondition } from './filter-options';
+import { inArray } from "drizzle-orm";
+
+import { FilterCondition, FilterOptions } from "./filter-options";
 
 function normalizeCondition(condition: FilterCondition): { op: string; value: any } {
   if (condition && typeof condition === 'object' && 'op' in condition) {
@@ -24,7 +25,6 @@ export class DrizzleFilterConverter {
     limit?: number;
     offset?: number;
     columns?: Record<string, boolean>;
-    with?: Record<string, any>;
   } {
     if (!filter) return {};
     const limit = filter.limit ?? filter.take;
@@ -33,11 +33,6 @@ export class DrizzleFilterConverter {
     const columns =
       filter.select?.length
         ? Object.fromEntries(filter.select.map((k) => [k, true]))
-        : undefined;
-
-    const withRelations =
-      filter.relations?.length
-        ? Object.fromEntries(filter.relations.map((r) => [r, true]))
         : undefined;
 
     const where =
@@ -112,7 +107,6 @@ export class DrizzleFilterConverter {
       limit,
       offset,
       columns,
-      with: withRelations,
     };
   }
 }

@@ -1,6 +1,6 @@
-import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
-import { packageTable } from './package';
+import { packageTable } from "./package";
 
 /**
  * Config schema definition: field layout and validation for a reusable configuration object.
@@ -15,9 +15,7 @@ export const config = pgTable(
      */
     configId: varchar('config_id', { length: 512 }).notNull(),
     /** Package that owns the config definition. */
-    packageId: uuid('package_id')
-      .notNull()
-      .references(() => packageTable.id, { onDelete: 'cascade' }),
+    packageId: uuid('package_id').notNull().references(() => packageTable.id, { onDelete: 'cascade' }),
     /** Display name of the config. */
     name: varchar({ length: 255 }).notNull(),
     /** Short description of what the config controls. */

@@ -1,1 +1,0 @@
-export const PACKAGES = Symbol('PACKAGES');

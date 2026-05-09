@@ -18,10 +18,12 @@ export function IsRecordOf<T extends object>(
           if (typeof value !== "object" || Array.isArray(value)) return false;
 
           for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-            const inst = plainToInstance(cls, v);
-            const errs = validateSync(inst as any, { whitelist: true, forbidUnknownValues: false });
-            if (errs.length) return false;
             if (typeof k !== "string" || k.length === 0) return false;
+            if (v === null || v === undefined) return false;
+            const inst = plainToInstance(cls, v as object);
+            if (inst == null || typeof inst !== "object") return false;
+            const errs = validateSync(inst as object, { whitelist: true, forbidUnknownValues: false });
+            if (errs.length) return false;
           }
           return true;
         },

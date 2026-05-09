@@ -27,16 +27,10 @@ export function ApiFilterQueries() {
       schema: { type: "string" },
     }),
     ApiQuery({
-      name: "relations",
-      required: false,
-      description: "Comma-separated relation paths to load.",
-      schema: { type: "string" },
-    }),
-    ApiQuery({
       name: "limit",
       required: false,
       description: "Maximum number of rows (`take` is an alias).",
-      schema: { type: "integer", minimum: 1, example: 20 },
+      schema: { type: "integer", minimum: 1, example: 200 },
     }),
     ApiQuery({
       name: "take",

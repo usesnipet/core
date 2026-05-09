@@ -5,7 +5,10 @@ export const schema: PackageSchema = {
   "version": "1.0.0",
   "metadata": {
     "name": "Internal",
-    "description": "Built-in nodes and runners for local development"
+    "description": "Built-in nodes and runners for local development",
+    "tags": ["internal", "builtin", "development"],
+    "author": "Snipet AI",
+    "docs": "https://docs.snipet.ai/internal"
   },
   "nodeTypes": [
     {

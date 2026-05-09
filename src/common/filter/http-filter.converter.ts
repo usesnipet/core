@@ -1,4 +1,4 @@
-import { FilterOptions, type FilterOptionsInit } from './filter-options';
+import { FilterOptions, FilterOptionsInit } from "./filter-options";
 
 export type FilterAccessList = {
   allow?: string[];
@@ -7,7 +7,6 @@ export type FilterAccessList = {
 
 export type FilterHttpConfig = {
   select?: FilterAccessList;
-  relations?: FilterAccessList;
   where?: FilterAccessList;
   order?: FilterAccessList;
   maxLimit?: number;
@@ -161,7 +160,6 @@ export class HttpFilterConverter {
       take: undefined,
       offset: toNumber(query.offset),
       skip: toNumber(query.skip),
-      relations: applyAccessList(relationsRaw, config.relations),
     };
     return new FilterOptions<TEntity>(init);
   }
@@ -175,7 +173,6 @@ export class HttpFilterConverter {
     if (filter.take !== undefined) q.take = String(filter.take);
     if (filter.offset !== undefined) q.offset = String(filter.offset);
     if (filter.skip !== undefined) q.skip = String(filter.skip);
-    if (filter.relations?.length) q.relations = filter.relations.join(',');
     return q;
   }
 }

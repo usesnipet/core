@@ -1,5 +1,24 @@
-import { OmitType, PartialType } from "@nestjs/swagger";
-import { PackageEntity } from "../package.entity";
+import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
-export class UpdatePackageDto extends PartialType(OmitType(PackageEntity, ["id", "createdAt", "updatedAt"] as const))  {}
+import { PackageDto } from "./package.dto";
+
+export class UpdatePackageDto extends PartialType(OmitType(PackageDto, ["id", "packageTags","createdAt", "updatedAt"] as const)) {
+  @ApiProperty({ type: String, format: "uuid" })
+  @IsUUID()
+  @IsNotEmpty()
+  id: string;
+
+  @ApiProperty({ type: [String], required: false })
+  @IsArray({ message: "Tags must be an array" })
+  @IsOptional()
+  @IsString({ each: true, message: "Each tag must be a string" })
+  tags?: string[];
+
+
+  constructor(data: UpdatePackageDto) {
+    super();
+    Object.assign(this, data);
+  }
+}
 

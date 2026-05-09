@@ -24,7 +24,6 @@ export class FieldSchema {
 
   @IsOptional()
   @IsRecordOf(FieldSchema)
-  @Type(() => FieldSchema)
   properties?: Record<string, FieldSchema>;
 
   @IsOptional()

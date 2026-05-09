@@ -15,6 +15,13 @@
       "when": 1778202813463,
       "tag": "0001_handy_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778325916096,
+      "tag": "0002_zippy_phil_sheldon",
+      "breakpoints": true
     }
   ]
 }

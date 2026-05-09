@@ -13,6 +13,5 @@ export class ConfigSchema extends BaseSchema {
   metadata?: MetadataSchema;
 
   @IsRecordOf(FieldSchema)
-  @Type(() => FieldSchema)
   fields!: Record<string, FieldSchema>;
 }
