@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
-export class NodeTypeDto {
+export class NodeDto {
   @ApiProperty({ type: String, format: "uuid" })
   @IsUUID()
   id: string;
@@ -9,7 +9,7 @@ export class NodeTypeDto {
   @ApiProperty({ type: String })
   @IsString()
   @IsNotEmpty()
-  typeId: string;
+  nodeId: string;
 
   @ApiProperty({ type: String, format: "uuid" })
   @IsUUID()
@@ -40,20 +40,14 @@ export class NodeTypeDto {
   @IsString()
   author: string | null;
 
-  @ApiProperty({ type: Object })
-  @IsOptional()
-  @IsObject()
-  inputs: Record<string, unknown> | null;
+  @ApiProperty({ type: String, format: "uuid" })
+  @IsUUID()
+  nodeTypeId: string;
 
-  @ApiProperty({ type: Object })
+  @ApiProperty({ type: String, format: "uuid", nullable: true, required: false })
   @IsOptional()
-  @IsObject()
-  outputs: Record<string, unknown> | null;
-
-  @ApiProperty({ type: Object })
-  @IsOptional()
-  @IsObject()
-  components: Record<string, unknown> | null;
+  @IsUUID()
+  configId: string | null;
 
   @ApiProperty({ type: String, format: "date-time" })
   @IsString()
@@ -63,7 +57,8 @@ export class NodeTypeDto {
   @IsString()
   updatedAt: string;
 
-  constructor(data: NodeTypeDto) {
+  constructor(data: NodeDto) {
     Object.assign(this, data);
   }
 }
+

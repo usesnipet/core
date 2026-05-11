@@ -26,7 +26,4 @@ export class NodeTypeSchema extends BaseSchema {
   @IsOptional()
   @IsRecordOf(NodeTypeComponentSchema)
   components?: Record<string, NodeTypeComponentSchema>;
-
-  @IsString()
-  category: string;
 }

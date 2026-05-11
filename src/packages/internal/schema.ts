@@ -97,10 +97,18 @@ export const schema: PackageSchema = {
     {
       "id": "internal:node:log",
       "type": "internal:node-type:log",
+      "metadata": {
+        "name": "Log",
+        "description": "Log a message to the console"
+      }
     },
     {
       "id": "internal:node:sleep",
       "type": "internal:node-type:sleep",
+      "metadata": {
+        "name": "Sleep",
+        "description": "Sleep for a given number of milliseconds"
+      }
     },
     {
       "id": "internal:node:file-system",

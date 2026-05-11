@@ -14,7 +14,6 @@ export const nodeType = pgTable(
       .notNull()
       .references(() => packageTable.id, { onDelete: 'cascade' }),
     name: varchar({ length: 255 }).notNull(),
-    category: varchar({ length: 255 }).notNull(),
     description: text('description'),
     docs: text('docs'),
     icon: text('icon'),

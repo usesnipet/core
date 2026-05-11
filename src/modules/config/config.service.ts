@@ -120,7 +120,7 @@ export class ConfigService extends BaseService {
   /**
    * Upserts config definitions from in-process package manifests into the database.
    */
-  async syncConfigs(dbPackages: PackageRow[], configSchemas: ConfigSchema[]): Promise<void> {
+  async syncConfigs(dbPackages: PackageRow[], configSchemas: ConfigSchema[]): Promise<ConfigRow[]> {
     const ids = new Set(configSchemas.map((c) => c.id));
     const entities = await this.db().query.config.findMany({
       where(fields, { inArray }) {
@@ -197,5 +197,6 @@ export class ConfigService extends BaseService {
       this.logger.log(`Deleting ${toDelete.length} configs`);
       await this.delete(toDelete.map((entity) => entity.id));
     }
+    return await this.db().query.config.findMany({ with: { configTags: { with: { tag: true } } } });
   }
 }

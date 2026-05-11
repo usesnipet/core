@@ -81,12 +81,7 @@ export class PackageService extends BaseService {
       this.logger.log(`Deleting ${toDelete.length} packages`);
       await this.delete(toDelete.map((e) => e.id));
     }
-    return await this.db().query.package.findMany({
-      where(fields, { inArray }) {
-        return inArray(fields.packageId, Array.from(pkgIds));
-      },
-      with: { packageTags: { with: { tag: true } } }
-    });
+    return await this.db().query.package.findMany({ with: { packageTags: { with: { tag: true } } } });
   }
 
   async find(filter: FilterOptions<PackageRow>, opts?: ReadOpts): Promise<PackageDto[]> {

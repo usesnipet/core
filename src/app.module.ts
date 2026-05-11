@@ -9,8 +9,10 @@ import { schemas } from "./db";
 import { env } from "./env";
 import { ConfigModule } from "./modules/config/config.module";
 import { DatabaseModule } from "./modules/database/database.module";
+import { NodeModule } from "./modules/node/node.module";
 import { NodeTypeModule } from "./modules/node-type/node-type.module";
 import { PackageModule } from "./modules/package/package.module";
+import { SyncModule } from "./modules/sync/sync.module";
 import { TagModule } from "./modules/tag/tag.module";
 
 /**
@@ -38,7 +40,8 @@ import { TagModule } from "./modules/tag/tag.module";
       config: { schema: schemas }
     }),
     // FlowModule,
-    // NodeModule,
+    NodeModule,
+    SyncModule,
     ConfigModule,
     NodeTypeModule,
     PackageModule,

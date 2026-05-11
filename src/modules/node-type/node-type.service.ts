@@ -1,4 +1,4 @@
-import { BaseService, CreateOpts, ReadOpts, UpdateOpts } from "@/common/crud";
+import { BaseService, CreateOpts, DeleteOpts, ReadOpts, UpdateOpts } from "@/common/crud";
 import { DrizzleFilterConverter, FilterOptions } from "@/common/filter";
 import { addTags, removeTags, TagJoinSpec } from "@/common/tags";
 import { NodeTypeSchema } from "@/core/schemas/node-type";
@@ -6,7 +6,7 @@ import { nodeTypeTag } from "@/db/schema/entity-tags";
 import { nodeType, NodeTypeRow } from "@/db/schema/node-type";
 import { PackageRow } from "@/db/schema/package";
 import { Injectable, Logger } from "@nestjs/common";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import { CreateNodeTypeDto } from "./dto/create-node-type.dto";
 import { NodeTypeDto } from "./dto/node-type.dto";
@@ -53,6 +53,7 @@ export class NodeTypeService extends BaseService {
     }, opts);
   }
 
+
   async update(dtos: UpdateNodeTypeDto[], opts?: UpdateOpts): Promise<NodeTypeDto[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: UpdateOpts = { ...opts, tx };
@@ -78,13 +79,21 @@ export class NodeTypeService extends BaseService {
             }
           }
 
-          return row as unknown as NodeTypeDto;
+          return row;
         }),
       );
 
       return updated;
     }, opts);
   }
+
+  async delete(ids: string[], opts?: DeleteOpts): Promise<void> {
+    return this.transactions.runOrCreate(async (tx) => {
+      const txOpts: DeleteOpts = { ...opts, tx };
+      await this.db(txOpts).delete(nodeType).where(inArray(nodeType.id, ids));
+    }, opts);
+  }
+
 
   //#region Tag related
   private readonly tagsSpec: TagJoinSpec<typeof nodeTypeTag> = {
@@ -106,7 +115,7 @@ export class NodeTypeService extends BaseService {
    * Upserts node types from in-process package manifests into the database.
    * Removes DB rows for synced packages whose `type_id` no longer appears in any manifest.
    */
-  async syncNodeTypes(dbPackages: PackageRow[], nodeTypes: NodeTypeSchema[]): Promise<void> {
+  async syncNodeTypes(dbPackages: PackageRow[], nodeTypes: NodeTypeSchema[]): Promise<NodeTypeRow[]> {
     const ntIds = new Set(nodeTypes.map((nt) => nt.id));
     const ntEntities = await this.db().query.nodeType.findMany({
       where(fields, { inArray }) {
@@ -127,7 +136,6 @@ export class NodeTypeService extends BaseService {
           schema.inputs !== ntEntity.inputs ||
           schema.outputs !== ntEntity.outputs ||
           schema.components !== ntEntity.components ||
-          schema.category !== ntEntity.category ||
           schema.metadata.tags?.length !== ntEntity.nodeTypeTags.length ||
           schema.metadata.tags?.some((t) => !ntEntity.nodeTypeTags.some((t2) => t2.tag.name === t))
         ) {
@@ -143,7 +151,6 @@ export class NodeTypeService extends BaseService {
             inputs: schema.inputs,
             outputs: schema.outputs,
             components: schema.components,
-            category: schema.category,
             tags: schema.metadata.tags,
           }));
         }
@@ -156,7 +163,6 @@ export class NodeTypeService extends BaseService {
           packageId: packageEntity?.id,
           name: schema.metadata.name,
           description: schema.metadata.description,
-          category: schema.category,
           inputs: schema.inputs ?? null,
           outputs: schema.outputs ?? null,
           components: schema.components ?? null,
@@ -168,6 +174,7 @@ export class NodeTypeService extends BaseService {
       }
       return acc;
     }, { toCreate: [] as CreateNodeTypeDto[], toUpdate: [] as UpdateNodeTypeDto[] });
+    const toDelete = ntEntities.filter((nt) => !ntIds.has(nt.typeId));
 
     if (toCreate.length > 0) {
       this.logger.log(`Creating ${toCreate.length} node types`);
@@ -177,5 +184,14 @@ export class NodeTypeService extends BaseService {
       this.logger.log(`Updating ${toUpdate.length} node types`);
       await this.update(toUpdate);
     }
+    if (toDelete.length > 0) {
+      this.logger.log(`Deleting ${toDelete.length} node types`);
+      await this.delete(toDelete.map((nt) => nt.id));
+    }
+    return await this.db().query.nodeType.findMany({
+      where(fields, { inArray }) {
+        return inArray(fields.typeId, Array.from(ntIds));
+      },
+    });
   }
 }
