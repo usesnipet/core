@@ -1,6 +1,100 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/node-type": {
+      "get": {
+        "operationId": "NodeTypeController_findMany",
+        "parameters": [
+          {
+            "name": "where",
+            "required": false,
+            "in": "query",
+            "description": "JSON object: each key is an entity field; value is a primitive or `{ \"op\": \"eq\"|\"ne\"|\"gt\"|\"gte\"|\"lt\"|\"lte\"|\"like\"|\"ilike\"|\"in\"|\"contains\", \"value\": ... }`. Must be URL-encoded when sent as a single query string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated field names, or a JSON array string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated `field:asc|desc`, or JSON array like `[{\"field\":\"name\",\"direction\":\"asc\"}]`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of rows (`take` is an alias).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "example": 200
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Alias for `limit`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of rows to skip (`skip` is an alias).",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "example": 0
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Alias for `offset`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node types found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NodeTypeDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "NodeType"
+        ]
+      }
+    },
     "/api/package": {
       "get": {
         "operationId": "PackageController_findMany",
@@ -208,6 +302,69 @@
       }
     },
     "schemas": {
+      "NodeTypeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "typeId": {
+            "type": "string"
+          },
+          "packageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "docs": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "author": {
+            "type": "string",
+            "nullable": true
+          },
+          "inputs": {
+            "type": "object"
+          },
+          "outputs": {
+            "type": "object"
+          },
+          "components": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "typeId",
+          "packageId",
+          "name",
+          "inputs",
+          "outputs",
+          "components",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "TagDto": {
         "type": "object",
         "properties": {

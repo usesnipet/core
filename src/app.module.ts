@@ -7,7 +7,9 @@ import { ScheduleModule } from "@nestjs/schedule";
 
 import { schemas } from "./db";
 import { env } from "./env";
+import { ConfigModule } from "./modules/config/config.module";
 import { DatabaseModule } from "./modules/database/database.module";
+import { NodeTypeModule } from "./modules/node-type/node-type.module";
 import { PackageModule } from "./modules/package/package.module";
 import { TagModule } from "./modules/tag/tag.module";
 
@@ -36,9 +38,9 @@ import { TagModule } from "./modules/tag/tag.module";
       config: { schema: schemas }
     }),
     // FlowModule,
-    // ConfigModule,
     // NodeModule,
-    // NodeTypeModule,
+    ConfigModule,
+    NodeTypeModule,
     PackageModule,
     TagModule
   ],

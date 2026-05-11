@@ -1,16 +1,12 @@
 import { Type } from "class-transformer";
 import { IsArray, IsSemVer, IsString, ValidateNested } from "class-validator";
 
-import { BaseSchema, MetadataSchema } from "./base";
+import { BaseSchema } from "./base";
 import { ConfigSchema } from "./config";
 import { NodeSchema } from "./node";
 import { NodeTypeSchema } from "./node-type";
 
 export class PackageSchema extends BaseSchema {
-  @ValidateNested()
-  @Type(() => MetadataSchema)
-  metadata!: MetadataSchema;
-
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => NodeTypeSchema)

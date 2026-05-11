@@ -1,11 +1,10 @@
-import { BaseService, CreateOpts, ReadOpts, UpdateOpts } from "@/common/crud";
+import { BaseService, CreateOpts, DeleteOpts, ReadOpts, UpdateOpts } from "@/common/crud";
 import { DrizzleFilterConverter, FilterOptions } from "@/common/filter";
 import { addTags, removeTags, TagJoinSpec } from "@/common/tags";
+import { PackageSchema } from "@/core/schemas/package";
 import { packageTag } from "@/db/schema/entity-tags";
 import { PackageRow, packageTable } from "@/db/schema/package";
-import { tag } from "@/db/schema/tag";
-import { packages } from "@/packages";
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { eq, inArray } from "drizzle-orm";
 
 import { CreatePackageDto } from "./dto/create-package.dto";
@@ -13,27 +12,23 @@ import { PackageDto } from "./dto/package.dto";
 import { UpdatePackageDto } from "./dto/update-package.dto";
 
 @Injectable()
-export class PackageService extends BaseService implements OnModuleInit {
+export class PackageService extends BaseService {
   private readonly logger = new Logger(PackageService.name);
+
   constructor() {
     super();
   }
 
-  onModuleInit() {
-    return this.syncPackages();
-  }
-
-  async syncPackages() {
-    const pkgIds = packages.map(({ schema }) => schema.id);
+  async syncPackages(packages: PackageSchema[]) {
+    const pkgIds = new Set(packages.map((pkg) => pkg.id));
     const pkgEntities = await this.db().query.package.findMany({
-      where(fields) {
-        return inArray(fields.packageId, pkgIds);
+      where(fields, { inArray }) {
+        return inArray(fields.packageId, Array.from(pkgIds));
       },
       with: { packageTags: { with: { tag: true } } }
     })
 
-    const { toCreate, toUpdate } = packages.reduce((acc, cur) => {
-      const { schema } = cur;
+    const { toCreate, toUpdate } = packages.reduce((acc, schema) => {
       const pkgEntity = pkgEntities.find((p) => p.packageId === schema.id);
       if (pkgEntity) {
         if (
@@ -72,6 +67,7 @@ export class PackageService extends BaseService implements OnModuleInit {
       }
       return acc;
     }, { toCreate: [] as CreatePackageDto[], toUpdate: [] as UpdatePackageDto[] });
+    const toDelete = pkgEntities.filter(e => !pkgIds.has(e.packageId));
 
     if (toCreate.length > 0) {
       this.logger.log(`Creating ${toCreate.length} packages`);
@@ -81,6 +77,16 @@ export class PackageService extends BaseService implements OnModuleInit {
       this.logger.log(`Updating ${toUpdate.length} packages`);
       await this.update(toUpdate);
     }
+    if (toDelete.length > 0) {
+      this.logger.log(`Deleting ${toDelete.length} packages`);
+      await this.delete(toDelete.map((e) => e.id));
+    }
+    return await this.db().query.package.findMany({
+      where(fields, { inArray }) {
+        return inArray(fields.packageId, Array.from(pkgIds));
+      },
+      with: { packageTags: { with: { tag: true } } }
+    });
   }
 
   async find(filter: FilterOptions<PackageRow>, opts?: ReadOpts): Promise<PackageDto[]> {
@@ -90,7 +96,7 @@ export class PackageService extends BaseService implements OnModuleInit {
   async create(dto: CreatePackageDto, opts?: CreateOpts): Promise<PackageDto>;
   async create(dto: CreatePackageDto[], opts?: CreateOpts): Promise<PackageDto[]>;
   async create(dto: CreatePackageDto | CreatePackageDto[], opts?: CreateOpts): Promise<PackageDto | PackageDto[]> {
-    return this.transactions.run(async (tx) => {
+    return this.transactions.runOrCreate(async (tx) => {
       const txOpts: CreateOpts = { ...opts, tx };
 
       if (Array.isArray(dto)) {
@@ -110,11 +116,11 @@ export class PackageService extends BaseService implements OnModuleInit {
       const [entity] = await this.db(txOpts).insert(packageTable).values(rest as CreatePackageDto).returning();
       if (tags?.length) await this.addTags(entity.id, tags, txOpts);
       return entity;
-    });
+    }, opts);
   }
 
   async update(dtos: UpdatePackageDto[], opts?: UpdateOpts): Promise<PackageDto[]> {
-    return this.transactions.run(async (tx) => {
+    return this.transactions.runOrCreate(async (tx) => {
       const txOpts: UpdateOpts = { ...opts, tx };
 
       const updated = await Promise.all(
@@ -139,11 +145,18 @@ export class PackageService extends BaseService implements OnModuleInit {
           }
 
           return row as unknown as PackageDto;
-        }),
+        })
       );
 
       return updated;
-    });
+    }, opts);
+  }
+
+  async delete(ids: string[], opts?: DeleteOpts): Promise<void> {
+    return this.transactions.runOrCreate(async (tx) => {
+      const txOpts: DeleteOpts = { ...opts, tx };
+      await this.db(txOpts).delete(packageTable).where(inArray(packageTable.id, ids));
+    }, opts);
   }
 
   //#region Tag related

@@ -1,4 +1,5 @@
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class MetadataSchema {
   @IsString()
@@ -26,6 +27,12 @@ export class MetadataSchema {
 }
 
 export class BaseSchema {
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MetadataSchema)
+  metadata: MetadataSchema;
+
   @IsString()
   id!: string;
 }

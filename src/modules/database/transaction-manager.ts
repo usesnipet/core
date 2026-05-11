@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
-import type { PgTransactionConfig } from "drizzle-orm/pg-core";
 import { InjectDatabase } from "@/modules/database/database.decorator";
+import { Injectable } from "@nestjs/common";
+
+import type { PgTransactionConfig } from "drizzle-orm/pg-core";
 import type { Database, DatabaseSession } from "@/db/types";
 import type { TransactionOpts } from "../../common/crud/crud-options";
 
@@ -23,10 +24,11 @@ export class TransactionManager {
    * Runs `fn` inside a new PostgreSQL transaction (Drizzle `db.transaction`).
    * Nested calls use savepoints when supported by the driver.
    */
-  run<T>(
+  runOrCreate<T>(
     fn: (tx: DatabaseSession) => Promise<T>,
+    opts?: TransactionOpts,
     config?: PgTransactionConfig,
   ): Promise<T> {
-    return this.root.transaction((tx) => fn(tx), config);
+    return opts?.tx ? fn(opts.tx) : this.root.transaction((tx) => fn(tx), config);
   }
 }

@@ -1,9 +1,8 @@
-import { Type } from "class-transformer";
-import { IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 import { IsRecordOf } from "../../decorators/is-record-of";
 
-import { BaseSchema, MetadataSchema } from "./base";
+import { BaseSchema } from "./base";
 import { FieldSchema } from "./field";
 
 export class NodeTypeComponentSchema {
@@ -17,11 +16,6 @@ export class NodeTypeComponentSchema {
 
 export class NodeTypeSchema extends BaseSchema {
   @IsOptional()
-  @ValidateNested()
-  @Type(() => MetadataSchema)
-  metadata?: MetadataSchema;
-
-  @IsOptional()
   @IsRecordOf(FieldSchema)
   inputs?: Record<string, FieldSchema>;
 
@@ -33,7 +27,6 @@ export class NodeTypeSchema extends BaseSchema {
   @IsRecordOf(NodeTypeComponentSchema)
   components?: Record<string, NodeTypeComponentSchema>;
 
-  @IsOptional()
   @IsString()
-  category?: string;
+  category: string;
 }

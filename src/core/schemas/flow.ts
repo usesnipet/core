@@ -3,7 +3,7 @@ import {
   IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString, ValidateNested
 } from "class-validator";
 
-import { BaseSchema, MetadataSchema } from "./base";
+import { BaseSchema } from "./base";
 
 export class FlowNodeRefSchema {
   @IsString()
@@ -53,11 +53,6 @@ export class FlowConnectionSchema {
 }
 
 export class FlowSchema extends BaseSchema {
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => MetadataSchema)
-  metadata?: MetadataSchema;
-
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FlowNodeRefSchema)
