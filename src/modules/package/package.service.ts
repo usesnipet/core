@@ -8,7 +8,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import { eq, inArray } from "drizzle-orm";
 
 import { CreatePackageDto } from "./dto/create-package.dto";
-import { PackageDto } from "./dto/package.dto";
 import { UpdatePackageDto } from "./dto/update-package.dto";
 import { Package } from "./models/package.model";
 
@@ -91,9 +90,9 @@ export class PackageService extends BaseService {
     return queryResult.map((row) => new Package(row));
   }
 
-  async create(dto: CreatePackageDto, opts?: CreateOpts): Promise<PackageDto>;
-  async create(dto: CreatePackageDto[], opts?: CreateOpts): Promise<PackageDto[]>;
-  async create(dto: CreatePackageDto | CreatePackageDto[], opts?: CreateOpts): Promise<PackageDto | PackageDto[]> {
+  async create(dto: CreatePackageDto, opts?: CreateOpts): Promise<Package>;
+  async create(dto: CreatePackageDto[], opts?: CreateOpts): Promise<Package[]>;
+  async create(dto: CreatePackageDto | CreatePackageDto[], opts?: CreateOpts): Promise<Package | Package[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: CreateOpts = { ...opts, tx };
 
@@ -107,17 +106,17 @@ export class PackageService extends BaseService {
             tagsPerRow[i]?.length ? this.addTags(entity.id, tagsPerRow[i]!, txOpts) : Promise.resolve(),
           ),
         );
-        return entities;
+        return entities.map((entity) => new Package(entity));
       }
 
       const { tags, ...rest } = dto;
       const [entity] = await this.db(txOpts).insert(packageTable).values(rest as CreatePackageDto).returning();
       if (tags?.length) await this.addTags(entity.id, tags, txOpts);
-      return entity;
+      return new Package(entity);
     }, opts);
   }
 
-  async update(dtos: UpdatePackageDto[], opts?: UpdateOpts): Promise<PackageDto[]> {
+  async update(dtos: UpdatePackageDto[], opts?: UpdateOpts): Promise<Package[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: UpdateOpts = { ...opts, tx };
 
@@ -142,7 +141,7 @@ export class PackageService extends BaseService {
             }
           }
 
-          return row as unknown as PackageDto;
+          return new Package(row);
         })
       );
 

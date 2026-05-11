@@ -10,6 +10,12 @@ export class Package {
   id: string;
 
   @Field(() => String)
+  packageId: string;
+
+  @Field(() => String)
+  version: string;
+
+  @Field(() => String)
   name: string;
 
   @Field(() => String, { nullable: true })
@@ -24,16 +30,13 @@ export class Package {
   @Field(() => String, { nullable: true })
   author: string | null;
 
-  @Field(() => String)
-  version: string;
-
   @Field(() => Date)
   createdAt: Date;
 
   @Field(() => Date)
   updatedAt: Date;
 
-  @Field(type => [PackageTag], { nullable: true })
+  @Field(() => [PackageTag], { nullable: true })
   packageTags: PackageTag[];
 
   constructor(data: PackageRow) {
