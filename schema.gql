@@ -15,12 +15,13 @@ type PackageTag {
 
 type Package {
   id: ID!
+  packageId: String!
+  version: String!
   name: String!
   description: String
   docs: String
   icon: String
   author: String
-  version: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   packageTags: [PackageTag!]
