@@ -9,6 +9,7 @@ export type FilterHttpConfig = {
   select?: FilterAccessList;
   where?: FilterAccessList;
   order?: FilterAccessList;
+  relations?: FilterAccessList;
   maxLimit?: number;
 };
 
@@ -150,6 +151,7 @@ export class HttpFilterConverter {
     const init: FilterOptionsInit<TEntity> = {
       where: sanitizeWhere(whereRaw, config.where) as any,
       select: applyAccessList(selectRaw, config.select) as any,
+      relations: applyAccessList(relationsRaw, config.relations) as any,
       order: orderRaw
         ?.filter((o) => o?.field)
         .filter((o) => {
@@ -173,6 +175,7 @@ export class HttpFilterConverter {
     if (filter.take !== undefined) q.take = String(filter.take);
     if (filter.offset !== undefined) q.offset = String(filter.offset);
     if (filter.skip !== undefined) q.skip = String(filter.skip);
+    if (filter.relations?.length) q.relations = filter.relations.join(",");
     return q;
   }
 }

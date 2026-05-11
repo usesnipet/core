@@ -13,6 +13,6 @@ export class DatabaseService {
       return drizzle({ client, ...options?.config });
     }
     const pool = new Pool(options.pg.config);
-    return drizzle({ client: pool, ...options?.config });
+    return drizzle({ client: pool, logger: true, ...options?.config });
   }
 }

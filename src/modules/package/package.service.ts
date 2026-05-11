@@ -3,13 +3,14 @@ import { DrizzleFilterConverter, FilterOptions } from "@/common/filter";
 import { addTags, removeTags, TagJoinSpec } from "@/common/tags";
 import { PackageSchema } from "@/core/schemas/package";
 import { packageTag } from "@/db/schema/entity-tags";
-import { PackageRow, packageTable } from "@/db/schema/package";
+import { packageTable } from "@/db/schema/package";
 import { Injectable, Logger } from "@nestjs/common";
 import { eq, inArray } from "drizzle-orm";
 
 import { CreatePackageDto } from "./dto/create-package.dto";
 import { PackageDto } from "./dto/package.dto";
 import { UpdatePackageDto } from "./dto/update-package.dto";
+import { Package } from "./models/package.model";
 
 @Injectable()
 export class PackageService extends BaseService {
@@ -84,8 +85,10 @@ export class PackageService extends BaseService {
     return await this.db().query.package.findMany({ with: { packageTags: { with: { tag: true } } } });
   }
 
-  async find(filter: FilterOptions<PackageRow>, opts?: ReadOpts): Promise<PackageDto[]> {
-    return this.db(opts).query.package.findMany(DrizzleFilterConverter.toFindMany(filter));
+  async find(filter: FilterOptions<Package>, opts?: ReadOpts): Promise<Package[]> {
+    const drizzleFilter = DrizzleFilterConverter.toFindMany(filter);
+    const queryResult = await this.db(opts).query.package.findMany(drizzleFilter);
+    return queryResult.map((row) => new Package(row));
   }
 
   async create(dto: CreatePackageDto, opts?: CreateOpts): Promise<PackageDto>;

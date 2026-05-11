@@ -24,6 +24,15 @@
             }
           },
           {
+            "name": "relations",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated relation paths (e.g. `packageTags`, `packageTags.tag`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "order",
             "required": false,
             "in": "query",
@@ -95,100 +104,6 @@
         ]
       }
     },
-    "/api/package": {
-      "get": {
-        "operationId": "PackageController_findMany",
-        "parameters": [
-          {
-            "name": "where",
-            "required": false,
-            "in": "query",
-            "description": "JSON object: each key is an entity field; value is a primitive or `{ \"op\": \"eq\"|\"ne\"|\"gt\"|\"gte\"|\"lt\"|\"lte\"|\"like\"|\"ilike\"|\"in\"|\"contains\", \"value\": ... }`. Must be URL-encoded when sent as a single query string.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "select",
-            "required": false,
-            "in": "query",
-            "description": "Comma-separated field names, or a JSON array string.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "required": false,
-            "in": "query",
-            "description": "Comma-separated `field:asc|desc`, or JSON array like `[{\"field\":\"name\",\"direction\":\"asc\"}]`.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of rows (`take` is an alias).",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "example": 200
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Alias for `limit`.",
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "Number of rows to skip (`skip` is an alias).",
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "example": 0
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Alias for `offset`.",
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Packages found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PackageDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Package"
-        ]
-      }
-    },
     "/api/node-type": {
       "get": {
         "operationId": "NodeTypeController_findMany",
@@ -207,6 +122,15 @@
             "required": false,
             "in": "query",
             "description": "Comma-separated field names, or a JSON array string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "relations",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated relation paths (e.g. `packageTags`, `packageTags.tag`).",
             "schema": {
               "type": "string"
             }
@@ -306,6 +230,15 @@
             }
           },
           {
+            "name": "relations",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated relation paths (e.g. `packageTags`, `packageTags.tag`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "order",
             "required": false,
             "in": "query",
@@ -395,6 +328,15 @@
             "required": false,
             "in": "query",
             "description": "Comma-separated field names, or a JSON array string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "relations",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated relation paths (e.g. `packageTags`, `packageTags.tag`).",
             "schema": {
               "type": "string"
             }
@@ -551,114 +493,6 @@
           "updatedAt"
         ]
       },
-      "TagDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "PackageDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "packageId": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "docs": {
-            "type": "string",
-            "nullable": true
-          },
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "author": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "packageTags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PackageTagDto"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "packageId",
-          "version",
-          "name",
-          "createdAt",
-          "updatedAt",
-          "packageTags"
-        ]
-      },
-      "PackageTagDto": {
-        "type": "object",
-        "properties": {
-          "packageId": {
-            "type": "string",
-            "description": "The ID of the package"
-          },
-          "tagId": {
-            "type": "string",
-            "description": "The ID of the tag"
-          },
-          "tag": {
-            "description": "Tag metadata",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/TagDto"
-              }
-            ]
-          },
-          "package": {
-            "description": "Package metadata",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PackageDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "packageId",
-          "tagId",
-          "tag",
-          "package"
-        ]
-      },
       "NodeTypeDto": {
         "type": "object",
         "properties": {
@@ -775,6 +609,22 @@
           "fieldSchema",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "TagDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
         ]
       }
     }

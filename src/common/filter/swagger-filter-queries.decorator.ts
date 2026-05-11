@@ -20,6 +20,12 @@ export function ApiFilterQueries() {
       schema: { type: "string" },
     }),
     ApiQuery({
+      name: "relations",
+      required: false,
+      description: "Comma-separated relation paths (e.g. `packageTags`, `packageTags.tag`).",
+      schema: { type: "string" },
+    }),
+    ApiQuery({
       name: "order",
       required: false,
       description:

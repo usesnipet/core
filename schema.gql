@@ -1,0 +1,71 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Tag {
+  id: ID!
+  name: String!
+}
+
+type PackageTag {
+  packageId: ID!
+  tagId: ID!
+  tag: Tag
+}
+
+type Package {
+  id: ID!
+  name: String!
+  description: String
+  docs: String
+  icon: String
+  author: String
+  version: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  packageTags: [PackageTag!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  packages(take: Int = 1000, skip: Int = 0, where: PackageWhereInput): [Package!]!
+}
+
+input PackageWhereInput {
+  id: StringFilterInput
+  packageId: StringFilterInput
+  version: StringFilterInput
+  name: StringFilterInput
+  description: StringFilterInput
+  docs: StringFilterInput
+  icon: StringFilterInput
+  author: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+}
+
+input StringFilterInput {
+  eq: String
+  ne: String
+  in: [String!]
+  contains: String
+  like: String
+  ilike: String
+  gt: String
+  gte: String
+  lt: String
+  lte: String
+}
+
+input DateTimeFilterInput {
+  eq: DateTime
+  ne: DateTime
+  gt: DateTime
+  gte: DateTime
+  lt: DateTime
+  lte: DateTime
+}

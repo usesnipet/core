@@ -1,5 +1,7 @@
 import { pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
+import { PackageTagRow } from "./entity-tags";
+
 /**
  * Extension/package record: a bundle imported into the catalog (manifest of node types, configs, nodes).
  */
@@ -16,4 +18,4 @@ export const packageTable = pgTable('package', {
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 }, (t) => [unique().on(t.packageId)]);
 
-export type PackageRow = typeof packageTable.$inferSelect;
+export type PackageRow = typeof packageTable.$inferSelect & { packageTags?: PackageTagRow[] };

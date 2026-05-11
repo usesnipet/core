@@ -1,9 +1,10 @@
-import { pgTable, primaryKey, uuid } from 'drizzle-orm/pg-core';
-import { config } from './config';
-import { node } from './node';
-import { nodeType } from './node-type';
-import { packageTable } from './package';
-import { tag } from './tag';
+import { pgTable, primaryKey, uuid } from "drizzle-orm/pg-core";
+
+import { config } from "./config";
+import { node } from "./node";
+import { nodeType } from "./node-type";
+import { packageTable } from "./package";
+import { tag, TagRow } from "./tag";
 
 /**
  * Associates tags with packages for filtered browsing and discovery.
@@ -61,7 +62,7 @@ export const configTag = pgTable( 'config_tag', {
     .references(() => tag.id, { onDelete: 'cascade' }),
 }, (t) => [primaryKey({ columns: [t.configId, t.tagId] })]);
 
-export type PackageTagRow = typeof packageTag.$inferSelect;
-export type NodeTagRow = typeof nodeTag.$inferSelect;
-export type NodeTypeTagRow = typeof nodeTypeTag.$inferSelect;
-export type ConfigTagRow = typeof configTag.$inferSelect;
+export type PackageTagRow = typeof packageTag.$inferSelect & { tag?: TagRow };
+export type NodeTagRow = typeof nodeTag.$inferSelect & { tag?: TagRow };
+export type NodeTypeTagRow = typeof nodeTypeTag.$inferSelect & { tag?: TagRow };
+export type ConfigTagRow = typeof configTag.$inferSelect & { tag?: TagRow };
