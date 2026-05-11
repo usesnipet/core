@@ -1,5 +1,6 @@
 import { index, pgTable, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
 
+import type { NodeTagRow } from './entity-tags';
 import { config } from './config';
 import { packageTable } from './package';
 import { nodeType } from './node-type';
@@ -52,4 +53,4 @@ export const node = pgTable(
   ],
 );
 
-export type NodeRow = typeof node.$inferSelect;
+export type NodeRow = typeof node.$inferSelect & { nodeTags?: NodeTagRow[] };

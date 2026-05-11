@@ -1,5 +1,6 @@
 import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
+import type { ConfigTagRow } from "./entity-tags";
 import { packageTable } from "./package";
 
 /**
@@ -36,4 +37,4 @@ export const config = pgTable(
   (t) => [unique().on(t.configId), index('config_package_id_idx').on(t.packageId)],
 );
 
-export type ConfigRow = typeof config.$inferSelect;
+export type ConfigRow = typeof config.$inferSelect & { configTags?: ConfigTagRow[] };

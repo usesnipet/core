@@ -7,6 +7,77 @@ type Tag {
   name: String!
 }
 
+type ConfigTag {
+  configId: ID!
+  tagId: ID!
+  tag: Tag
+}
+
+type Config {
+  id: ID!
+  configId: String!
+  packageId: ID!
+  name: String!
+  description: String
+  docs: String
+  icon: String
+  author: String
+  fieldSchema: JSONObject!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  configTags: [ConfigTag!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type NodeTypeTag {
+  nodeTypeId: ID!
+  tagId: ID!
+  tag: Tag
+}
+
+type NodeType {
+  id: ID!
+  typeId: String!
+  packageId: ID!
+  name: String!
+  description: String
+  docs: String
+  icon: String
+  author: String
+  inputs: JSONObject
+  outputs: JSONObject
+  components: JSONObject
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  nodeTypeTags: [NodeTypeTag!]
+}
+
+type NodeTag {
+  nodeId: ID!
+  tagId: ID!
+  tag: Tag
+}
+
+type Node {
+  id: ID!
+  nodeId: String!
+  packageId: ID!
+  name: String!
+  description: String
+  docs: String
+  icon: String
+  author: String
+  nodeTypeId: ID!
+  configId: ID
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  nodeTags: [NodeTag!]
+}
+
 type PackageTag {
   packageId: ID!
   tagId: ID!
@@ -27,24 +98,28 @@ type Package {
   packageTags: [PackageTag!]
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
+"""Arbitrary JSON object"""
+scalar JSONObject
 
 type Query {
+  nodes(take: Int = 1000, skip: Int = 0, where: NodeWhereInput): [Node!]!
   packages(take: Int = 1000, skip: Int = 0, where: PackageWhereInput): [Package!]!
+  nodeTypes(take: Int = 1000, skip: Int = 0, where: NodeTypeWhereInput): [NodeType!]!
+  configs(take: Int = 1000, skip: Int = 0, where: ConfigWhereInput): [Config!]!
+  tags(take: Int = 1000, skip: Int = 0, where: TagWhereInput): [Tag!]!
 }
 
-input PackageWhereInput {
+input NodeWhereInput {
   id: StringFilterInput
+  nodeId: StringFilterInput
   packageId: StringFilterInput
-  version: StringFilterInput
   name: StringFilterInput
   description: StringFilterInput
   docs: StringFilterInput
   icon: StringFilterInput
   author: StringFilterInput
+  nodeTypeId: StringFilterInput
+  configId: StringFilterInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
 }
@@ -69,4 +144,48 @@ input DateTimeFilterInput {
   gte: DateTime
   lt: DateTime
   lte: DateTime
+}
+
+input PackageWhereInput {
+  id: StringFilterInput
+  packageId: StringFilterInput
+  version: StringFilterInput
+  name: StringFilterInput
+  description: StringFilterInput
+  docs: StringFilterInput
+  icon: StringFilterInput
+  author: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+}
+
+input NodeTypeWhereInput {
+  id: StringFilterInput
+  typeId: StringFilterInput
+  packageId: StringFilterInput
+  name: StringFilterInput
+  description: StringFilterInput
+  docs: StringFilterInput
+  icon: StringFilterInput
+  author: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+}
+
+input ConfigWhereInput {
+  id: StringFilterInput
+  configId: StringFilterInput
+  packageId: StringFilterInput
+  name: StringFilterInput
+  description: StringFilterInput
+  docs: StringFilterInput
+  icon: StringFilterInput
+  author: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+}
+
+input TagWhereInput {
+  id: StringFilterInput
+  name: StringFilterInput
 }

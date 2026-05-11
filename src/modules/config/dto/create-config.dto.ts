@@ -1,16 +1,11 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { OmitType } from "@nestjs/swagger";
 
-import { ConfigDto } from "./config.dto";
+import { Config } from "../models/config.model";
 
-export class CreateConfigDto extends OmitType(ConfigDto, ["id", "createdAt", "updatedAt"] as const) {
-  @ApiProperty({ type: [String], required: false })
-  @IsArray({ message: "Tags must be an array" })
-  @IsOptional()
-  @IsString({ each: true, message: "Each tag must be a string" })
+export class CreateConfigDto extends OmitType(Config, ["id", "configTags", "createdAt", "updatedAt"] as const) {
   tags?: string[];
 
-  constructor(data: CreateConfigDto) {
+  constructor(data?: CreateConfigDto) {
     super();
     if (data) Object.assign(this, data);
   }

@@ -1,22 +1,15 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { OmitType, PartialType } from "@nestjs/swagger";
 
-import { CreateNodeTypeDto } from "./create-node-type.dto";
+import { NodeType } from "../models/node-type.model";
 
-export class UpdateNodeTypeDto extends PartialType(CreateNodeTypeDto) {
-  @ApiProperty({ type: String, format: "uuid" })
-  @IsUUID()
-  @IsNotEmpty()
+export class UpdateNodeTypeDto extends PartialType(
+  OmitType(NodeType, ["id", "nodeTypeTags", "createdAt", "updatedAt"] as const),
+) {
   id: string;
-
-  @ApiProperty({ type: [String], required: false })
-  @IsArray({ message: "Tags must be an array" })
-  @IsOptional()
-  @IsString({ each: true, message: "Each tag must be a string" })
   tags?: string[];
 
   constructor(data: UpdateNodeTypeDto) {
     super();
-    if (data) Object.assign(this, data);
+    Object.assign(this, data);
   }
 }

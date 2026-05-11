@@ -1,6 +1,5 @@
 import { OmitType } from "@nestjs/swagger";
 
-import { TagDto } from "./tag.dto";
+import { Tag } from "../models/tag.model";
 
-export class CreateTagDto extends OmitType(TagDto, ["id"] as const) {}
-
+export class CreateTagDto extends OmitType(Tag, ["id"] as const) {}

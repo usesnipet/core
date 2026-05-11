@@ -1,5 +1,6 @@
 import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
+import type { NodeTypeTagRow } from "./entity-tags";
 import { packageTable } from "./package";
 
 /**
@@ -27,4 +28,4 @@ export const nodeType = pgTable(
   (t) => [unique().on(t.typeId), index('node_type_package_id_idx').on(t.packageId)],
 );
 
-export type NodeTypeRow = typeof nodeType.$inferSelect;
+export type NodeTypeRow = typeof nodeType.$inferSelect & { nodeTypeTags?: NodeTypeTagRow[] };

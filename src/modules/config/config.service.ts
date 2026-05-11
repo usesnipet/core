@@ -8,9 +8,9 @@ import { PackageRow } from "@/db/schema/package";
 import { Injectable, Logger } from "@nestjs/common";
 import { eq, inArray } from "drizzle-orm";
 
-import { ConfigDto } from "./dto/config.dto";
 import { CreateConfigDto } from "./dto/create-config.dto";
 import { UpdateConfigDto } from "./dto/update-config.dto";
+import { Config } from "./models/config.model";
 
 function insertRowFromDto(rest: Omit<CreateConfigDto, "tags">) {
   return {
@@ -31,13 +31,15 @@ export class ConfigService extends BaseService {
     super();
   }
 
-  async find(filter: FilterOptions<ConfigRow>, opts?: ReadOpts): Promise<ConfigDto[]> {
-    return this.db(opts).query.config.findMany(DrizzleFilterConverter.toFindMany(filter));
+  async find(filter: FilterOptions<Config>, opts?: ReadOpts): Promise<Config[]> {
+    const drizzleFilter = DrizzleFilterConverter.toFindMany(filter);
+    const queryResult = await this.db(opts).query.config.findMany(drizzleFilter);
+    return queryResult.map((row) => new Config(row));
   }
 
-  async create(dto: CreateConfigDto, opts?: CreateOpts): Promise<ConfigDto>;
-  async create(dto: CreateConfigDto[], opts?: CreateOpts): Promise<ConfigDto[]>;
-  async create(dto: CreateConfigDto | CreateConfigDto[], opts?: CreateOpts): Promise<ConfigDto | ConfigDto[]> {
+  async create(dto: CreateConfigDto, opts?: CreateOpts): Promise<Config>;
+  async create(dto: CreateConfigDto[], opts?: CreateOpts): Promise<Config[]>;
+  async create(dto: CreateConfigDto | CreateConfigDto[], opts?: CreateOpts): Promise<Config | Config[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: CreateOpts = { ...opts, tx };
 
@@ -51,17 +53,17 @@ export class ConfigService extends BaseService {
             tagsPerRow[i]?.length ? this.addTags(entity.id, tagsPerRow[i]!, txOpts) : Promise.resolve(),
           ),
         );
-        return entities;
+        return entities.map((entity) => new Config(entity));
       }
 
       const { tags, ...rest } = dto;
       const [entity] = await this.db(txOpts).insert(config).values(insertRowFromDto(rest)).returning();
       if (tags?.length) await this.addTags(entity.id, tags, txOpts);
-      return entity;
+      return new Config(entity);
     }, opts);
   }
 
-  async update(dtos: UpdateConfigDto[], opts?: UpdateOpts): Promise<ConfigDto[]> {
+  async update(dtos: UpdateConfigDto[], opts?: UpdateOpts): Promise<Config[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: UpdateOpts = { ...opts, tx };
 
@@ -86,7 +88,7 @@ export class ConfigService extends BaseService {
             }
           }
 
-          return row as unknown as ConfigDto;
+          return new Config(row);
         }),
       );
 
@@ -183,7 +185,6 @@ export class ConfigService extends BaseService {
       { toCreate: [] as CreateConfigDto[], toUpdate: [] as UpdateConfigDto[] },
     );
     const toDelete = entities.filter((e) => !ids.has(e.configId));
-
 
     if (toCreate.length > 0) {
       this.logger.log(`Creating ${toCreate.length} configs`);

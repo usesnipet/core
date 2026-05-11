@@ -9,6 +9,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { join } from "path";
 
 import { schemas } from "./db";
+import { GraphQLJSONObject, JsonObject } from "./common/graphql/json-object";
 import { env } from "./env";
 import { ConfigModule } from "./modules/config/config.module";
 import { DatabaseModule } from "./modules/database/database.module";
@@ -25,6 +26,9 @@ import { __root } from "./root";
       driver: ApolloDriver,
       graphiql: true,
       autoSchemaFile: join(__root, 'schema.gql'),
+      buildSchemaOptions: {
+        scalarsMap: [{ type: JsonObject, scalar: GraphQLJSONObject }],
+      },
     }),
 
     ScheduleModule.forRoot(),

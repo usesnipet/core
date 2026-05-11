@@ -1,4 +1,3 @@
-import { TagDto } from "./tag.dto";
+import { Tag } from "../models/tag.model";
 
-export class UpdateTagDto extends TagDto {}
-
+export class UpdateTagDto extends Tag {}

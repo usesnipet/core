@@ -1,9 +1,8 @@
-import { BaseService } from "@/common/crud";
+import { BaseService, ReadOpts } from "@/common/crud";
 import { DrizzleFilterConverter, FilterOptions } from "@/common/filter";
-import { tag, TagRow } from "@/db/schema/tag";
 import { Injectable } from "@nestjs/common";
 
-import { TagDto } from "./dto/tag.dto";
+import { Tag } from "./models/tag.model";
 
 @Injectable()
 export class TagService extends BaseService {
@@ -11,8 +10,9 @@ export class TagService extends BaseService {
     super();
   }
 
-  async find(filter: FilterOptions<TagRow>): Promise<TagDto[]> {
-    return this.db().query.tag.findMany(DrizzleFilterConverter.toFindMany(filter));
+  async find(filter: FilterOptions<Tag>, opts?: ReadOpts): Promise<Tag[]> {
+    const drizzleFilter = DrizzleFilterConverter.toFindMany(filter);
+    const queryResult = await this.db(opts).query.tag.findMany(drizzleFilter);
+    return queryResult.map((row) => new Tag(row));
   }
 }
-

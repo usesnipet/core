@@ -2,7 +2,7 @@ import { ApiFilterQueries, Filter, FilterOptions } from "@/common/filter";
 import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse } from "@nestjs/swagger";
 
-import { NodeDto } from "./dto/node.dto";
+import { Node } from "./models/node.model";
 import { NodeService } from "./node.service";
 
 @Controller("node")
@@ -11,9 +11,8 @@ export class NodeController {
 
   @Get()
   @ApiFilterQueries()
-  @ApiOkResponse({ type: [NodeDto], description: "Nodes found" })
-  async findMany(@Filter() filter: FilterOptions<NodeDto>): Promise<NodeDto[]> {
+  @ApiOkResponse({ type: [Node], description: "Nodes found" })
+  async findMany(@Filter() filter: FilterOptions<Node>): Promise<Node[]> {
     return this.nodeService.find(filter);
   }
 }
-

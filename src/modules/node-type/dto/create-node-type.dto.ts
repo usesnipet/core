@@ -1,13 +1,11 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { OmitType } from "@nestjs/swagger";
 
-import { NodeTypeDto } from "./node-type.dto";
+import { NodeType } from "../models/node-type.model";
 
-export class CreateNodeTypeDto extends OmitType(NodeTypeDto, ["id", "createdAt", "updatedAt"] as const) {
-  @ApiProperty({ type: [String], required: false })
-  @IsArray({ message: "Tags must be an array" })
-  @IsOptional()
-  @IsString({ each: true, message: "Each tag must be a string" })
+export class CreateNodeTypeDto extends OmitType(
+  NodeType,
+  ["id", "nodeTypeTags", "createdAt", "updatedAt"] as const,
+) {
   tags?: string[];
 
   constructor(data: CreateNodeTypeDto) {

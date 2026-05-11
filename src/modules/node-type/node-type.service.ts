@@ -9,8 +9,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { eq, inArray } from "drizzle-orm";
 
 import { CreateNodeTypeDto } from "./dto/create-node-type.dto";
-import { NodeTypeDto } from "./dto/node-type.dto";
 import { UpdateNodeTypeDto } from "./dto/update-node-type.dto";
+import { NodeType } from "./models/node-type.model";
 
 @Injectable()
 export class NodeTypeService extends BaseService {
@@ -20,16 +20,18 @@ export class NodeTypeService extends BaseService {
     super();
   }
 
-  async find(filter: FilterOptions<NodeTypeRow>, opts?: ReadOpts): Promise<NodeTypeDto[]> {
-    return this.db(opts).query.nodeType.findMany(DrizzleFilterConverter.toFindMany(filter));
+  async find(filter: FilterOptions<NodeType>, opts?: ReadOpts): Promise<NodeType[]> {
+    const drizzleFilter = DrizzleFilterConverter.toFindMany(filter);
+    const queryResult = await this.db(opts).query.nodeType.findMany(drizzleFilter);
+    return queryResult.map((row) => new NodeType(row));
   }
 
-  async create(dto: CreateNodeTypeDto, opts?: CreateOpts): Promise<NodeTypeDto>;
-  async create(dto: CreateNodeTypeDto[], opts?: CreateOpts): Promise<NodeTypeDto[]>;
+  async create(dto: CreateNodeTypeDto, opts?: CreateOpts): Promise<NodeType>;
+  async create(dto: CreateNodeTypeDto[], opts?: CreateOpts): Promise<NodeType[]>;
   async create(
     dto: CreateNodeTypeDto | CreateNodeTypeDto[],
     opts?: CreateOpts,
-  ): Promise<NodeTypeDto | NodeTypeDto[]> {
+  ): Promise<NodeType | NodeType[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: CreateOpts = { ...opts, tx };
 
@@ -43,18 +45,17 @@ export class NodeTypeService extends BaseService {
             tagsPerRow[i]?.length ? this.addTags(entity.id, tagsPerRow[i]!, txOpts) : Promise.resolve(),
           ),
         );
-        return entities;
+        return entities.map((e) => new NodeType(e));
       }
 
       const { tags, ...rest } = dto;
       const [entity] = await this.db(txOpts).insert(nodeType).values(rest).returning();
       if (tags?.length) await this.addTags(entity.id, tags, txOpts);
-      return entity;
+      return new NodeType(entity);
     }, opts);
   }
 
-
-  async update(dtos: UpdateNodeTypeDto[], opts?: UpdateOpts): Promise<NodeTypeDto[]> {
+  async update(dtos: UpdateNodeTypeDto[], opts?: UpdateOpts): Promise<NodeType[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: UpdateOpts = { ...opts, tx };
 
@@ -79,7 +80,7 @@ export class NodeTypeService extends BaseService {
             }
           }
 
-          return row;
+          return new NodeType(row);
         }),
       );
 
@@ -93,7 +94,6 @@ export class NodeTypeService extends BaseService {
       await this.db(txOpts).delete(nodeType).where(inArray(nodeType.id, ids));
     }, opts);
   }
-
 
   //#region Tag related
   private readonly tagsSpec: TagJoinSpec<typeof nodeTypeTag> = {
@@ -124,56 +124,63 @@ export class NodeTypeService extends BaseService {
       with: { nodeTypeTags: { with: { tag: true } } },
     });
 
-    const { toCreate, toUpdate } = nodeTypes.reduce((acc, schema) => {
-      const ntEntity = ntEntities.find((nt) => nt.typeId === schema.id);
-      if (ntEntity) {
-        if (
-          schema.metadata?.name !== ntEntity.name ||
-          schema.metadata?.description !== ntEntity.description ||
-          schema.metadata?.docs !== ntEntity.docs ||
-          schema.metadata?.icon !== ntEntity.icon ||
-          schema.metadata?.author !== ntEntity.author ||
-          schema.inputs !== ntEntity.inputs ||
-          schema.outputs !== ntEntity.outputs ||
-          schema.components !== ntEntity.components ||
-          schema.metadata.tags?.length !== ntEntity.nodeTypeTags.length ||
-          schema.metadata.tags?.some((t) => !ntEntity.nodeTypeTags.some((t2) => t2.tag.name === t))
-        ) {
-          acc.toUpdate.push(new UpdateNodeTypeDto({
-            id: ntEntity.id,
-            typeId: schema.id,
-            packageId: ntEntity.packageId,
-            name: schema.metadata.name,
-            description: schema.metadata.description,
-            docs: schema.metadata.docs,
-            icon: schema.metadata.icon,
-            author: schema.metadata.author,
-            inputs: schema.inputs,
-            outputs: schema.outputs,
-            components: schema.components,
-            tags: schema.metadata.tags,
-          }));
-        }
-      } else {
-        const packageEntity = dbPackages.find((p) => p.packageId === schema.id);
-        if (!packageEntity) throw new Error(`Package not found for node type ${schema.id}`);
+    const { toCreate, toUpdate } = nodeTypes.reduce(
+      (acc, schema) => {
+        const ntEntity = ntEntities.find((nt) => nt.typeId === schema.id);
+        if (ntEntity) {
+          if (
+            schema.metadata?.name !== ntEntity.name ||
+            schema.metadata?.description !== ntEntity.description ||
+            schema.metadata?.docs !== ntEntity.docs ||
+            schema.metadata?.icon !== ntEntity.icon ||
+            schema.metadata?.author !== ntEntity.author ||
+            schema.inputs !== ntEntity.inputs ||
+            schema.outputs !== ntEntity.outputs ||
+            schema.components !== ntEntity.components ||
+            schema.metadata.tags?.length !== ntEntity.nodeTypeTags.length ||
+            schema.metadata.tags?.some((t) => !ntEntity.nodeTypeTags.some((t2) => t2.tag.name === t))
+          ) {
+            acc.toUpdate.push(
+              new UpdateNodeTypeDto({
+                id: ntEntity.id,
+                typeId: schema.id,
+                packageId: ntEntity.packageId,
+                name: schema.metadata.name,
+                description: schema.metadata.description,
+                docs: schema.metadata.docs,
+                icon: schema.metadata.icon,
+                author: schema.metadata.author,
+                inputs: schema.inputs,
+                outputs: schema.outputs,
+                components: schema.components,
+                tags: schema.metadata.tags,
+              }),
+            );
+          }
+        } else {
+          const packageEntity = dbPackages.find((p) => p.packageId === schema.id);
+          if (!packageEntity) throw new Error(`Package not found for node type ${schema.id}`);
 
-        acc.toCreate.push(new CreateNodeTypeDto({
-          typeId: schema.id,
-          packageId: packageEntity?.id,
-          name: schema.metadata.name,
-          description: schema.metadata.description,
-          inputs: schema.inputs ?? null,
-          outputs: schema.outputs ?? null,
-          components: schema.components ?? null,
-          author: schema.metadata.author ?? null,
-          docs: schema.metadata.docs ?? null,
-          icon: schema.metadata.icon ?? null,
-          tags: schema.metadata.tags,
-        }));
-      }
-      return acc;
-    }, { toCreate: [] as CreateNodeTypeDto[], toUpdate: [] as UpdateNodeTypeDto[] });
+          acc.toCreate.push(
+            new CreateNodeTypeDto({
+              typeId: schema.id,
+              packageId: packageEntity?.id,
+              name: schema.metadata.name,
+              description: schema.metadata.description,
+              inputs: schema.inputs ?? null,
+              outputs: schema.outputs ?? null,
+              components: schema.components ?? null,
+              author: schema.metadata.author ?? null,
+              docs: schema.metadata.docs ?? null,
+              icon: schema.metadata.icon ?? null,
+              tags: schema.metadata.tags,
+            }),
+          );
+        }
+        return acc;
+      },
+      { toCreate: [] as CreateNodeTypeDto[], toUpdate: [] as UpdateNodeTypeDto[] },
+    );
     const toDelete = ntEntities.filter((nt) => !ntIds.has(nt.typeId));
 
     if (toCreate.length > 0) {
@@ -192,6 +199,7 @@ export class NodeTypeService extends BaseService {
       where(fields, { inArray }) {
         return inArray(fields.typeId, Array.from(ntIds));
       },
+      with: { nodeTypeTags: { with: { tag: true } } },
     });
   }
 }

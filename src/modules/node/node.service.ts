@@ -2,7 +2,7 @@ import { BaseService, CreateOpts, DeleteOpts, ReadOpts, UpdateOpts } from "@/com
 import { DrizzleFilterConverter, FilterOptions } from "@/common/filter";
 import { addTags, removeTags, TagJoinSpec } from "@/common/tags";
 import { PackageSchema } from "@/core/schemas/package";
-import { config, ConfigRow } from "@/db/schema/config";
+import { ConfigRow } from "@/db/schema/config";
 import { nodeTag } from "@/db/schema/entity-tags";
 import { node, NodeRow } from "@/db/schema/node";
 import { NodeTypeRow } from "@/db/schema/node-type";
@@ -11,8 +11,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { eq, inArray } from "drizzle-orm";
 
 import { CreateNodeDto } from "./dto/create-node.dto";
-import { NodeDto } from "./dto/node.dto";
 import { UpdateNodeDto } from "./dto/update-node.dto";
+import { Node } from "./models/node.model";
 
 function packageRowForSchemaId(dbPackages: PackageRow[], schemaId: string): PackageRow | undefined {
   return dbPackages.find((p) => schemaId === p.packageId || schemaId.startsWith(`${p.packageId}:`));
@@ -26,13 +26,15 @@ export class NodeService extends BaseService {
     super();
   }
 
-  async find(filter: FilterOptions<NodeRow>, opts?: ReadOpts): Promise<NodeDto[]> {
-    return this.db(opts).query.node.findMany(DrizzleFilterConverter.toFindMany(filter));
+  async find(filter: FilterOptions<Node>, opts?: ReadOpts): Promise<Node[]> {
+    const drizzleFilter = DrizzleFilterConverter.toFindMany(filter);
+    const queryResult = await this.db(opts).query.node.findMany(drizzleFilter);
+    return queryResult.map((row) => new Node(row));
   }
 
-  async create(dto: CreateNodeDto, opts?: CreateOpts): Promise<NodeDto>;
-  async create(dto: CreateNodeDto[], opts?: CreateOpts): Promise<NodeDto[]>;
-  async create(dto: CreateNodeDto | CreateNodeDto[], opts?: CreateOpts): Promise<NodeDto | NodeDto[]> {
+  async create(dto: CreateNodeDto, opts?: CreateOpts): Promise<Node>;
+  async create(dto: CreateNodeDto[], opts?: CreateOpts): Promise<Node[]>;
+  async create(dto: CreateNodeDto | CreateNodeDto[], opts?: CreateOpts): Promise<Node | Node[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: CreateOpts = { ...opts, tx };
       if (Array.isArray(dto)) {
@@ -45,16 +47,16 @@ export class NodeService extends BaseService {
             tagsPerRow[i]?.length ? this.addTags(entity.id, tagsPerRow[i]!, txOpts) : Promise.resolve(),
           ),
         );
-        return entities;
+        return entities.map((e) => new Node(e));
       }
       const { tags, ...rest } = dto;
       const [entity] = await this.db(txOpts).insert(node).values(rest).returning();
       if (tags?.length) await this.addTags(entity.id, tags, txOpts);
-      return entity;
+      return new Node(entity);
     }, opts);
   }
 
-  async update(dtos: UpdateNodeDto[], opts?: UpdateOpts): Promise<NodeDto[]> {
+  async update(dtos: UpdateNodeDto[], opts?: UpdateOpts): Promise<Node[]> {
     return this.transactions.runOrCreate(async (tx) => {
       const txOpts: UpdateOpts = { ...opts, tx };
 
@@ -62,7 +64,7 @@ export class NodeService extends BaseService {
         dtos.map(async (dto) => {
           const { id, ...rest } = dto;
           const patch = Object.fromEntries(
-            Object.entries(rest).filter(([key, v]) => key !== "tags" && v !== undefined)
+            Object.entries(rest).filter(([key, v]) => key !== "tags" && v !== undefined),
           ) as Omit<UpdateNodeDto, "id" | "tags">;
 
           const [row] = await this.db(txOpts)
@@ -71,7 +73,6 @@ export class NodeService extends BaseService {
             .where(eq(node.id, id))
             .returning();
 
-
           if (Object.hasOwn(dto, "tags")) {
             await this.db(txOpts).delete(nodeTag).where(eq(nodeTag.nodeId, id));
             const nextTags = dto.tags ?? [];
@@ -79,7 +80,7 @@ export class NodeService extends BaseService {
               await this.addTags(id, nextTags, txOpts as CreateOpts);
             }
           }
-          return row;
+          return new Node(row);
         }),
       );
 
@@ -102,7 +103,7 @@ export class NodeService extends BaseService {
     dbPackages: PackageRow[],
     dbNodeTypes: NodeTypeRow[],
     dbConfigs: ConfigRow[],
-    packageSchemas: PackageSchema[]
+    packageSchemas: PackageSchema[],
   ): Promise<NodeRow[]> {
     const nodeSchemas = packageSchemas.map((p) => p.nodes.map((n) => ({ ...n, packageId: p.id }))).flat();
     const ids = new Set(nodeSchemas.map((n) => n.id));
@@ -206,4 +207,3 @@ export class NodeService extends BaseService {
   }
   //#endregion
 }
-

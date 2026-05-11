@@ -29,6 +29,7 @@ function uniqStrings(values: string[]): string[] {
 
 function toFilterCondition(where: Record<string, any>): Record<string, FilterCondition> {
   const result: Record<string, FilterCondition> = {};
+  if (!where) return result;
   for (const [key, value] of Object.entries(where)) {
     if (value === undefined) continue;
     if (typeof value === 'object') {

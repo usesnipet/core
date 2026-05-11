@@ -3,7 +3,7 @@ import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse } from "@nestjs/swagger";
 
 import { ConfigService } from "./config.service";
-import { ConfigDto } from "./dto/config.dto";
+import { Config } from "./models/config.model";
 
 @Controller("config")
 export class ConfigController {
@@ -11,8 +11,8 @@ export class ConfigController {
 
   @Get()
   @ApiFilterQueries()
-  @ApiOkResponse({ type: [ConfigDto], description: "Config definitions found" })
-  async findMany(@Filter() filter: FilterOptions<ConfigDto>): Promise<ConfigDto[]> {
+  @ApiOkResponse({ type: [Config], description: "Config definitions found" })
+  async findMany(@Filter() filter: FilterOptions<Config>): Promise<Config[]> {
     return this.configService.find(filter);
   }
 }
