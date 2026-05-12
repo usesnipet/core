@@ -1,4 +1,7 @@
 import type { NodeRow } from "@/db/schema/node";
+import { Config } from "@/modules/config/models/config.model";
+import { NodeType } from "@/modules/node-type/models/node-type.model";
+import { Package } from "@/modules/package/models/package.model";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
 import { NodeTag } from "./node-tag.model";
@@ -43,6 +46,15 @@ export class Node {
 
   @Field(() => [NodeTag], { nullable: true })
   nodeTags: NodeTag[];
+
+  @Field(() => Package, { nullable: true })
+  package?: Package;
+
+  @Field(() => NodeType, { nullable: true })
+  nodeType?: NodeType;
+
+  @Field(() => Config, { nullable: true })
+  config?: Config;
 
   constructor(data: NodeRow) {
     Object.assign(this, data);

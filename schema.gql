@@ -56,6 +56,26 @@ type NodeType {
   nodeTypeTags: [NodeTypeTag!]
 }
 
+type PackageTag {
+  packageId: ID!
+  tagId: ID!
+  tag: Tag
+}
+
+type Package {
+  id: ID!
+  packageId: String!
+  version: String!
+  name: String!
+  description: String
+  docs: String
+  icon: String
+  author: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  packageTags: [PackageTag!]
+}
+
 type NodeTag {
   nodeId: ID!
   tagId: ID!
@@ -76,26 +96,9 @@ type Node {
   createdAt: DateTime!
   updatedAt: DateTime!
   nodeTags: [NodeTag!]
-}
-
-type PackageTag {
-  packageId: ID!
-  tagId: ID!
-  tag: Tag
-}
-
-type Package {
-  id: ID!
-  packageId: String!
-  version: String!
-  name: String!
-  description: String
-  docs: String
-  icon: String
-  author: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  packageTags: [PackageTag!]
+  package: Package
+  nodeType: NodeType
+  config: Config
 }
 
 """Arbitrary JSON object"""
