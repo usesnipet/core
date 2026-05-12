@@ -39,6 +39,12 @@ export class StringFilterInput {
   lte?: string | null;
 }
 
+@InputType()
+export class BooleanFilterInput {
+  @Field(() => Boolean, { nullable: true })
+  eq?: boolean | null;
+}
+
 /** Date/time column filters (ISO-8601 in transport). */
 @InputType()
 export class DateTimeFilterInput {

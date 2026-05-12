@@ -8,11 +8,12 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ScheduleModule } from "@nestjs/schedule";
 import { join } from "path";
 
-import { schemas } from "./db";
 import { GraphQLJSONObject, JsonObject } from "./common/graphql/json-object";
+import { schemas } from "./db";
 import { env } from "./env";
 import { ConfigModule } from "./modules/config/config.module";
 import { DatabaseModule } from "./modules/database/database.module";
+import { FlowModule } from "./modules/flow/flow.module";
 import { NodeTypeModule } from "./modules/node-type/node-type.module";
 import { NodeModule } from "./modules/node/node.module";
 import { PackageModule } from "./modules/package/package.module";
@@ -36,7 +37,7 @@ import { __root } from "./root";
       pg: { connection: "pool", config: { connectionString: env.DATABASE_URL } },
       config: { schema: schemas }
     }),
-    // FlowModule,
+    FlowModule,
     NodeModule,
     SyncModule,
     ConfigModule,

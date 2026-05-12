@@ -33,6 +33,48 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type FlowNodeRef {
+  config: JSONObject
+  nodeId: String!
+  instanceId: String!
+  x: Float!
+  y: Float!
+}
+
+type FlowConnectionIn {
+  instanceId: String!
+  inputId: String!
+}
+
+type FlowConnectionOut {
+  instanceId: String!
+  outputId: String!
+}
+
+type FlowConnection {
+  source: FlowConnectionOut!
+  target: FlowConnectionIn!
+}
+
+type FlowCode {
+  name: String!
+  description: String
+  icon: String
+  author: String
+  nodes: [FlowNodeRef!]!
+  connections: [FlowConnection!]!
+}
+
+type Flow {
+  id: ID!
+  name: String!
+  description: String
+  active: Boolean!
+  code: FlowCode!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type NodeTypeTag {
   nodeTypeId: ID!
   tagId: ID!
@@ -105,6 +147,7 @@ type Node {
 scalar JSONObject
 
 type Query {
+  Flows(take: Int = 1000, skip: Int = 0, where: FlowWhereInput): [Flow!]!
   nodes(take: Int = 1000, skip: Int = 0, where: NodeWhereInput): [Node!]!
   packages(take: Int = 1000, skip: Int = 0, where: PackageWhereInput): [Package!]!
   nodeTypes(take: Int = 1000, skip: Int = 0, where: NodeTypeWhereInput): [NodeType!]!
@@ -112,17 +155,11 @@ type Query {
   tags(take: Int = 1000, skip: Int = 0, where: TagWhereInput): [Tag!]!
 }
 
-input NodeWhereInput {
+input FlowWhereInput {
   id: StringFilterInput
-  nodeId: StringFilterInput
-  packageId: StringFilterInput
   name: StringFilterInput
   description: StringFilterInput
-  docs: StringFilterInput
-  icon: StringFilterInput
-  author: StringFilterInput
-  nodeTypeId: StringFilterInput
-  configId: StringFilterInput
+  active: BooleanFilterInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
 }
@@ -140,6 +177,10 @@ input StringFilterInput {
   lte: String
 }
 
+input BooleanFilterInput {
+  eq: Boolean
+}
+
 input DateTimeFilterInput {
   eq: DateTime
   ne: DateTime
@@ -147,6 +188,21 @@ input DateTimeFilterInput {
   gte: DateTime
   lt: DateTime
   lte: DateTime
+}
+
+input NodeWhereInput {
+  id: StringFilterInput
+  nodeId: StringFilterInput
+  packageId: StringFilterInput
+  name: StringFilterInput
+  description: StringFilterInput
+  docs: StringFilterInput
+  icon: StringFilterInput
+  author: StringFilterInput
+  nodeTypeId: StringFilterInput
+  configId: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
 }
 
 input PackageWhereInput {
