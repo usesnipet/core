@@ -3,7 +3,7 @@ import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 
 import { fileSystemStorageRunner, logRunner, sleepRunner } from "./runners";
-import { schema } from "./schema";
+import schema from "./schema.json";
 
 const pkg = plainToInstance(PackageSchema, schema);
 const errors = validateSync(pkg as any, { whitelist: true, forbidUnknownValues: false });
