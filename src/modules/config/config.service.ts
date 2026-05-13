@@ -15,7 +15,7 @@ import { Config } from "./models/config.model";
 function insertRowFromDto(rest: Omit<CreateConfigDto, "tags">) {
   return {
     ...rest,
-    fieldSchema: rest.fieldSchema ?? {},
+    fieldSchema: rest.fieldSchema ?? [],
   };
 }
 
@@ -157,7 +157,7 @@ export class ConfigService extends BaseService {
                 docs: schema.metadata?.docs ?? row.docs ?? null,
                 icon: schema.metadata?.icon ?? row.icon ?? null,
                 author: schema.metadata?.author ?? row.author ?? null,
-                fieldSchema: schema.fields as Record<string, unknown>,
+                fieldSchema: schema.fields,
                 tags: schema.metadata?.tags,
               }),
             );
@@ -175,7 +175,7 @@ export class ConfigService extends BaseService {
               docs: schema.metadata?.docs ?? null,
               icon: schema.metadata?.icon ?? null,
               author: schema.metadata?.author ?? null,
-              fieldSchema: (schema.fields ?? {}) as Record<string, unknown>,
+              fieldSchema: schema.fields ?? [],
               tags: schema.metadata?.tags,
             }),
           );

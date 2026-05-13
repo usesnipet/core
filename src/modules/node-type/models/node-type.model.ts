@@ -1,9 +1,11 @@
 import { JsonObject } from "@/common/graphql/json-object";
-import type { NodeTypeRow } from "@/db/schema/node-type";
+import { FieldSchema } from "@/core/schemas/field";
+import { NodeTypeComponentSchema } from "@/core/schemas/node-type";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
 import { NodeTypeTag } from "./node-type-tag.model";
 
+import type { NodeTypeRow } from "@/db/schema/node-type";
 @ObjectType()
 export class NodeType {
   @Field(() => ID)
@@ -30,14 +32,14 @@ export class NodeType {
   @Field(() => String, { nullable: true })
   author: string | null;
 
-  @Field(() => JsonObject, { nullable: true })
-  inputs: Record<string, unknown> | null;
+  @Field(() => [JsonObject], { nullable: true })
+  inputs: FieldSchema[];
 
-  @Field(() => JsonObject, { nullable: true })
-  outputs: Record<string, unknown> | null;
+  @Field(() => [JsonObject], { nullable: true })
+  outputs: FieldSchema[];
 
-  @Field(() => JsonObject, { nullable: true })
-  components: Record<string, unknown> | null;
+  @Field(() => [JsonObject], { nullable: true })
+  components: NodeTypeComponentSchema[];
 
   @Field(() => Date)
   createdAt: Date;

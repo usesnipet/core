@@ -1,8 +1,10 @@
+import { FieldSchema } from "@/core/schemas/field";
+import { NodeTypeComponentSchema } from "@/core/schemas/node-type";
 import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
-import type { NodeTypeTagRow } from "./entity-tags";
 import { packageTable } from "./package";
 
+import type { NodeTypeTagRow } from "./entity-tags";
 /**
  * Node type definition: describes the class of node (e.g. “LLM”, “storage”) including port shapes.
  */
@@ -19,9 +21,9 @@ export const nodeType = pgTable(
     docs: text('docs'),
     icon: text('icon'),
     author: text('author'),
-    inputs: jsonb('inputs').$type<Record<string, unknown>>().default({}),
-    outputs: jsonb('outputs').$type<Record<string, unknown>>().default({}),
-    components: jsonb('components').$type<Record<string, unknown>>().default({}),
+    inputs: jsonb('inputs').$type<Array<FieldSchema>>().default([]),
+    outputs: jsonb('outputs').$type<Array<FieldSchema>>().default([]),
+    components: jsonb('components').$type<Array<NodeTypeComponentSchema>>().default([]),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },

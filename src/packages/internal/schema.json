@@ -1,4 +1,5 @@
 {
+  "$schema": "./package.schema.json",
   "id": "internal",
   "version": "1.0.0",
   "metadata": {
@@ -15,19 +16,21 @@
         "name": "Log",
         "description": "Log a message to the console"
       },
-      "inputs": {
-        "message": {
+      "inputs": [
+        {
+          "name": "message",
           "type": "string",
           "description": "The message to log",
           "required": true
         }
-      },
-      "outputs": {
-        "message": {
+      ],
+      "outputs": [
+        {
+          "name": "message",
           "type": "string",
           "description": "The message logged"
         }
-      }
+      ]
     },
     {
       "id": "internal:node-type:sleep",
@@ -35,19 +38,21 @@
         "name": "Sleep",
         "description": "Sleep for a given number of milliseconds"
       },
-      "inputs": {
-        "milliseconds": {
+      "inputs": [
+        {
+          "name": "milliseconds",
           "type": "number",
           "description": "The number of milliseconds to sleep",
           "required": true
         }
-      },
-      "outputs": {
-        "void": {
+      ],
+      "outputs": [
+        {
+          "name": "void",
           "type": "void",
           "description": "A void output"
         }
-      }
+      ]
     },
     {
       "id": "internal:node-type:storage",
@@ -55,24 +60,27 @@
         "name": "Storage",
         "description": "Store data in a storage"
       },
-      "inputs": {
-        "files": {
+      "inputs": [
+        {
+          "name": "files",
           "type": "files",
           "description": "The files to store",
           "required": true
         },
-        "path": {
+        {
+          "name": "path",
           "type": "string",
           "description": "The path to store the files",
           "required": true
         }
-      },
-      "outputs": {
-        "void": {
+      ],
+      "outputs": [
+        {
+          "name": "void",
           "type": "void",
           "description": "A void output"
         }
-      }
+      ]
     }
   ],
   "configs": [
@@ -82,13 +90,14 @@
         "name": "Storage",
         "description": "Storage configuration"
       },
-      "fields": {
-        "basePath": {
+      "fields": [
+        {
+          "name": "basePath",
           "type": "string",
           "description": "The base path to store the files",
           "required": true
         }
-      }
+      ]
     }
   ],
   "nodes": [

@@ -1,9 +1,7 @@
+import { FlowSchema } from "@/core/schemas/flow";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
-import { FlowCode } from "./flow-code.model";
-
 import type { FlowRow } from "@/db/schema/flow";
-
 @ObjectType()
 export class Flow {
   @Field(() => ID)
@@ -18,8 +16,8 @@ export class Flow {
   @Field(() => Boolean)
   active: boolean;
 
-  @Field(() => FlowCode)
-  code: FlowCode;
+  @Field(() => FlowSchema)
+  code: FlowSchema;
 
   @Field(() => Date)
   createdAt: Date;

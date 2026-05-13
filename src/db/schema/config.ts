@@ -1,8 +1,9 @@
+import { FieldSchema } from "@/core/schemas/field";
 import { index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 
-import type { ConfigTagRow } from "./entity-tags";
 import { packageTable } from "./package";
 
+import type { ConfigTagRow } from "./entity-tags";
 /**
  * Config schema definition: field layout and validation for a reusable configuration object.
  */
@@ -28,7 +29,7 @@ export const config = pgTable(
     /** Author of the config. */
     author: text('author'),
     /** Field definitions keyed by field name (shape matches package `Field` schema). */
-    fieldSchema: jsonb('field_schema').notNull().$type<Record<string, unknown>>().default({}),
+    fieldSchema: jsonb('field_schema').notNull().$type<Array<FieldSchema>>().default([]),
     /** Creation time of the config. */
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
     /** Last update time of the config. */

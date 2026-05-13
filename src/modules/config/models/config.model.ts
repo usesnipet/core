@@ -1,8 +1,10 @@
 import { JsonObject } from "@/common/graphql/json-object";
-import type { ConfigRow } from "@/db/schema/config";
+import { FieldSchema } from "@/core/schemas/field";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
 import { ConfigTag } from "./config-tag.model";
+
+import type { ConfigRow } from "@/db/schema/config";
 
 @ObjectType()
 export class Config {
@@ -30,8 +32,8 @@ export class Config {
   @Field(() => String, { nullable: true })
   author: string | null;
 
-  @Field(() => JsonObject)
-  fieldSchema: Record<string, unknown>;
+  @Field(() => [JsonObject], { nullable: true })
+  fieldSchema?: FieldSchema[];
 
   @Field(() => Date)
   createdAt: Date;

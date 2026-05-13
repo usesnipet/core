@@ -3,8 +3,11 @@ import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 
 import { fileSystemStorageRunner, logRunner, sleepRunner } from "./runners";
-import schema from "./schema.json";
+import schemaJson from "./schema.json";
 
+const { $schema: _packageJsonSchema, ...schema } = schemaJson as typeof schemaJson & {
+  $schema?: string;
+};
 const pkg = plainToInstance(PackageSchema, schema);
 const errors = validateSync(pkg as any, { whitelist: true, forbidUnknownValues: false });
 if (errors.length) {

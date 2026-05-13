@@ -22,7 +22,7 @@ type Config {
   docs: String
   icon: String
   author: String
-  fieldSchema: JSONObject!
+  fieldSchema: [JSONObject!]
   createdAt: DateTime!
   updatedAt: DateTime!
   configTags: [ConfigTag!]
@@ -33,36 +33,44 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type FlowNodeRef {
-  config: JSONObject
-  nodeId: String!
+type MetadataSchema {
+  name: String!
+  description: String!
+  docs: String
+  icon: String
+  tags: [String!]
+  author: String
+}
+
+type FlowNodeRefSchema {
   instanceId: String!
+  nodeId: String!
+  config: JSONObject
   x: Float!
   y: Float!
 }
 
-type FlowConnectionIn {
-  instanceId: String!
-  inputId: String!
-}
-
-type FlowConnectionOut {
+type FlowConnectionOutSchema {
   instanceId: String!
   outputId: String!
 }
 
-type FlowConnection {
-  source: FlowConnectionOut!
-  target: FlowConnectionIn!
+type FlowConnectionInSchema {
+  instanceId: String!
+  inputId: String!
 }
 
-type FlowCode {
-  name: String!
-  description: String
-  icon: String
-  author: String
-  nodes: [FlowNodeRef!]!
-  connections: [FlowConnection!]!
+type FlowConnectionSchema {
+  source: FlowConnectionOutSchema!
+  target: FlowConnectionInSchema!
+  active: Boolean!
+}
+
+type FlowSchema {
+  metadata: MetadataSchema!
+  id: String!
+  nodes: [FlowNodeRefSchema!]!
+  connections: [FlowConnectionSchema!]!
 }
 
 type Flow {
@@ -70,7 +78,7 @@ type Flow {
   name: String!
   description: String
   active: Boolean!
-  code: FlowCode!
+  code: FlowSchema!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -90,9 +98,9 @@ type NodeType {
   docs: String
   icon: String
   author: String
-  inputs: JSONObject
-  outputs: JSONObject
-  components: JSONObject
+  inputs: [JSONObject!]
+  outputs: [JSONObject!]
+  components: [JSONObject!]
   createdAt: DateTime!
   updatedAt: DateTime!
   nodeTypeTags: [NodeTypeTag!]
@@ -141,6 +149,38 @@ type Node {
   package: Package
   nodeType: NodeType
   config: Config
+}
+
+type FieldSchema {
+  name: String!
+  type: String!
+  description: String!
+  required: Boolean
+  defaultValue: JSONObject
+  items: JSONObject
+  properties: [JSONObject!]
+  encrypted: Boolean
+}
+
+type ConfigSchema {
+  metadata: MetadataSchema!
+  id: String!
+  fields: [FieldSchema!]
+}
+
+type NodeSchema {
+  metadata: MetadataSchema!
+  id: String!
+  type: String!
+  config: String
+}
+
+type NodeTypeSchema {
+  metadata: MetadataSchema!
+  id: String!
+  inputs: [JSONObject!]
+  outputs: [JSONObject!]
+  components: [JSONObject!]
 }
 
 """Arbitrary JSON object"""

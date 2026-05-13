@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snipet.ai/schemas/package.schema.json",
+  "title": "Snipet package manifest",
+  "description": "Shape of package JSON files loaded as PackageSchema (nodeTypes, configs, nodes).",
+  "type": "object",
+  "required": ["id", "version", "nodeTypes", "configs", "nodes"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for editor validation (optional)."
+    },
+    "id": {
+      "type": "string",
+      "description": "Stable package identifier (e.g. internal)."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the package manifest.",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "nodeTypes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nodeType" }
+    },
+    "configs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/config" }
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "docs": { "type": "string", "description": "Documentation URL." },
+        "icon": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "author": { "type": "string" }
+      }
+    },
+    "fieldSlot": {
+      "type": "object",
+      "description": "Input/output or config field definition. The map key is the field id.",
+      "required": ["type", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "pattern": "^[a-zA-Z0-9]+$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Logical field type (string, number, boolean, void, files, …)."
+        },
+        "description": { "type": "string" },
+        "required": { "type": "boolean" },
+        "defaultValue": true,
+        "items": { "$ref": "#/$defs/fieldSlot" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/fieldSlot" }
+        },
+        "encrypted": { "type": "boolean" }
+      }
+    },
+    "ioMap": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fieldSlot" }
+    },
+    "nodeTypeComponent": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "pattern": "^[a-z0-9]+$"
+        },
+        "type": { "type": "string" },
+        "required": { "type": "boolean" }
+      }
+    },
+    "nodeType": {
+      "type": "object",
+      "required": ["id", "metadata"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/metadata" },
+        "inputs": { "$ref": "#/$defs/ioMap" },
+        "outputs": { "$ref": "#/$defs/ioMap" },
+        "components": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nodeTypeComponent" }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "required": ["id", "metadata"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/metadata" },
+        "fields": { "$ref": "#/$defs/ioMap" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": ["id", "type", "metadata"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "description": "References a node type id." },
+        "config": {
+          "type": "string",
+          "description": "References a config id when the node type requires configuration."
+        },
+        "metadata": { "$ref": "#/$defs/metadata" }
+      }
+    }
+  }
+}
